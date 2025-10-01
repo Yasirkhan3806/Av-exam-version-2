@@ -1,0 +1,108 @@
+import mongoose from 'mongoose';
+
+const userTestSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    userName: { type: String, required: true, unique: true },
+}, {
+    collection: 'Test_User_Data'  // Specify collection name here
+});
+
+export const TestUser = mongoose.model('TestUser', userTestSchema);
+
+
+const userSchema = new mongoose.Schema({
+    firstName: { type: String, required: true },
+    lastName: { type: String, required: true },
+    userName: { type: String, required: true, unique: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+}, {
+    collection: 'User_Data'  // Specify collection name here
+});
+
+export const User = mongoose.model('User', userSchema);
+
+const instructorSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  userName: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  courses: { type: [String], default: [] },
+}, {
+  collection: 'Instructor_Data'  // Specify collection name here
+});
+
+export const Instructor = mongoose.model('Instructor', instructorSchema);
+
+const questionsSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    totalQuestions: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+    pdfName: {
+      type: String,
+      required: true,
+    },
+    pagesData: {
+      type: {},
+      required: true,
+    },
+    description: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    totalAttempt: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+    Instructors: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: 'Instructor_Data',
+      default: [],
+    },
+  },
+  { timestamps: true }
+);
+
+
+
+export const Questions = mongoose.model("Questions", questionsSchema);
+
+
+
+
+const answerSchema = new mongoose.Schema({
+  answers: {
+    type: Map,
+    of: String, // Each key (e.g., 'q1') maps to an answer string
+    required: true,
+  },
+  questionSet: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Questions', // Reference to Questions collection
+    required: true,
+  },
+
+
+  Student: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'TestUser', // Reference to TestUser model
+    required: true,
+  },
+},
+{
+  timestamps: true,
+  collection: 'Answers'
+});
+
+export const Answer = mongoose.model('Answer', answerSchema);
