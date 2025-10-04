@@ -17,6 +17,7 @@ const ExamPage = () => {
   const params = useParams();
   const { examId } = params;
 
+
   const {startExam,reset} = useExamStore();
 
   // useEffect(() => {
@@ -40,6 +41,7 @@ useEffect(() => {
         reset();
     }
 }, []);
+
 
 
   return (

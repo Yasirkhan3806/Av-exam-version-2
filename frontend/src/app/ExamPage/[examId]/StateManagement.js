@@ -8,11 +8,12 @@ const useExamStore = create(
       currentQuestion: 1,
       questionsObj: {},
       answers: {},
+      workbookStates: {}, // Stores workbook data per question (rough work)
       totalQuestions: 0,
       loading: false,
       error: null,
       saving: false,
-      BASEURL: process.env.NEXT_PUBLIC_MODE == "production" ? "https://academicvitality.org/api" : "http://localhost:5000", // Production backend URL
+      BASEURL: process.env.NEXT_PUBLIC_MODE == "production" ? "https://academicvitality.org/api" : "http://localhost:5000",
       totalTime: 0,
       remainingTime: 0,
       startTime: null,
@@ -25,6 +26,7 @@ const useExamStore = create(
           currentQuestion: 1,
           questionsObj: {},
           answers: {},
+          workbookStates: {}, // Clear all rough work when exam ends
           totalQuestions: 0,
           loading: false,
           error: null,
@@ -35,19 +37,53 @@ const useExamStore = create(
           endTime: null,
         });
 
-        // ?? Also clear persisted state from localStorage
         if (window.localStorage) {
           window.localStorage.removeItem("exam-storage");
         }
+      },
+
+      // Save workbook state for a specific question (in-memory only)
+      saveWorkbookState: (questionNumber, workbookData) => {
+        console.log('Saving workbook state for question:', questionNumber, workbookData)
+        set((state) => ({
+          workbookStates: {
+            ...state.workbookStates,
+            [questionNumber]: workbookData
+          }
+        }));
+      },
+
+      // Get workbook state for a specific question
+      getWorkbookState: (questionNumber) => {
+        return get().workbookStates[questionNumber] || null;
+      },
+
+      // Get all workbook states (useful for debugging)
+      getAllWorkbookStates: () => {
+        return get().workbookStates;
+      },
+
+      // Clear workbook state for a specific question
+      clearWorkbookState: (questionNumber) => {
+        set((state) => {
+          const newStates = { ...state.workbookStates };
+          delete newStates[questionNumber];
+          return { workbookStates: newStates };
+        });
+      },
+
+      // Clear all workbook states
+      clearAllWorkbookStates: () => {
+        set({ workbookStates: {} });
       },
 
       fetchExam: async (examId) => {
         set({ loading: true, error: null });
         const { BASEURL } = get();
         try {
-            const response = await fetch(`${BASEURL}/questions/getQuestionById/${examId}`, {
+          const response = await fetch(`${BASEURL}/questions/getQuestionById/${examId}`, {
             credentials: "include"
-            });
+          });
           if (!response.ok) {
             throw new Error("Failed to fetch exam data");
           }
@@ -59,7 +95,8 @@ const useExamStore = create(
             loading: false,
             totalTime: data.time,
             currentQuestion: 1,
-            ExamId: data.docId
+            ExamId: data.docId,
+            workbookStates: {} // Reset workbook states for new exam
           });
         } catch (error) {
           set({ error: error.message, loading: false });
@@ -68,20 +105,19 @@ const useExamStore = create(
 
       startExam: async () => {
         const { BASEURL } = get();
-        // Wait up to 5 seconds for data to load
         let attempts = 0;
-        const maxAttempts = 50; // 50 * 100ms = 5s
+        const maxAttempts = 50;
         const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
         while (attempts < maxAttempts) {
           const { totalTime, totalQuestions } = get();
           if (totalTime > 0 && totalQuestions > 0) {
-            break; // Ready!
+            break;
           }
           attempts++;
           await delay(100);
         }
-        console.log(BASEURL);
+
         const res = await fetch(`${BASEURL}/questions/startExam`, {
           method: "POST",
           headers: {
@@ -96,8 +132,6 @@ const useExamStore = create(
           set({ error: `Failed to start exam. Status: ${res.status}` });
           return;
         }
-        
-
 
         const { totalTime, totalQuestions, startTime, endTime } = get();
 
@@ -150,13 +184,13 @@ const useExamStore = create(
       prevQuestion: () => {
         const { currentQuestion, saveAnswers } = get();
         if (currentQuestion > 1) {
-          saveAnswers(get().ExamId);
+          saveAnswers();
           set({ currentQuestion: currentQuestion - 1 });
         }
       },
 
       goToQuestion: (index) => {
-        const { totalQuestions, saving,saveAnswers } = get();
+        const { totalQuestions, saving, saveAnswers } = get();
         if (index >= 1 && index <= totalQuestions && !saving) {
           saveAnswers();
           set({ currentQuestion: index });
@@ -181,13 +215,17 @@ const useExamStore = create(
       saveAnswers: async () => {
         set({ saving: true, error: null });
         try {
+          // Only send answers to backend, NOT workbook states (rough work)
           const response = await fetch(`${get().BASEURL}/questions/submitAnswers`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
             credentials: "include",
-            body: JSON.stringify({ answers: get().answers, questionSet: get().ExamId }),
+            body: JSON.stringify({ 
+              answers: get().answers,
+              questionSet: get().ExamId 
+            }),
           });
           if (!response.ok) {
             throw new Error("Failed to save answers");
@@ -197,8 +235,9 @@ const useExamStore = create(
           set({ error: error.message, saving: false });
         }
       },
+
       finishExam: async () => {
-        const { saveAnswers,reset,BASEURL } = get();
+        const { saveAnswers, reset, BASEURL } = get();
         set({ saving: true });
         await saveAnswers();
         const res = await fetch(`${BASEURL}/questions/finishExam`, {
@@ -213,17 +252,18 @@ const useExamStore = create(
           set({ error: `Failed to finish exam. Status: ${res.status}`, saving: false });
           return;
         }
+        // This will clear all workbook states (rough work) when exam is finished
         reset();
         set({ saving: false });
       }
     }),
-   {
-    name: "exam-storage",
-    partialize: (state) =>
-      Object.fromEntries(
-        Object.entries(state).filter(([key]) => key !== "BASEURL")
-      ),
-  }
+    {
+      name: "exam-storage",
+      partialize: (state) =>
+        Object.fromEntries(
+          Object.entries(state).filter(([key]) => key !== "BASEURL")
+        ),
+    }
   )
 );
 

@@ -50,7 +50,7 @@ export default function ExamList() {
       const handleStartExam = (examId) => {
     // Close popup and navigate to exam page
     setIsPopupOpen(false);
-    router.push(`/ExamPage/${examId}`);
+    window.location.href = `/ExamPage/${examId}`;
   };
 
     return (
