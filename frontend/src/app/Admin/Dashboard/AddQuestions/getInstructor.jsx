@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useContext} from "react";
-import { BaseUrlContext} from "@/app/BASEURLContext";
+import { BaseUrlContext} from "../../../BASEURLContext";
 
 const GetInstructor = ({ SelectInstructors }) => {
     const [instructors, setInstructors] = useState([]);

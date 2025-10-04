@@ -1,3 +1,4 @@
+"use client"
 import { useEffect, useRef, useState } from 'react'
 import {
   LocaleType,
@@ -267,19 +268,6 @@ export default function PracticeSheet() {
   return (
     <div className="editor-container h-full flex flex-col">
       <div className="flex-1 flex flex-col">
-        <div className="px-3 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-200">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-blue-900">
-              📝 Question {currentQuestion} - Rough Work
-            </h3>
-            <span className="text-xs text-blue-600 bg-white px-2 py-1 rounded-full">
-              {isInitialized ? '✓ Ready' : '⟳ Loading...'}
-            </span>
-          </div>
-          <p className="text-xs text-blue-600 mt-1">
-            Your work is saved automatically as you type
-          </p>
-        </div>
         <div ref={containerRef} className="h-full" style={{ minHeight: '400px' }}></div>
       </div>
     </div>

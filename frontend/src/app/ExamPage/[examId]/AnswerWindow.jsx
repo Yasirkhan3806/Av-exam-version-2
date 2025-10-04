@@ -10,11 +10,13 @@ const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 const Editor = () => {
   const [value, setValue] = useState("");
-  const { setAnswer, setSaving, answers, currentQuestion } = useExamStore((state) => state);
+  const { setAnswer, setSaving, answers, currentQuestion,hydrated } = useExamStore((state) => state);
+
 
   useEffect(() => {
     // Load existing answer when currentQuestion changes
     const existingAnswer = answers[`q${currentQuestion}`] || "";
+    console.log("Loading answer for question", currentQuestion, ":", existingAnswer);
     setValue(existingAnswer);
   }, [currentQuestion, answers]);
 
@@ -32,6 +34,9 @@ const Editor = () => {
 
     return () => clearTimeout(timer);
   }, [value, setAnswer, setSaving]);
+
+  
+  if (!hydrated) return null; // or show loader
 
   const toolbarOptions = [
     [{ font: [] }],

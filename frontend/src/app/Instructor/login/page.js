@@ -2,7 +2,7 @@
 
 import React, { useState,useContext } from 'react';
 import { useRouter } from 'next/navigation';
-import { BaseUrlContext } from '@/app/BASEURLContext';
+import { BaseUrlContext } from '../../BASEURLContext';
 
 const LoginPage = () => {
   const [username, setUsername] = useState('');

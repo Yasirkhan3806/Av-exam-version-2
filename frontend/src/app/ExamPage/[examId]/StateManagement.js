@@ -1,9 +1,13 @@
+"use client"
+
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 const useExamStore = create(
   persist(
     (set, get) => ({
+       hydrated: false, // <— NEW
+      setHydrated: () => set({ hydrated: true }),
       questionName: "",
       currentQuestion: 1,
       questionsObj: {},
@@ -21,6 +25,7 @@ const useExamStore = create(
       ExamId: null,
 
       reset: () => {
+        console.log("Resetting exam state");
         set({
           questionName: "",
           currentQuestion: 1,
@@ -263,6 +268,10 @@ const useExamStore = create(
         Object.fromEntries(
           Object.entries(state).filter(([key]) => key !== "BASEURL")
         ),
+         onRehydrateStorage: () => (state) => {
+        console.log("✅ Zustand rehydrated from localStorage", state);
+        state?.setHydrated();
+         }
     }
   )
 );
