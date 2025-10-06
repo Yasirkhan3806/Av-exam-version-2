@@ -3,7 +3,7 @@ import { Bell, HelpCircle } from 'lucide-react';
 
 export default function Navbar({ isSidebarOpen, toggleSidebar }) {
   return (
-    <header className="bg-white shadow-sm h-16 flex items-center justify-between px-6">
+    <header className="bg-white shadow-sm h-16 flex items-center justify-between px-6 sticky top-0 left-0 right-0 z-10">
       <div className="flex items-center">
         <h1 className="text-lg text-gray-800">Monday, October 6, 2025</h1>
       </div>

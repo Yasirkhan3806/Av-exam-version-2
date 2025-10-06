@@ -16,7 +16,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
     <aside 
       className={`${
         isOpen ? 'w-64' : 'w-16'
-      } bg-white shadow-lg transition-all duration-300 ease-in-out h-full`}
+      } bg-white shadow-lg transition-all duration-300 ease-in-out h-[139vh]`}
     >
       <div className="p-4 border-b border-gray-200 flex items-center justify-between">
         {isOpen && (
