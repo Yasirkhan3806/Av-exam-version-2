@@ -6,7 +6,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
   const [activeItem, setActiveItem] = useState('Dashboard');
 
   const sidebarItems = [
-    { name: 'Dashboard', icon: Home },
+    { name: 'Dashboard', icon: Home, href: '/StudentDashboard' },
     { name: 'My Subjects', icon: BookOpen },
     { name: 'Exams', icon: ClipboardList },
     { name: 'Results', icon: Award }
@@ -57,7 +57,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
           {sidebarItems.map((item) => (
             <a
               key={item.name}
-              href="#"
+              href={item.href || '#'}
               onClick={(e) => {
                 e.preventDefault();
                 setActiveItem(item.name);

@@ -29,7 +29,6 @@ export default function Login() {
     }
   };
 
-	console.log(process.env.NEXT_PUBLIC_MODE);
 
   const validateForm = () => {
     const newErrors = {};
@@ -78,7 +77,7 @@ export default function Login() {
       // ✅ Successful login
       console.log("✅ Login successful:", data);
       setLoginStatus("You are successfully logged in! 🎉");
-      window.location.href = 'https://academicvitality.org/'; // Redirect to home or dashboard
+      window.location.href = `${BASEURL}/StudentDashboard`; // Redirect to home or dashboard
 
     } catch (error) {
       console.error("❌ Login error:", error);
