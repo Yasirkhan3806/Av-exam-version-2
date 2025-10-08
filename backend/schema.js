@@ -106,3 +106,29 @@ const answerSchema = new mongoose.Schema({
 });
 
 export const Answer = mongoose.model('Answer', answerSchema);
+const subjectSchema = new mongoose.Schema({
+  name: { 
+    type: String, 
+    required: true,
+    trim: true
+  },
+  description: { 
+    type: String, 
+    required: true,
+    trim: true
+  },
+  instructor: { 
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Instructor',
+    required: true
+  },
+  courses: { 
+    type: [String],
+    default: []
+  }
+}, {
+  timestamps: true,
+  collection: 'Subject_Data'
+});
+
+export const Subject = mongoose.model('Subject', subjectSchema);

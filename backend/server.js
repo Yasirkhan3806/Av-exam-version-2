@@ -6,6 +6,7 @@ import path from 'path';
 
   import authRouter from './AuthRoutes.js';
   import questionRouter from './QuestionRoutes.js';
+  import SubjectRouter from './SubjectRoutes.js';
 
 const app = express();
 const PORT = 5000;
@@ -50,6 +51,7 @@ app.use((req, res, next) => {
   app.use('/auth', authRouter);
   app.use('/questions', questionRouter);
   app.use("/TestQuestions", express.static(path.join(process.cwd(), "TestQuestions")));
+  app.use('/subjects', SubjectRouter);
 
   // Start server
   app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}/`));
