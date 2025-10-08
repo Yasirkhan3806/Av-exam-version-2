@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 
 async function getSubjects(BASEURL) {
     const res = await fetch(`${BASEURL}/subjects/getAllSubjects`, { cache: 'no-store' });
@@ -34,10 +35,10 @@ export default async function Page() {
                     </div>
                 ) : (
                     subjects.map((s) => (
-                        <div 
-                            key={s._id} 
-                            className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow"
-                        >
+                        <Link href={`Subjects/${s._id}`} key={s._id}>
+                            <div 
+                                className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow"
+                            >
                             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                                 <div className="flex-1">
                                     <h3 className="text-xl font-semibold text-gray-900">{s.name}</h3>
@@ -51,6 +52,7 @@ export default async function Page() {
                                 </div>
                             </div>
                         </div>
+                        </Link>
                     ))
                 )}
             </section>

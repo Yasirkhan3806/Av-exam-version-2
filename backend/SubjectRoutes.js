@@ -44,7 +44,20 @@ router.get('/getAllSubjects', async (req, res) => {
   }
 });
 
+router.get('/getSubject/:id', async (req, res) => {
+  try {
+    const subject = await Subject.findById(req.params.id)
+      .populate('instructor', 'name userName'); // only return these fields
 
+    if (!subject) {
+      return res.status(404).send('Subject not found.');
+    }
 
+    res.status(200).json(subject);
+  } catch (error) {
+    console.error('Error fetching subject:', error);
+    res.status(500).send('Error fetching subject: ' + error.message);
+  }
+});
 
 export default router;
