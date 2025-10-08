@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useContext } from "react";
-import { BaseUrlContext } from "../../../BASEURLContext";
+import { useState } from "react";
 import GetInstructor from "./getInstructor";
 
 export default function AddQuestionsPage() {
@@ -11,7 +10,7 @@ export default function AddQuestionsPage() {
     const [numQuestions, setNumQuestions] = useState(""); // New state
     const [pdfFile, setPdfFile] = useState(null);
     const [log, setLog] = useState("");
-    const BASEURL = useContext(BaseUrlContext);
+    const BASEURL = process.env.NEXT_PUBLIC_BASEURL || 'http://localhost:5000';
     const [instructors, setInstructors] = useState([]);
 
     const handleFileUpload = (e) => {

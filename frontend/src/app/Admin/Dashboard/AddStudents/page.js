@@ -1,7 +1,5 @@
 "use client";
 import React, { useState } from "react";
-import { useContext } from "react";
-import { BaseUrlContext } from "../../../BASEURLContext";
 
 
 export default function AddStudents() {
@@ -13,7 +11,7 @@ export default function AddStudents() {
     });
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
-    const BASEURL = useContext(BaseUrlContext);
+    const BASEURL = process.env.NEXT_PUBLIC_BASEURL || 'http://localhost:5000';
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });

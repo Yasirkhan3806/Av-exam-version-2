@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useEffect, useState, useContext} from "react";
-import { BaseUrlContext} from "../../../BASEURLContext";
+import React, { useEffect, useState } from "react";
 
 const GetInstructor = ({ SelectInstructors }) => {
     const [instructors, setInstructors] = useState([]);
     const [selectedIds, setSelectedIds] = useState([]);
-    const BASEURL = useContext(BaseUrlContext);
+    const BASEURL = process.env.NEXT_PUBLIC_BASEURL || 'http://localhost:5000';
 
     useEffect(() => {
         // Replace with your actual API endpoint

@@ -1,7 +1,6 @@
 "use client"
 
-import React, { useState, useContext } from 'react';
-import { BaseUrlContext } from '../../../BASEURLContext';
+import React, { useState } from 'react';
   
 
 export default function App() {
@@ -14,7 +13,7 @@ export default function App() {
   const [courseInput, setCourseInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const baseUrl = useContext(BaseUrlContext);
+  const baseUrl = process.env.NEXT_PUBLIC_BASEURL || 'http://localhost:5000';
 
   const handleChange = (e) => {
     const { name, value } = e.target;

@@ -1,12 +1,13 @@
 import express from 'express';
 const router = express.Router();
 import { Subject } from './schema.js';
+import { verifyToken } from './middleware.js';
 
 router.get('/', async (req, res) => {
     res.send('Subject routes are under construction.');
 });
 
-router.post('/addSubject', async (req, res) => {
+router.post('/addSubject',verifyToken, async (req, res) => {
     try{
         const { name, description, instructor, courses } = req.body;
         if (!name || !description || !instructor) {
@@ -29,5 +30,21 @@ router.post('/addSubject', async (req, res) => {
         res.status(500).send('Error adding subject: ' + error.message);
     }
 });
+
+
+router.get('/getAllSubjects', async (req, res) => {
+  try {
+    const subjects = await Subject.find()
+      .populate('instructor', 'name userName'); // only return these fields
+
+    res.status(200).json(subjects);
+  } catch (error) {
+    console.error('Error fetching subjects:', error);
+    res.status(500).send('Error fetching subjects: ' + error.message);
+  }
+});
+
+
+
 
 export default router;

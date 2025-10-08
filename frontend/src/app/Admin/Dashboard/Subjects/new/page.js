@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState,useContext, useEffect } from 'react';
-import { BaseUrlContext } from '../../../../BASEURLContext';
+import React, { useState, useEffect } from 'react';
 import fetchInstructors from './fetchInstructorFunc'
 
 /**
@@ -13,7 +12,7 @@ import fetchInstructors from './fetchInstructorFunc'
  */
 
 export default function AddSubject() {
-    const BASEURL = useContext(BaseUrlContext);
+    const BASEURL = process.env.NEXT_PUBLIC_BASEURL || 'http://localhost:5000';
     const [formData, setFormData] = useState({
         name: '',
         description: '',
@@ -85,6 +84,7 @@ export default function AddSubject() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),
+                credentials: 'include' // include cookies for auth
             });
             if (!res.ok) throw new Error(`Request failed: ${res.status}`);
             // setTimeout(() => {}, 1000); // simulate network delay

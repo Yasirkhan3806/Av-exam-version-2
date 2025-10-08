@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState,useContext } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { BaseUrlContext } from '../../BASEURLContext';
 
 const LoginPage = () => {
   const [username, setUsername] = useState('');
@@ -10,7 +9,7 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
-  const baseUrl = useContext(BaseUrlContext) || 'http://localhost:5000';
+  const baseUrl = process.env.NEXT_PUBLIC_BASEURL || 'http://localhost:5000';
 
   const handleSubmit = async (e) => {
     e.preventDefault();

@@ -1,11 +1,10 @@
-'use client';
+ 'use client';
 
-import { useState, useContext } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { BaseUrlContext} from '../BASEURLContext';
 
 export default function AdminLogin() {
-  const BASEURL = useContext(BaseUrlContext);
+  const BASEURL = process.env.NEXT_PUBLIC_BASEURL || 'http://localhost:5000';
   const [formData, setFormData] = useState({
     username: '',
     password: ''

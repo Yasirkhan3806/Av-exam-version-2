@@ -1,66 +1,58 @@
-// /d:/AVExam/frontend/src/app/Admin/Dashboard/Subjects/page.js
-// Basic Next.js App Router page boilerplate for "Subjects"
+import React from 'react';
 
-async function getSubjects() {
-    // Replace this with a real data fetch (e.g. fetch('/api/subjects'))
-    return [
-        { id: 1, name: 'Mathematics', code: 'MATH101', instructor: 'Alice Johnson' },
-        { id: 2, name: 'Physics', code: 'PHYS101', instructor: 'Bob Smith' },
-        { id: 3, name: 'Chemistry', code: 'CHEM101', instructor: 'Carol Lee' },
-    ];
+async function getSubjects(BASEURL) {
+    const res = await fetch(`${BASEURL}/subjects/getAllSubjects`, { cache: 'no-store' });
+    if (!res.ok) {
+        throw new Error('Failed to fetch subjects');
+    }
+    return res.json();
 }
 
 export default async function Page() {
-    const subjects = await getSubjects();
+    const BASEURL = process.env.NEXT_PUBLIC_BASEURL || 'http://localhost:5000';
+    const subjects = await getSubjects(BASEURL);
 
     return (
-        <main style={{ padding: 24, fontFamily: 'system-ui, sans-serif' }}>
-            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <main className="p-6 max-w-4xl mx-auto">
+            <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
                 <div>
-                    <h1 style={{ margin: 0 }}>Subjects</h1>
-                    <p style={{ margin: '4px 0 0', color: '#666' }}>Manage subjects in the dashboard</p>
+                    <h1 className="text-3xl font-bold text-gray-900">Subjects</h1>
+                    <p className="text-gray-600 mt-1">Manage subjects in the dashboard</p>
                 </div>
                 <a
                     href="/Admin/Dashboard/Subjects/new"
-                    style={{
-                        padding: '8px 12px',
-                        background: '#0070f3',
-                        color: 'white',
-                        borderRadius: 6,
-                        textDecoration: 'none',
-                        fontWeight: 600,
-                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
                 >
                     + Add Subject
                 </a>
             </header>
 
-            <section style={{ marginTop: 20 }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <thead>
-                        <tr>
-                            <th style={{ textAlign: 'left', padding: '8px 6px', borderBottom: '1px solid #eee' }}>Code</th>
-                            <th style={{ textAlign: 'left', padding: '8px 6px', borderBottom: '1px solid #eee' }}>Name</th>
-                            <th style={{ textAlign: 'left', padding: '8px 6px', borderBottom: '1px solid #eee' }}>Instructor</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {subjects.map((s) => (
-                            <tr key={s.id}>
-                                <td style={{ padding: '8px 6px', borderBottom: '1px solid #f5f5f5' }}>{s.code}</td>
-                                <td style={{ padding: '8px 6px', borderBottom: '1px solid #f5f5f5' }}>{s.name}</td>
-                                <td style={{ padding: '8px 6px', borderBottom: '1px solid #f5f5f5' }}>{s.instructor}</td>
-                            </tr>
-                        ))}
-                        {subjects.length === 0 && (
-                            <tr>
-                                <td colSpan="3" style={{ padding: 12, color: '#666' }}>
-                                    No subjects found.
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
+            <section className="space-y-4">
+                {subjects.length === 0 ? (
+                    <div className="text-center py-12">
+                        <div className="text-gray-500 text-lg">No subjects found.</div>
+                    </div>
+                ) : (
+                    subjects.map((s) => (
+                        <div 
+                            key={s._id} 
+                            className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow"
+                        >
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                <div className="flex-1">
+                                    <h3 className="text-xl font-semibold text-gray-900">{s.name}</h3>
+                                    {s?.instructor && (
+                                        <div className="mt-2">
+                                            <p className="text-gray-700">
+                                                <span className="font-medium">Instructor:</span> {s.instructor.name} (<span className="text-gray-500 text-sm">{s.instructor.userName}</span>)
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    ))
+                )}
             </section>
         </main>
     );
