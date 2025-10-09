@@ -1,6 +1,6 @@
 import express from 'express';
 const router = express.Router();
-import { Subject } from './schema.js';
+import { Subject,TestUser } from './schema.js';
 import { verifyToken } from './middleware.js';
 
 router.get('/', async (req, res) => {
@@ -57,6 +57,60 @@ router.get('/getSubject/:id', async (req, res) => {
   } catch (error) {
     console.error('Error fetching subject:', error);
     res.status(500).send('Error fetching subject: ' + error.message);
+  }
+});
+
+router.get('/getNotEnrolledStudents/:id', verifyToken, async (req, res) => {
+  try {
+    const subjectId = req.params.id;
+    if (!subjectId) {
+      return res.status(400).send('subjectId is required.');
+    }
+    const enrolledStudents = await TestUser.find({ subjectsEnrolled: subjectId }).select('_id');
+    const enrolledStudentIds = enrolledStudents.map(student => student._id);
+    const notEnrolledStudents = await TestUser.find({ _id: { $nin: enrolledStudentIds } }).select('name userName email');
+    res.status(200).json(notEnrolledStudents);
+  } catch (error) {
+    console.error('Error fetching not enrolled students:', error);
+    res.status(500).send('Error fetching not enrolled students: ' + error.message);
+  }
+});
+
+router.post('/EnrollStudent/:id', verifyToken, async (req, res) => {
+  try {
+    const subjectId = req.params.id;
+    const { studentId } = req.body;
+    if (!studentId) {
+      return res.status(400).send('studentId is required.');
+    }
+   const student = await TestUser.findByIdAndUpdate(
+      studentId,
+      { $addToSet: { subjectsEnrolled: subjectId } }, // addToSet prevents duplicates
+      { new: true }
+   );
+
+   if (!student) {
+      return res.status(404).send('Student not found.');
+   }
+
+   res.status(200).json(student);
+  } catch (error) {
+    console.error('Error enrolling student:', error);
+    res.status(500).send('Error enrolling student: ' + error.message);
+  }
+});
+
+router.get('/getEnrolledStudents/:id', verifyToken, async (req, res) => {
+  try {
+    const subjectId = req.params.id;
+    if (!subjectId) {
+      return res.status(400).send('subjectId is required.');
+    }
+    const enrolledStudents = await TestUser.find({ subjectsEnrolled: subjectId }).select('name userName email');
+    res.status(200).json(enrolledStudents);
+  } catch (error) {
+    console.error('Error fetching enrolled students:', error);
+    res.status(500).send('Error fetching enrolled students: ' + error.message);
   }
 });
 

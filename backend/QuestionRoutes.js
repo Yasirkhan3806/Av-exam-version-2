@@ -54,9 +54,9 @@ router.post(
   upload.single("pdf"),
   async (req, res) => {
     try {
-      const { name, description, totalAttempt, numQuestions, instructors } = req.body;
+      const { name, description, totalAttempt, numQuestions, subjectId } = req.body;
 
-      if (!name || !description || !totalAttempt || !numQuestions || !req.file) {
+      if (!name || !totalAttempt || !numQuestions || !req.file || !subjectId) {
         return res.status(400).json({ error: "All fields are required" });
       }
 
@@ -73,7 +73,7 @@ router.post(
         totalQuestions: numQuestions,
         pdfName: req.file.originalname,
         pagesData,
-        Instructors: JSON.parse(instructors || '[]'),
+        subject: subjectId,
       });
 
       await dataset.save();
@@ -92,18 +92,17 @@ router.post(
 
 
 
-router.get("/getQuestions",verifyToken, async (req, res) => {
+router.get("/getQuestions/:subjectId", verifyToken, async (req, res) => {
   try {
-
-    const questions = await Questions.find();
-    // Map each question to replace 'rows' with its length
-    const modifiedQuestions = questions.map(q => {
-      const { pdfUrl, pdfName, ...rest } = q.toObject();
-      return { ...rest };
-    });
-
-    return res.status(200).json(modifiedQuestions);
-  } catch (err) {
+    const { subjectId } = req.params;
+    if (!subjectId) {
+      return res.status(400).json({ error: "subjectId is required" });
+    }
+    const questions = await Questions.find({ subject: subjectId });
+    console.log('Fetched questions:', questions);
+    return res.status(200).json(questions);
+  }
+  catch (err) {
     return res.status(500).json({ error: err.message || "Internal Server Error" });
   }
 });
@@ -122,6 +121,18 @@ router.get("/getQuestionById/:id",verifyToken, async (req, res) => {
   }
 });
 
+router.delete("/deleteQuestion/:id", verifyToken, async (req, res) => {
+  try {
+    const question = await Questions.findByIdAndDelete(req.params.id);
+    if (!question) {
+      return res.status(404).json({ error: "Question not found" });
+    }
+    return res.status(200).json({ message: "Question deleted successfully" });
+  } catch (err) {
+    return res.status(500).json({ error: err.message || "Internal Server Error" });
+  }
+
+});
 
 router.post("/submitAnswers", verifyExamToken, async (req, res) => {
   try {

@@ -1,25 +1,26 @@
 import mongoose from 'mongoose';
 
 const userTestSchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    userName: { type: String, required: true, unique: true },
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  userName: { type: String, required: true, unique: true },
+  subjectsEnrolled: { type: [mongoose.Schema.Types.ObjectId], ref: 'Subject_Data', default: [] },
 }, {
-    collection: 'Test_User_Data'  // Specify collection name here
+  collection: 'Test_User_Data'  // Specify collection name here
 });
 
 export const TestUser = mongoose.model('TestUser', userTestSchema);
 
 
 const userSchema = new mongoose.Schema({
-    firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
-    userName: { type: String, required: true, unique: true },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
+  firstName: { type: String, required: true },
+  lastName: { type: String, required: true },
+  userName: { type: String, required: true, unique: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
 }, {
-    collection: 'User_Data'  // Specify collection name here
+  collection: 'User_Data'  // Specify collection name here
 });
 
 export const User = mongoose.model('User', userSchema);
@@ -57,19 +58,18 @@ const questionsSchema = new mongoose.Schema(
     },
     description: {
       type: String,
-      required: true,
       trim: true,
+      default: "",
     },
     totalAttempt: {
       type: Number,
       required: true,
       min: 1,
     },
-    Instructors: {
-      type: [mongoose.Schema.Types.ObjectId],
-      ref: 'Instructor_Data',
-      default: [],
-    },
+    subject: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Subject_Data', // Reference to Subject collection
+    }
   },
   { timestamps: true }
 );
@@ -100,29 +100,29 @@ const answerSchema = new mongoose.Schema({
     required: true,
   },
 },
-{
-  timestamps: true,
-  collection: 'Answers'
-});
+  {
+    timestamps: true,
+    collection: 'Answers'
+  });
 
 export const Answer = mongoose.model('Answer', answerSchema);
 const subjectSchema = new mongoose.Schema({
-  name: { 
-    type: String, 
+  name: {
+    type: String,
     required: true,
     trim: true
   },
-  description: { 
-    type: String, 
+  description: {
+    type: String,
     required: true,
     trim: true
   },
-  instructor: { 
+  instructor: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Instructor',
     required: true
   },
-  courses: { 
+  courses: {
     type: [String],
     default: []
   }

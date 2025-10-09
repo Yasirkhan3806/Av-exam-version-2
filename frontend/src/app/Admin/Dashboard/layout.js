@@ -21,9 +21,6 @@ export default async function AdminDashboardLayout({ children }) {
           <Link href="/admin/dashboard" className="block px-3 py-2 rounded-md hover:bg-gray-700">
             Dashboard
           </Link>
-          <Link href="/Admin/Dashboard/AddQuestions" className="block px-3 py-2 rounded-md hover:bg-gray-700">
-            Add Questions
-          </Link>
           <Link href="/Admin/Dashboard/AddStudents" className="block px-3 py-2 rounded-md hover:bg-gray-700">
             Add Student
           </Link>

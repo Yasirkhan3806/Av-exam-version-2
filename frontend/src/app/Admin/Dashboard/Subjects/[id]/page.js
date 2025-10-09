@@ -3,12 +3,18 @@
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { UserPlus, BookOpen, CalendarPlus, ChevronLeft } from 'lucide-react';
+import AddQuestionsPopup from './components/AddQuestions';
+import Exams from './components/Exams';
+import EnrollStudentPopup from './components/EnrollStudentForm';
+import EnrollStudentsList from './components/EnrolledStudents';
 
 const SubjectDetailsPage = () => {
     const { id } = useParams();
     const [subject, setSubject] = useState(null);
     const [loading, setLoading] = useState(true);
     const BaseUrl = process.env.NEXT_PUBLIC_BASEURL || 'http://localhost:5000';
+    const [isPopupOpen, setIsPopupOpen] = useState(false);
+    const [isEnrollPopupOpen, setIsEnrollPopupOpen] = useState(false);
 
     useEffect(() => {
         const fetchSubject = async () => {
@@ -29,15 +35,10 @@ const SubjectDetailsPage = () => {
         }
     }, [id]);
 
-    const handleEnrollStudent = () => {
-        // TODO: Implement student enrollment logic
-        console.log('Enroll student in subject:', subject?._id);
-    };
+    const onEnroll = () => {
+        window.location.reload();
+    }
 
-    const handleAddExams = () => {
-        // TODO: Implement add exams logic
-        console.log('Add exams to subject:', subject?._id);
-    };
 
     if (loading) {
         return (
@@ -50,11 +51,11 @@ const SubjectDetailsPage = () => {
     if (!subject) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
-            <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900 mb-2">Subject Not Found</div>
-                <p className="text-gray-600">The subject you're looking for doesn't exist.</p>
+                <div className="text-center">
+                    <div className="text-2xl font-bold text-gray-900 mb-2">Subject Not Found</div>
+                    <p className="text-gray-600">The subject you're looking for doesn't exist.</p>
+                </div>
             </div>
-        </div>
         );
     }
 
@@ -62,7 +63,7 @@ const SubjectDetailsPage = () => {
         <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto">
                 {/* Back Button */}
-                <button 
+                <button
                     onClick={() => window.history.back()}
                     className="flex items-center text-blue-600 hover:text-blue-800 mb-6 transition-colors"
                 >
@@ -80,19 +81,19 @@ const SubjectDetailsPage = () => {
                             </p>
                         )}
                     </div>
-                    
+
                     {/* Action Buttons */}
                     <div className="p-6 border-b border-gray-200">
                         <div className="flex flex-col sm:flex-row gap-4">
                             <button
-                                onClick={handleEnrollStudent}
+                                onClick={() => setIsEnrollPopupOpen(true)}
                                 className="flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium shadow-md hover:shadow-lg"
                             >
                                 <UserPlus className="w-5 h-5" />
                                 Enroll Student
                             </button>
                             <button
-                                onClick={handleAddExams}
+                                onClick={() => setIsPopupOpen(true)}
                                 className="flex items-center justify-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium shadow-md hover:shadow-lg"
                             >
                                 <CalendarPlus className="w-5 h-5" />
@@ -118,14 +119,14 @@ const SubjectDetailsPage = () => {
                     {/* Additional Info Card */}
                     <div className="bg-white rounded-xl shadow-md p-6">
                         <h2 className="text-xl font-semibold text-gray-900 mb-4">Subject Information</h2>
-                        
+
                         <div className="space-y-4">
                             <div>
                                 <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Courses</h3>
                                 <div className="mt-2 flex flex-wrap gap-2">
                                     {subject.courses && subject.courses.length > 0 ? (
                                         subject.courses.map((course, index) => (
-                                            <span 
+                                            <span
                                                 key={index}
                                                 className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
                                             >
@@ -155,9 +156,27 @@ const SubjectDetailsPage = () => {
                         </div>
                     </div>
                 </div>
+                <Exams subjectId={id} />
+                <br />
+                <EnrollStudentsList subjectId={id} />
+              
             </div>
+            <AddQuestionsPopup
+                isOpen={isPopupOpen}
+                onClose={() => setIsPopupOpen(false)}
+                subjectId={id}
+            />
+            <EnrollStudentPopup
+                isOpen={isEnrollPopupOpen}
+                onClose={() => setIsEnrollPopupOpen(false)}
+                subjectId={id}
+                onEnroll={onEnroll}
+            />
+
         </div>
+
     );
 };
+
 
 export default SubjectDetailsPage;

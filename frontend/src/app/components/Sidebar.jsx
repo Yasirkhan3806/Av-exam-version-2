@@ -1,15 +1,16 @@
 // Sidebar.jsx
-import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { BookOpen, ClipboardList, Award, Home, Menu, X } from 'lucide-react';
+import Link from 'next/link';
 
 export default function Sidebar({ isOpen, toggleSidebar }) {
-  const [activeItem, setActiveItem] = useState('Dashboard');
+  const pathname = usePathname(); // Get current route
 
   const sidebarItems = [
     { name: 'Dashboard', icon: Home, href: '/StudentDashboard' },
-    { name: 'My Subjects', icon: BookOpen },
-    { name: 'Exams', icon: ClipboardList },
-    { name: 'Results', icon: Award }
+    { name: 'My Subjects', icon: BookOpen, href: '/StudentDashboard/MySubjects' },
+    { name: 'Exams', icon: ClipboardList, href: '/StudentDashboard/Exams' },
+    { name: 'Results', icon: Award, href: '/StudentDashboard/Results' }
   ];
 
   return (
@@ -54,24 +55,25 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
         </div>
 
         <nav className="space-y-2">
-          {sidebarItems.map((item) => (
-            <a
-              key={item.name}
-              href={item.href || '#'}
-              onClick={(e) => {
-                e.preventDefault();
-                setActiveItem(item.name);
-              }}
-              className={`flex items-center px-3 py-2 rounded-lg transition-colors ${
-                activeItem === item.name
-                  ? 'bg-indigo-600 text-white' 
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <item.icon className={`w-5 h-5 ${activeItem === item.name ? 'text-white' : 'text-gray-500'}`} />
-              {isOpen && <span className="ml-3">{item.name}</span>}
-            </a>
-          ))}
+          {sidebarItems.map((item) => {
+            // Check if current path matches the item's href
+            const isActive = pathname === item.href;
+            
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={`flex items-center px-3 py-2 rounded-lg transition-colors ${
+                  isActive
+                    ? 'bg-indigo-600 text-white' 
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <item.icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-gray-500'}`} />
+                {isOpen && <span className="ml-3">{item.name}</span>}
+              </Link>
+            );
+          })}
         </nav>
       </div>
     </aside>
