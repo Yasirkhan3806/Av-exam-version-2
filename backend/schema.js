@@ -5,7 +5,7 @@ const userTestSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   userName: { type: String, required: true, unique: true },
-  subjectsEnrolled: { type: [mongoose.Schema.Types.ObjectId], ref: 'Subject_Data', default: [] },
+  subjectsEnrolled: { type: [mongoose.Schema.Types.ObjectId], ref: 'Subject', default: [] },
 }, {
   collection: 'Test_User_Data'  // Specify collection name here
 });

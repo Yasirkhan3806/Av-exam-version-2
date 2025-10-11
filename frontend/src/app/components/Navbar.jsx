@@ -1,11 +1,31 @@
-// Navbar.jsx
+'use client';
+import React from 'react';
 import { Bell, HelpCircle } from 'lucide-react';
+import useSubjectStore from '../StudentDashboard/components/StatesManagement';
+
 
 export default function Navbar({ isSidebarOpen, toggleSidebar }) {
+  const fetchUserInfo = useSubjectStore((state) => state.fetchUserInfo);
+  const [userName, setUserName] = React.useState('John Doe');
+
+  React.useEffect(() => {
+    const userInfo = fetchUserInfo();
+    if (userInfo) {
+      setUserName(userInfo.name);
+    }
+    console.log('User info fetched:', userInfo);
+  }, [fetchUserInfo]);
   return (
     <header className="bg-white shadow-sm h-16 flex items-center justify-between px-6 sticky top-0 left-0 right-0 z-10">
       <div className="flex items-center">
-        <h1 className="text-lg text-gray-800">Monday, October 6, 2025</h1>
+        <h1 className="text-lg text-gray-800">
+          {new Date().toLocaleDateString('en-US', { 
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          })}
+        </h1>
       </div>
 
       <div className="flex items-center space-x-4">

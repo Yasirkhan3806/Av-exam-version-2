@@ -1,28 +1,36 @@
 'use client';
-
+import React from 'react';
 import { BookOpen, ChevronRight } from 'lucide-react';
+import useSubjectStore from './StatesManagement'
 
 export default function MySubjectsSection() {
-  const subjects = [
-    {
-      name: 'Mathematics',
-      progress: 75,
-      nextExam: 'Next exam in 2 days',
-      color: 'bg-blue-500'
-    },
-    {
-      name: 'Physics',
-      progress: 60,
-      nextExam: 'Next exam in 5 days',
-      color: 'bg-green-500'
-    },
-    {
-      name: 'Chemistry',
-      progress: 85,
-      nextExam: 'Next exam in 1 week',
-      color: 'bg-purple-500'
-    }
-  ];
+   const fetchSubjects = useSubjectStore((state) => state.fetchSubjects);
+  const subjects = useSubjectStore((state) => state.subjects);
+
+  React.useEffect(() => {
+    fetchSubjects();
+    console.log('Subjects fetched:', subjects);
+  }, [fetchSubjects]);
+  // const subjects = [
+  //   {
+  //     name: 'Mathematics',
+  //     progress: 75,
+  //     nextExam: 'Next exam in 2 days',
+  //     color: 'bg-blue-500'
+  //   },
+  //   {
+  //     name: 'Physics',
+  //     progress: 60,
+  //     nextExam: 'Next exam in 5 days',
+  //     color: 'bg-green-500'
+  //   },
+  //   {
+  //     name: 'Chemistry',
+  //     progress: 85,
+  //     nextExam: 'Next exam in 1 week',
+  //     color: 'bg-purple-500'
+  //   }
+  // ];
 
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm">

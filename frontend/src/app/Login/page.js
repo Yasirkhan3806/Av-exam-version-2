@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react';
-import useExamStore from '../ExamPage/[examId]/StateManagement';
 
 
 export default function Login() {
@@ -12,7 +11,6 @@ export default function Login() {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [loginStatus, setLoginStatus] = useState(null); // ✅ new state for success message
-  const BASEURL = useExamStore((state) => state.BASEURL);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -55,7 +53,7 @@ export default function Login() {
     setLoginStatus(null); // clear previous status
 
     try {
-      const res = await fetch(`${BASEURL}/auth/login`, {
+      const res = await fetch(`http://localhost:3000/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

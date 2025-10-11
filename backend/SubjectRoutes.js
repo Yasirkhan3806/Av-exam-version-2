@@ -114,4 +114,51 @@ router.get('/getEnrolledStudents/:id', verifyToken, async (req, res) => {
   }
 });
 
+router.delete('/UnenrollStudent/:id', verifyToken, async (req, res) => {
+  try {
+    const subjectId = req.params.id;
+    const { studentId } = req.body;
+    if (!studentId) {
+      return res.status(400).send('studentId is required.');
+    }
+    const student = await TestUser.findByIdAndUpdate(
+      studentId,
+      { $pull: { subjectsEnrolled: subjectId } },
+      { new: true }
+    );
+
+    if (!student) {
+      return res.status(404).send('Student not found.');
+    }
+
+    res.status(200).json(student);
+  } catch (error) {
+    console.error('Error unenrolling student:', error);
+    res.status(500).send('Error unenrolling student: ' + error.message);
+  }
+});
+
+router.get('/getEnrolledSubjects/:id', verifyToken, async (req, res) => {
+  try {
+    const studentId = req.params.id;
+    console.log('Fetching enrolled subjects for studentId:', studentId);
+    if (!studentId) {
+      return res.status(400).send('studentId is required.');
+    }
+    const student = await TestUser.findById(studentId).populate({
+      path: 'subjectsEnrolled',
+      select: 'name description'
+    });
+
+    if (!student) {
+      return res.status(404).send('Student not found.');
+    }
+
+    res.status(200).json(student.subjectsEnrolled);
+  } catch (error) {
+    console.error('Error fetching enrolled subjects:', error);
+    res.status(500).send('Error fetching enrolled subjects: ' + error.message);
+  }
+});
+
 export default router;

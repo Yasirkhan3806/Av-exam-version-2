@@ -103,6 +103,7 @@ router.post("/admin-login", async (req, res) => {
 
 // ✅ Verify JWT
 router.get("/verifySession", verifyToken, (req, res) => {
+  console.log('Verifying session for user:', req.user);
   return res.status(200).json({
     message: "✅ Token valid",
     user: req.user,
