@@ -165,7 +165,8 @@ router.get('/getEnrolledSubjects/:id', verifyToken, async (req, res) => {
 router.get('/getExamsForSubject/:id', verifyToken, async (req, res) => {
   try {
     const subjectId = req.params.id;
-    const userId = req.user.id; // ✅ assuming verifyToken attaches user info to req.user
+    const userId = req.user.userId; // ✅ assuming verifyToken attaches user info to req.user
+    console.log('Fetching exams for subjectId:', subjectId, 'and userId:', userId);
 
     if (!subjectId) {
       return res.status(400).send('subjectId is required.');
