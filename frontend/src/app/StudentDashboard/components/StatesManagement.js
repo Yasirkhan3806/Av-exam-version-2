@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASEURL || 'http://localhost:5000';
 
-// ✅ Centralized API helper
+// === Centralized Fetch Helper ===
 async function fetchJSON(url, options = {}) {
   const res = await fetch(url, {
     headers: { 'Content-Type': 'application/json' },
@@ -14,7 +14,7 @@ async function fetchJSON(url, options = {}) {
   return res.json();
 }
 
-// === Async functions defined outside ===
+// === Async helper functions ===
 async function fetchUserInfo(set) {
   try {
     const data = await fetchJSON(`${BASE_URL}/auth/verifySession`);
@@ -51,14 +51,29 @@ async function fetchSubjects(set, get) {
   }
 }
 
-async function fetchExamsForSubject(set, subjectId) {
+// === ✅ NEW: Fetch exams for a subject (with caching) ===
+async function fetchExamsForSubject(set, get, subjectId) {
+  if (!subjectId) return console.error('fetchExamsForSubject called without subjectId');
+
+  const existing = get().examsBySubject?.[subjectId];
+  if (existing) {
+    // already cached, skip fetch
+    console.log(`Using cached exams for subject ${subjectId}`);
+    return existing;
+  }
+
   set({ loading: true, error: null });
   try {
-    console.log('Fetching exams for subjectId:', subjectId);
     const data = await fetchJSON(`${BASE_URL}/subjects/getExamsForSubject/${subjectId}`);
-    set({ exams: data, loading: false });
+    set((state) => ({
+      examsBySubject: { ...state.examsBySubject, [subjectId]: data },
+      loading: false,
+    }));
+    return data;
   } catch (error) {
+    console.error(`Failed to fetch exams for ${subjectId}:`, error);
     set({ error: error.message, loading: false });
+    return [];
   }
 }
 
@@ -71,7 +86,7 @@ const useSubjectStore = create(
       userId: null,
       loading: false,
       error: null,
-      exams: [],
+      examsBySubject: {}, // ← store exams by subject ID
 
       // === State actions ===
       setSubjects: (subjects) => set({ subjects }),
@@ -86,11 +101,16 @@ const useSubjectStore = create(
       // === Async actions ===
       fetchUserInfo: () => fetchUserInfo(set),
       fetchSubjects: () => fetchSubjects(set, get),
-      fetchExamsForSubject: (subjectId) => fetchExamsForSubject(set, subjectId),
+      fetchExamsForSubject: (subjectId) => fetchExamsForSubject(set, get, subjectId),
     }),
     {
       name: 'subject-storage',
       getStorage: () => localStorage,
+      partialize: (state) => ({
+        subjects: state.subjects,
+        userId: state.userId,
+        examsBySubject: state.examsBySubject,
+      }),
     }
   )
 );

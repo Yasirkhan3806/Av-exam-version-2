@@ -3,7 +3,7 @@
 import React from 'react';
 import { useEffect, useState } from "react";
 import { useRouter } from 'next/navigation';
-import ExamInstructionsPopup from './BeforeExamPopUp';
+import ExamInstructionsPopup from './StudentDashboard/MySubjects/[id]/components/BeforeExamPopUp';
 import useExamStore from './ExamPage/[examId]/StateManagement';
 
 export default function ExamList() {
