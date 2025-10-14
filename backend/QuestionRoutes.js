@@ -54,7 +54,7 @@ router.post(
   upload.single("pdf"),
   async (req, res) => {
     try {
-      const { name, description, totalAttempt, numQuestions, subjectId } = req.body;
+      const { name, description, totalAttempt, numQuestions, subjectId,mockExam,totalMarks } = req.body;
 
       if (!name || !totalAttempt || !numQuestions || !req.file || !subjectId) {
         return res.status(400).json({ error: "All fields are required" });
@@ -74,6 +74,9 @@ router.post(
         pdfName: req.file.originalname,
         pagesData,
         subject: subjectId,
+        mockExam,
+        totalMarks
+
       });
 
       await dataset.save();

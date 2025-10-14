@@ -1,6 +1,7 @@
 import express from 'express';
+import mongoose from 'mongoose';
 const router = express.Router();
-import { Subject,TestUser } from './schema.js';
+import { Subject,TestUser,Questions,Answer } from './schema.js';
 import { verifyToken } from './middleware.js';
 
 router.get('/', async (req, res) => {
@@ -147,7 +148,7 @@ router.get('/getEnrolledSubjects/:id', verifyToken, async (req, res) => {
     }
     const student = await TestUser.findById(studentId).populate({
       path: 'subjectsEnrolled',
-      select: 'name description'
+      select: '_id name description'
     });
 
     if (!student) {
@@ -160,5 +161,66 @@ router.get('/getEnrolledSubjects/:id', verifyToken, async (req, res) => {
     res.status(500).send('Error fetching enrolled subjects: ' + error.message);
   }
 });
+
+router.get('/getExamsForSubject/:id', verifyToken, async (req, res) => {
+  try {
+    const subjectId = req.params.id;
+    const userId = req.user.id; // ✅ assuming verifyToken attaches user info to req.user
+
+    if (!subjectId) {
+      return res.status(400).send('subjectId is required.');
+    }
+
+    const exams = await Questions.aggregate([
+      {
+        $match: { subject: new mongoose.Types.ObjectId(subjectId) }
+      },
+      {
+        $lookup: {
+          from: 'Answers',
+          let: { examId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ['$questionSet', '$$examId'] },
+                    { $eq: ['$Student', new mongoose.Types.ObjectId(userId)] }
+                  ]
+                }
+              }
+            },
+            { $limit: 1 } // only need to know if it exists
+          ],
+          as: 'userAnswer'
+        }
+      },
+      {
+        $addFields: {
+          completed: { $gt: [{ $size: '$userAnswer' }, 0] }
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          questionSetName: '$name',
+          totalQuestions: 1,
+          totalTime: '$totalAttempt',
+          mockExam: 1,
+          description: 1,
+          totalMarks: 1,
+          completed: 1
+        }
+      }
+    ]);
+
+    res.status(200).json(exams);
+  } catch (error) {
+    console.error('Error fetching exams for subject:', error);
+    res.status(500).send('Error fetching exams for subject: ' + error.message);
+  }
+});
+
+
 
 export default router;

@@ -11,6 +11,7 @@ export default function Login() {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [loginStatus, setLoginStatus] = useState(null); // ✅ new state for success message
+  const BASEURL = process.env.NEXT_PUBLIC_BASEURL || 'http://localhost:3000'; // Adjust as needed
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -53,7 +54,7 @@ export default function Login() {
     setLoginStatus(null); // clear previous status
 
     try {
-      const res = await fetch(`http://localhost:3000/auth/login`, {
+      const res = await fetch(`${BASEURL}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -66,6 +67,7 @@ export default function Login() {
       });
 
       const data = await res.json();
+      console.log("Response data:", data);
 
      if (!res.ok || !data.message) {
         setErrors({ general: data.message || "Invalid credentials" });

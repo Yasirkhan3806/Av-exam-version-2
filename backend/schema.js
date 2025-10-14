@@ -69,7 +69,16 @@ const questionsSchema = new mongoose.Schema(
     subject: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Subject_Data', // Reference to Subject collection
-    }
+    },
+
+    mockExam: {
+      type: Boolean,
+      default: false,
+    },
+    totalMarks: {
+      type: Number,
+      required: true,
+    },
   },
   { timestamps: true }
 );

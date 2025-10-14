@@ -55,6 +55,7 @@ router.post("/login", async (req, res) => {
 
     // Set cookie with JWT
     generateTokenAndSetCookie(user, res);
+    console.log("User logged in:", user); 
 
     return res.status(200).json({
       message: "✅ Logged in successfully",

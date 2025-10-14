@@ -7,7 +7,9 @@ export default function AddQuestionsPopup({ isOpen, onClose, subjectId }) {
     const [description, setDescription] = useState("");
     const [totalAttempt, setTotalAttempt] = useState("");
     const [numQuestions, setNumQuestions] = useState("");
+    const [totalMarks, setTotalMarks] = useState(""); // New field for total marks
     const [pdfFile, setPdfFile] = useState(null);
+    const [mockExam, setMockExam] = useState(false);
     const [log, setLog] = useState("");
     const BASEURL = process.env.NEXT_PUBLIC_BASEURL || 'http://localhost:5000';
 
@@ -17,7 +19,9 @@ export default function AddQuestionsPopup({ isOpen, onClose, subjectId }) {
         setDescription("");
         setTotalAttempt("");
         setNumQuestions("");
+        setTotalMarks(""); // Reset total marks
         setPdfFile(null);
+        setMockExam(false);
         setLog("");
         onClose();
     };
@@ -34,8 +38,8 @@ export default function AddQuestionsPopup({ isOpen, onClose, subjectId }) {
     };
 
     const handleSaveToDB = async () => {
-        console.log('Saving to DB with:', { fileName, description, totalAttempt, numQuestions, pdfFile, subjectId });
-        if (!fileName || !totalAttempt || !numQuestions || !pdfFile || !subjectId) {
+        console.log('Saving to DB with:', { fileName, description, totalAttempt, numQuestions, totalMarks, pdfFile, mockExam, subjectId });
+        if (!fileName || !totalAttempt || !numQuestions || !totalMarks || !pdfFile || !subjectId) {
             setLog("⚠️ Please provide all fields and upload a PDF first.");
             return;
         }
@@ -46,7 +50,9 @@ export default function AddQuestionsPopup({ isOpen, onClose, subjectId }) {
             formData.append("description", description);
             formData.append("totalAttempt", totalAttempt);
             formData.append("numQuestions", numQuestions);
+            formData.append("totalMarks", totalMarks); // Add total marks to form data
             formData.append("pdf", pdfFile);
+            formData.append("mockExam", mockExam.toString());
             formData.append("subjectId", subjectId);
 
             setLog("⏳ Uploading and saving to database...");
@@ -125,6 +131,29 @@ export default function AddQuestionsPopup({ isOpen, onClose, subjectId }) {
                         placeholder="Number of questions"
                         className="w-full text-black p-3 border border-blue-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
                     />
+
+                    {/* Input for total marks */}
+                    <input
+                        type="number"
+                        value={totalMarks}
+                        onChange={(e) => setTotalMarks(e.target.value)}
+                        placeholder="Total marks"
+                        className="w-full text-black p-3 border border-blue-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+                    />
+
+                    {/* Mock Exam Checkbox */}
+                    <div className="flex items-center mb-4 p-3 bg-gray-50 rounded-xl border border-gray-200">
+                        <input
+                            type="checkbox"
+                            id="mockExam"
+                            checked={mockExam}
+                            onChange={(e) => setMockExam(e.target.checked)}
+                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                        />
+                        <label htmlFor="mockExam" className="ml-3 text-sm font-medium text-gray-700">
+                            This is a Mock Exam
+                        </label>
+                    </div>
 
                     {/* File input */}
                     <input
