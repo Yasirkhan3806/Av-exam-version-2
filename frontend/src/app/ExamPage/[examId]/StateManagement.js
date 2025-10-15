@@ -2,11 +2,12 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import useSubjectStore from '../../StudentDashboard/components/StatesManagement'
 
 const useExamStore = create(
   persist(
     (set, get) => ({
-       hydrated: false, // <— NEW
+      hydrated: false, // <— NEW
       setHydrated: () => set({ hydrated: true }),
       questionName: "",
       currentQuestion: 1,
@@ -23,9 +24,13 @@ const useExamStore = create(
       startTime: null,
       endTime: null,
       ExamId: null,
+      
 
       reset: () => {
         console.log("Resetting exam state");
+        const subjectStore = useSubjectStore.getState();
+        subjectStore.clearSubjectCache(); // Clear cached exams for current subject
+        // This will clear all workbook states (rough work) when exam is finished
         set({
           questionName: "",
           currentQuestion: 1,
@@ -227,9 +232,9 @@ const useExamStore = create(
               "Content-Type": "application/json",
             },
             credentials: "include",
-            body: JSON.stringify({ 
+            body: JSON.stringify({
               answers: get().answers,
-              questionSet: get().ExamId 
+              questionSet: get().ExamId
             }),
           });
           if (!response.ok) {
@@ -257,7 +262,6 @@ const useExamStore = create(
           set({ error: `Failed to finish exam. Status: ${res.status}`, saving: false });
           return;
         }
-        // This will clear all workbook states (rough work) when exam is finished
         reset();
         set({ saving: false });
       }
@@ -268,10 +272,10 @@ const useExamStore = create(
         Object.fromEntries(
           Object.entries(state).filter(([key]) => key !== "BASEURL")
         ),
-         onRehydrateStorage: () => (state) => {
+      onRehydrateStorage: () => (state) => {
         console.log("✅ Zustand rehydrated from localStorage", state);
         state?.setHydrated();
-         }
+      }
     }
   )
 );

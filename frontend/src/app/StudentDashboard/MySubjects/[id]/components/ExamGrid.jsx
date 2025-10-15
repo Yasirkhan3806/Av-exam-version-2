@@ -6,10 +6,13 @@ import useSubjectStore from '../../../components/StatesManagement';
 import ExamInstructionsPopup from './BeforeExamPopUp'
 
 const ExamGrid = ({ subjectId }) => {
-  const { fetchExamsForSubject, examsBySubject, loading, error } = useSubjectStore();
+  const { fetchExamsForSubject, examsBySubject, loading, error,setCurrentSubject } = useSubjectStore();
       const [selectedExam, setSelectedExam] = useState(null);
     const [isPopupOpen, setIsPopupOpen] = useState(false);
 
+  useEffect(() => {
+    setCurrentSubject(subjectId);
+  }, [subjectId]);
 
     const handleExamClick = (examId, exam) => {
 
@@ -38,11 +41,6 @@ const ExamGrid = ({ subjectId }) => {
       fetchExamsForSubject(subjectId);
     }
   }, [subjectId, examsBySubject, fetchExamsForSubject]);
-
-  const handleReviewResults = (testId) => {
-    console.log(`Reviewing results for test ID: ${testId}`);
-    // Add logic here to navigate to a results page or open a modal
-  };
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">

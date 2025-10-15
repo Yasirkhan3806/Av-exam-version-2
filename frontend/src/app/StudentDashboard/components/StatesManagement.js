@@ -51,13 +51,12 @@ async function fetchSubjects(set, get) {
   }
 }
 
-// === ✅ NEW: Fetch exams for a subject (with caching) ===
+// === Fetch exams for a subject (with caching) ===
 async function fetchExamsForSubject(set, get, subjectId) {
   if (!subjectId) return console.error('fetchExamsForSubject called without subjectId');
 
   const existing = get().examsBySubject?.[subjectId];
   if (existing) {
-    // already cached, skip fetch
     console.log(`Using cached exams for subject ${subjectId}`);
     return existing;
   }
@@ -90,7 +89,10 @@ const useSubjectStore = create(
 
       // === State actions ===
       setSubjects: (subjects) => set({ subjects }),
-      setCurrentSubject: (subject) => set({ currentSubject: subject }),
+      setCurrentSubject: (subject) =>{ 
+        console.log('Setting current subject to:', subject);
+        set({ currentSubject: subject })
+      },
       clearSubjects: () => set({ subjects: [], currentSubject: null }),
       addSubject: (subject) => set((state) => ({ subjects: [...state.subjects, subject] })),
       removeSubject: (subjectId) =>
@@ -102,6 +104,58 @@ const useSubjectStore = create(
       fetchUserInfo: () => fetchUserInfo(set),
       fetchSubjects: () => fetchSubjects(set, get),
       fetchExamsForSubject: (subjectId) => fetchExamsForSubject(set, get, subjectId),
+
+      // === ✅ NEW: Clear cached exams for one subject ===
+      // === ✅ FIXED: Clear cached exams for one or all subjects ===
+      clearSubjectCache: (subjectId = null) => {
+        console.log('clearSubjectCache called with subjectId:', subjectId);
+
+        // If no subjectId provided, try to get from currentSubject
+        if (!subjectId) {
+          const { currentSubject } = get();
+          console.log('No subjectId provided, checking currentSubject:', currentSubject);
+
+          if (!currentSubject) {
+            console.warn('❌ No subject ID provided and no currentSubject set');
+            return;
+          }
+
+          // Handle both object and direct ID cases
+          subjectId = typeof currentSubject === 'object' ? currentSubject.id : currentSubject;
+        }
+
+        if (!subjectId) {
+          console.warn('❌ Could not determine subject ID');
+          return;
+        }
+
+        console.log('✅ Clearing cache for subject ID:', subjectId);
+
+        set((state) => {
+          const updatedExams = { ...state.examsBySubject };
+          const hadCache = subjectId in updatedExams;
+          delete updatedExams[subjectId];
+          console.log(`Cache ${hadCache ? 'existed and was' : 'did not exist, but'} cleared`);
+          console.log('Remaining cached subjects:', Object.keys(updatedExams));
+          return { examsBySubject: updatedExams };
+        });
+
+        // Force persist update in localStorage
+        try {
+          const persisted = JSON.parse(localStorage.getItem('subject-storage'));
+          if (persisted?.state?.examsBySubject) {
+            delete persisted.state.examsBySubject[subjectId];
+            localStorage.setItem('subject-storage', JSON.stringify(persisted));
+            console.log('✅ Successfully updated localStorage');
+          } else {
+            console.log('⚠️ No examsBySubject found in localStorage');
+          }
+        } catch (err) {
+          console.warn('❌ Failed to update localStorage:', err);
+        }
+
+        console.log(`🧹 Cleared cached data for subject ${subjectId}`);
+      },
     }),
     {
       name: 'subject-storage',
@@ -110,6 +164,7 @@ const useSubjectStore = create(
         subjects: state.subjects,
         userId: state.userId,
         examsBySubject: state.examsBySubject,
+        currentSubject: state.currentSubject,
       }),
     }
   )
