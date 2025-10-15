@@ -48,7 +48,7 @@ export default function App() {
   const handleSubmit = async(e) => {
    e.preventDefault();
     setIsSubmitting(true);
-    const response = await fetch(`${baseUrl}/auth/register-instructor`, {
+    const response = await fetch(`${baseUrl}/instructors/register-instructor`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

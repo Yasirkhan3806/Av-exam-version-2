@@ -12,6 +12,21 @@ const colorMap = {
   gray: 'bg-gray-500',
 };
 
+const getGradeFromProgress = (progress) => {
+  if (progress >= 90) return 'A+';
+  if (progress >= 85) return 'A';
+  if (progress >= 80) return 'A-';
+  if (progress >= 75) return 'B+';
+  if (progress >= 70) return 'B';
+  if (progress >= 65) return 'B-';
+  if (progress >= 60) return 'C+';
+  if (progress >= 55) return 'C';
+  if (progress >= 50) return 'C-';
+  if (progress >= 45) return 'D+';
+  if (progress >= 40) return 'D';
+  return 'F';
+};
+
 const SubjectCard = ({ subject }) => {
   const { fetchExamsForSubject, examsBySubject, loading } = useSubjectStore();
 
@@ -35,6 +50,8 @@ const SubjectCard = ({ subject }) => {
     return { total, completed, mockCount, progress };
   }, [exams]);
 
+  const calculatedGrade = getGradeFromProgress(progress);
+
   const progressColor =
     progress >= 80 ? 'bg-green-500' :
     progress >= 60 ? 'bg-blue-500' :
@@ -49,8 +66,8 @@ const SubjectCard = ({ subject }) => {
           <div className={`w-4 h-4 rounded-full ${colorMap[subject.color] || 'bg-gray-500'}`}></div>
           <h3 className="text-xl font-semibold text-gray-900">{subject.name}</h3>
         </div>
-        <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium">
-          Grade: {subject.grade}
+        <span className="px-3 py-2 bg-gray-100 text-gray-800 rounded-full text-xs font-medium w-[40%]">
+          Grade: {loading ? '...' : calculatedGrade}
         </span>
       </div>
 

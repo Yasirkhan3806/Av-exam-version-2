@@ -13,7 +13,6 @@ import { JWT_SECRET } from "./middleware.js";
 
 async function splitPDF(inputPath, originalName, name) {
   try {
-    console.log('Splitting PDF:', inputPath);
     const pdfBuffer = await fs.readFile(inputPath);
     const pdfDoc = await PDFDocument.load(pdfBuffer);
     const pageCount = pdfDoc.getPageCount();
@@ -102,7 +101,6 @@ router.get("/getQuestions/:subjectId", verifyToken, async (req, res) => {
       return res.status(400).json({ error: "subjectId is required" });
     }
     const questions = await Questions.find({ subject: subjectId });
-    console.log('Fetched questions:', questions);
     return res.status(200).json(questions);
   }
   catch (err) {

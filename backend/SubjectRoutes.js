@@ -142,7 +142,6 @@ router.delete('/UnenrollStudent/:id', verifyToken, async (req, res) => {
 router.get('/getEnrolledSubjects/:id', verifyToken, async (req, res) => {
   try {
     const studentId = req.params.id;
-    console.log('Fetching enrolled subjects for studentId:', studentId);
     if (!studentId) {
       return res.status(400).send('studentId is required.');
     }
@@ -166,7 +165,6 @@ router.get('/getExamsForSubject/:id', verifyToken, async (req, res) => {
   try {
     const subjectId = req.params.id;
     const userId = req.user.userId; // ✅ assuming verifyToken attaches user info to req.user
-    console.log('Fetching exams for subjectId:', subjectId, 'and userId:', userId);
 
     if (!subjectId) {
       return res.status(400).send('subjectId is required.');

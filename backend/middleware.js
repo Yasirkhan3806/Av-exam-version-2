@@ -6,11 +6,12 @@ import fs from 'fs';
 
 export const JWT_SECRET = '08d8d60667a5fceba29530f0de6529ff6ef1aa529c935a579579b63298feeb4c1463a53a4531952c2f2098674bc535f64ef40c523bcb8fa028336239f41e6fa6'
 const generateTokenAndSetCookie = (user, res, tokenName = 'token') => {
+
     // Create JWT token with user ID
     const token = jwt.sign(
         { userId: user._id,
             email: user.email,
-            userName : user.userName
+            userName : user.name
          },
         JWT_SECRET,
         { expiresIn: '3d' } // Token expires in 3 days
@@ -23,7 +24,6 @@ const generateTokenAndSetCookie = (user, res, tokenName = 'token') => {
         sameSite: 'strict',       // CSRF protection
         maxAge: 3 * 24 * 60 * 60 * 1000 // 3 days in milliseconds
     });
-    console.log("Token generated and set in cookie");
 
     return token;
 };

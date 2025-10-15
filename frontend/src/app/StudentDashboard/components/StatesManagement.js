@@ -19,7 +19,7 @@ async function fetchUserInfo(set) {
   try {
     const data = await fetchJSON(`${BASE_URL}/auth/verifySession`);
     console.log('Fetched user info:', data);
-    set({ userId: data.user.userId });
+    set({ userId: data.user.userId, userInfo: data.user });
     return data.user;
   } catch (error) {
     console.error('Failed to fetch user info:', error);
@@ -86,6 +86,7 @@ const useSubjectStore = create(
       loading: false,
       error: null,
       examsBySubject: {}, // ← store exams by subject ID
+      userInfo: null,
 
       // === State actions ===
       setSubjects: (subjects) => set({ subjects }),
@@ -165,6 +166,7 @@ const useSubjectStore = create(
         userId: state.userId,
         examsBySubject: state.examsBySubject,
         currentSubject: state.currentSubject,
+        userInfo: state.userInfo,
       }),
     }
   )

@@ -17,7 +17,7 @@ const LoginPage = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${baseUrl}/auth/instructor-login`, {
+      const response = await fetch(`${baseUrl}/instructors/instructor-login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
