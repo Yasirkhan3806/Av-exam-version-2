@@ -1,12 +1,12 @@
 import express from "express";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
-import { Instructor,Subject,TestUser,Questions,Answer} from "./schema.js";
-import { generateTokenAndSetCookie, verifyToken } from "./middleware.js";
+import { Instructor, Subject, TestUser } from "./schema.js";
+import { generateTokenAndSetCookie, verifyInstructorToken ,verifyToken} from "./middleware.js";
 
 const router = express.Router();
 
-router.post('/register-instructor',verifyToken, async (req, res) => {
+router.post('/register-instructor', verifyToken, async (req, res) => {
   try {
     const { name, userName, courses, password } = req.body;
     if (!name || !userName || !courses || !password) {
@@ -31,7 +31,7 @@ router.post('/register-instructor',verifyToken, async (req, res) => {
   }
 });
 
-router.get('/get-instructors', verifyToken, async (req, res) => {
+router.get('/get-instructors', verifyInstructorToken, async (req, res) => {
   try {
     const instructors = await Instructor.find({}, 'doc_id name userName courses');
     return res.status(200).json({
@@ -72,131 +72,60 @@ router.post('/instructor-login', async (req, res) => {
   }
 });
 
-/**
- * GET /api/instructor/dashboard/:instructorId
- * Fetches all examination data for instructor dashboard
- */
-
-
-router.get('/getAllSubjects/:instructorId', verifyToken, async (req, res) => {
+router.get("/getAllSubjects/:instructorId", verifyInstructorToken, async (req, res) => {
   try {
     const { instructorId } = req.params;
+
     if (!mongoose.Types.ObjectId.isValid(instructorId)) {
       return res.status(400).json({ message: "Invalid instructor ID" });
     }
 
-    const subjects = await Subject.find({ instructor: instructorId });
+    // Use aggregation to join Subject with TestUserData
+    const subjects = await Subject.aggregate([
+      // 1️⃣ Match subjects taught by the instructor
+      { $match: { instructor: new mongoose.Types.ObjectId(instructorId) } },
+
+      // 2️⃣ Lookup users that have this subject ID in their 'subjects' array
+      {
+        $lookup: {
+          from: "Test_User_Data", // collection name (plural, lowercase!)
+          localField: "_id",
+          foreignField: "subjectsEnrolled",
+          as: "enrolledStudents",
+        },
+      },
+
+      // 3️⃣ Add a field with the count of enrolled students
+      {
+        $addFields: {
+          studentCount: { $size: "$enrolledStudents" },
+        },
+      },
+
+      // 4️⃣ Optionally, you can hide the 'enrolledStudents' array if you just need the count
+      {
+        $project: {
+          enrolledStudents: 0,
+        },
+      },
+    ]);
+
     return res.status(200).json({
       message: "✅ Subjects fetched successfully",
-        success: true,
-        subjects,
+      success: true,
+      subjects,
     });
-
-    } catch (e) {
-        console.error(e);
-        return res.status(500).json({ message: "Server error", error: e.message });
-    }
+  } catch (e) {
+    console.error("❌ Error fetching subjects:", e);
+    return res.status(500).json({ message: "Server error", error: e.message });
+  }
 });
-// router.get('/dashboard/:instructorId', async (req, res) => {
-//   try {
-//     const { instructorId } = req.params;
 
-//     // Validate instructor ID
-//     if (!mongoose.Types.ObjectId.isValid(instructorId)) {
-//       return res.status(400).json({ 
-//         success: false, 
-//         message: 'Invalid instructor ID' 
-//       });
-//     }
-
-//     // Find instructor
-//     const instructor = await Instructor.findById(instructorId);
-//     if (!instructor) {
-//       return res.status(404).json({ 
-//         success: false, 
-//         message: 'Instructor not found' 
-//       });
-//     }
-
-//     // Find all subjects taught by this instructor
-//     const subjects = await Subject.find({ instructor: instructorId });
-//     const subjectIds = subjects.map(s => s._id);
-
-//     // Find all question sets (exams) for these subjects
-//     const questionSets = await Questions.find({ 
-//       subject: { $in: subjectIds } 
-//     }).populate('subject', 'name');
-
-//     // Build dashboard data for each exam
-//     const dashboardData = await Promise.all(
-//       questionSets.map(async (exam) => {
-//         // Count total students enrolled in this subject
-//         const totalStudents = await TestUser.countDocuments({
-//           subjectsEnrolled: exam.subject._id
-//         });
-
-//         // Count submissions for this exam
-//         const submissionsCount = await Answer.countDocuments({
-//           questionSet: exam._id
-//         });
-
-//         // Calculate submission percentage
-//         const submissionPercentage = totalStudents > 0 
-//           ? Math.round((submissionsCount / totalStudents) * 100) 
-//           : 0;
-
-//         // Determine status based on current date and exam attempts
-//         const isCompleted = submissionsCount >= totalStudents || 
-//                            (exam.totalAttempt > 0 && submissionsCount > 0);
-        
-//         const status = isCompleted ? 'completed' : 'active';
-
-//         return {
-//           id: exam._id,
-//           title: exam.name,
-//           subject: exam.subject?.name || 'N/A',
-//           status: status,
-//           date: exam.createdAt.toLocaleDateString('en-US', { 
-//             year: 'numeric', 
-//             month: 'long', 
-//             day: 'numeric' 
-//           }),
-//           duration: `${exam.totalAttempt} attempt${exam.totalAttempt > 1 ? 's' : ''}`,
-//           submissions: `${submissionsCount}/${totalStudents} submitted (${submissionPercentage}%)`,
-//           questions: `${exam.totalQuestions} question${exam.totalQuestions > 1 ? 's' : ''}`,
-//           progress: submissionPercentage,
-//           totalMarks: exam.totalMarks,
-//           description: exam.description,
-//           mockExam: exam.mockExam,
-//           pdfName: exam.pdfName
-//         };
-//       })
-//     );
-
-//     // Sort by date (most recent first)
-//     dashboardData.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-//     return res.status(200).json({
-//       success: true,
-//       instructor: {
-//         id: instructor._id,
-//         name: instructor.name,
-//         userName: instructor.userName,
-//         courses: instructor.courses
-//       },
-//       totalExams: dashboardData.length,
-//       Subjects: dashboardData
-//     });
-
-//   } catch (error) {
-//     console.error('Error fetching instructor dashboard:', error);
-//     return res.status(500).json({
-//       success: false,
-//       message: 'Server error',
-//       error: error.message
-//     });
-//   }
-// });
-
+router.get("/verifyInstructorSession", verifyInstructorToken, (req, res) => {
+  return res.status(200).json({
+    message: "✅ Token valid",
+    instructor: req.instructor,
+  });
+});
 
 export default router;

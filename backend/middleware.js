@@ -117,6 +117,46 @@ const verifyExamToken = (req, res, next) => {
   }
 };
 
+
+export const verifyInstructorToken = (req, res, next) => {
+  try {
+    let token;
+
+    // Check cookie first
+    if (req.cookies && req.cookies.instructorToken) {
+      token = req.cookies.instructorToken;
+    }
+
+    // Fallback: raw Cookie header parse
+    if (!token && req.headers.cookie) {
+      const cookieHeader = req.headers.cookie
+        .split(";")
+        .map((c) => c.trim())
+        .find((c) => c.startsWith("instructorToken="));
+      if (cookieHeader) {
+        token = cookieHeader.split("=")[1];
+      }
+    }
+
+    if (!token) {
+      return res.status(401).json({ error: "No instructorToken provided" });
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.instructor = decoded; // attach decoded instructor payload
+    next();
+  } catch (err) {
+    if (err.name === "TokenExpiredError") {
+      return res.status(401).json({ error: "Instructor token has expired" });
+    }
+    if (err.name === "JsonWebTokenError") {
+      return res.status(401).json({ error: "Invalid instructor token" });
+    }
+    return res.status(401).json({ error: "Invalid or expired instructorToken" });
+  }
+};
+
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const dir = `TestQuestions/${req.body.name}`;

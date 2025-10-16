@@ -31,7 +31,7 @@ async function fetchUserInfo(set) {
 async function fetchSubjects(set, get) {
   set({ loading: true, error: null });
   try {
-    const userId = get().userId || (await fetchUserInfo(set));
+    const userId = await get().userId || (await fetchUserInfo(set))._id;
     if (!userId) throw new Error('User ID not available');
 
     const data = await fetchJSON(`${BASE_URL}/subjects/getEnrolledSubjects/${userId}`);

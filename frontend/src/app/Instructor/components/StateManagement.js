@@ -1,4 +1,4 @@
-import create from 'zustand';
+import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 
@@ -14,47 +14,65 @@ async function fetchJSON(url, options = {}) {
   if (!res.ok) throw new Error(`Request failed: ${res.status}`);
   return res.json();
 }
+// === Async helper functions ===
+async function fetchUserInfo(set) {
+  try {
+    const data = await fetchJSON(`${BASE_URL}/instructors/verifyInstructorSession`);
+    console.log('Fetched Instructor info:', data);
+    set({ instructorId: data.instructor.userId, instructorInfo: data.instructor });
+    return data.instructor;
+  } catch (error) {
+    console.error('Failed to fetch instructor info:', error);
+    set({ error: error.message });
+    return null;
+  }
+}
 
-const fetchSubjects = async (set,instructorId) => {
-try {
-    const data = await fetchJSON(`${BASE_URL}/instructor/getAllSubjects/${instructorId}`);
-    set({ subjects: data });
+const fetchSubjects = async (set,get) => {
+  try {
+    const instructorId = await get().instructorId || (await fetchUserInfo(set)).userId;
+    const data = await fetchJSON(`${BASE_URL}/instructors/getAllSubjects/${instructorId}`);
+    set({ subjects: data.subjects });
   } catch (error) {
     console.error('Failed to fetch subjects:', error);
     throw error;
-  } 
+  }
 }
 
 
 const useInstructorStore = create(
-    persist(
-        (set) => ({
-            // State
-            examQuestions: [],
-            currentQuestion: null,
-            loading: false,
-            error: null,
-            subjects: [],
+  persist(
+    (set,get) => ({
+      // State
+      examQuestions: [],
+      currentQuestion: null,
+      loading: false,
+      error: null,
+      subjects: [],
+      instructorId: null,
+      instructorInfo: null,
 
-            // Actions
-            setExamQuestions: (questions) => set({ examQuestions: questions }),
-            setCurrentQuestion: (question) => set({ currentQuestion: question }),
-            setLoading: (status) => set({ loading: status }),
-            setError: (error) => set({ error: error }),
+      // Actions
+      setExamQuestions: (questions) => set({ examQuestions: questions }),
+      setCurrentQuestion: (question) => set({ currentQuestion: question }),
+      setLoading: (status) => set({ loading: status }),
+      setError: (error) => set({ error: error }),
+      fetchSubjects: () => fetchSubjects(set,get),
+      fetchUserInfo: () => fetchUserInfo(set),
 
-            // Reset store
-            reset: () => set({
-                examQuestions: [],
-                currentQuestion: null,
-                loading: false,
-                error: null
-            })
-        }),
-        {
-            name: 'instructor-storage', // unique name for localStorage key
-            getStorage: () => localStorage, // (optional) by default, 'localStorage' is used
-        }
-    )
+      // Reset store
+      reset: () => set({
+        examQuestions: [],
+        currentQuestion: null,
+        loading: false,
+        error: null
+      })
+    }),
+    {
+      name: 'instructor-storage', // unique name for localStorage key
+      getStorage: () => localStorage, // (optional) by default, 'localStorage' is used
+    }
+  )
 );
 
 export default useInstructorStore;
