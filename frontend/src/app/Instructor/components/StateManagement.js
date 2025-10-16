@@ -39,6 +39,26 @@ const fetchSubjects = async (set,get) => {
   }
 }
 
+const fetchExams = async (set,get,subjectId) => {
+  try {
+    const data = await fetchJSON(`${BASE_URL}/instructors/getExamsBySubject/${subjectId}`);
+    set({ exams: data.exams });
+  } catch (error) {
+    console.error('Failed to fetch exams:', error);
+    throw error;
+  }
+}
+
+const fetchSubmissions = async (set,get,questionId) => {
+  try {
+    const data = await fetchJSON(`${BASE_URL}/instructors/getSubmissions/${questionId}`);
+    console.log('Fetched submissions:', data);
+    set({ submissions: data.submissions });
+  } catch (error) {
+    console.error('Failed to fetch submissions:', error);
+    throw error;
+  }
+}
 
 const useInstructorStore = create(
   persist(
@@ -51,6 +71,8 @@ const useInstructorStore = create(
       subjects: [],
       instructorId: null,
       instructorInfo: null,
+      exams: [],
+      submissions: [],
 
       // Actions
       setExamQuestions: (questions) => set({ examQuestions: questions }),
@@ -59,6 +81,8 @@ const useInstructorStore = create(
       setError: (error) => set({ error: error }),
       fetchSubjects: () => fetchSubjects(set,get),
       fetchUserInfo: () => fetchUserInfo(set),
+      fetchExams: (subjectId) => fetchExams(set,get,subjectId),
+      fetchSubmissions: (questionId) => fetchSubmissions(set,get,questionId),
 
       // Reset store
       reset: () => set({

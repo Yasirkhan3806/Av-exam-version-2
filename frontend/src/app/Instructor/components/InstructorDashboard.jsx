@@ -11,86 +11,28 @@ const InstructorDashboard = () => {
   useEffect(() => {
     fetchSubjects();
   }, [fetchSubjects]);
-  console.log('Fetched Subjects:', subjects);
-  const exams = [
-    {
-      id: 1,
-      title: "Calculus I - Midterm Examination",
-      subject: "Mathematics",
-      status: "completed",
-      date: "March 15, 2024",
-      duration: "2 hours",
-      submissions: "28/30 submitted (93%)",
-      questions: "25 questions",
-      progress: 93
-    },
-    {
-      id: 2,
-      title: "Data Structures and Algorithms",
-      subject: "Computer Science",
-      status: "active",
-      date: "March 20, 2024",
-      duration: "1.5 hours",
-      submissions: "15/25 submitted (60%)",
-      questions: "20 questions",
-      progress: 60
-    },
-    {
-      id: 3,
-      title: "Introduction to Psychology",
-      subject: "Psychology",
-      status: "draft",
-      date: "March 25, 2024",
-      duration: "90 minutes",
-      submissions: "0/22 submitted (0%)",
-      questions: "30 questions",
-      progress: 0
-    }
-  ];
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'completed':
-        return 'bg-green-100 text-green-800';
-      case 'active':
-        return 'bg-blue-100 text-blue-800';
-      case 'draft':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
+  
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center space-x-3">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7M5 21h14" />
-          </svg>
-          <div>
-            <h1 className="text-lg font-semibold text-gray-800">Instructor Dashboard</h1>
-            <p className="text-sm text-gray-500">Manage your examinations and review student submissions</p>
-          </div>
-        </div>
-      </header>
+    
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8">
         {/* Section Header */}
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h2 className="text-xl font-bold text-gray-800">My Examinations</h2>
-            <p className="text-sm text-gray-500 mt-1">Select an exam to view student submissions</p>
+            <h2 className="text-xl font-bold text-gray-800">My Subjects</h2>
+            <p className="text-sm text-gray-500 mt-1">Select a subject to view details</p>
           </div>
           <div className="bg-gray-100 rounded-full px-4 py-1 text-sm font-medium text-gray-700">
-            {exams.length} exams
+            {subjects.length} subject(s)
           </div>
         </div>
 
-        {/* Exams Grid */}
-        <InstructorSubjectCard subjects={subjects} getStatusColor={getStatusColor} />
+        {/* subjects Grid */}
+        <InstructorSubjectCard subjects={subjects} />
       </main>
     </div>
   );

@@ -1,6 +1,16 @@
-import React from 'react';
+"use client";
+import React,{useEffect} from 'react';
+import useInstructorStore from './StateManagement';
 
-const StudentSubmissions = () => {
+const StudentSubmissions = ({questionId}) => {
+  const {fetchSubmissions, submissions} = useInstructorStore((state)=> state);
+
+  useEffect(() => { 
+    fetchSubmissions(questionId);
+  }, [fetchSubmissions]);
+  console.log(submissions);
+
+
   const examInfo = {
     title: "Calculus I - Midterm Examination",
     subject: "Mathematics",
@@ -109,7 +119,7 @@ const StudentSubmissions = () => {
 
         {/* Students Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {students.map((student) => (
+          {submissions.map((student) => (
             <div 
               key={student.id} 
               className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-200"
@@ -121,7 +131,6 @@ const StudentSubmissions = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-800">{student.name}</h3>
-                    <p className="text-xs text-gray-500">ID: {student.studentId}</p>
                     <p className="text-xs text-gray-500">{student.email}</p>
                   </div>
                 </div>
@@ -142,7 +151,6 @@ const StudentSubmissions = () => {
                 </div>
                 <div className="flex justify-between text-sm text-gray-600">
                   <span>{student.answered}</span>
-                  <span>Time: {student.timeTaken}</span>
                 </div>
                 <div className="text-sm font-medium text-gray-800">
                   Score: {student.score}

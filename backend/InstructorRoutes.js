@@ -1,8 +1,8 @@
 import express from "express";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
-import { Instructor, Subject, TestUser } from "./schema.js";
-import { generateTokenAndSetCookie, verifyInstructorToken ,verifyToken} from "./middleware.js";
+import { Instructor, Subject, TestUser, Questions, Answer } from "./schema.js";
+import { generateTokenAndSetCookie, verifyInstructorToken, verifyToken } from "./middleware.js";
 
 const router = express.Router();
 
@@ -128,4 +128,137 @@ router.get("/verifyInstructorSession", verifyInstructorToken, (req, res) => {
   });
 });
 
+router.get("/getExamsBySubject/:subjectId", verifyInstructorToken, async (req, res) => {
+  try {
+    const { subjectId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(subjectId)) {
+      return res.status(400).json({ message: "Invalid subject ID" });
+    }
+
+    // 1️⃣ Fetch subject info
+    const subject = await Subject.findById(subjectId);
+    if (!subject) {
+      return res.status(404).json({ message: "Subject not found" });
+    }
+
+    // 2️⃣ Count total students enrolled in this subject
+    const totalStudents = await TestUser.countDocuments({ subjectsEnrolled: subjectId });
+
+    // 3️⃣ Fetch all exams/questions for this subject
+    const exams = await Questions.find({ subject: subjectId }).sort({ createdAt: -1 });
+
+    // 4️⃣ For each exam, count submissions from Answers collection
+    const results = await Promise.all(
+      exams.map(async (exam) => {
+        const submittedCount = await Answer.countDocuments({ questionSet: exam._id });
+
+        // Compute submission %
+        const percent =
+          totalStudents > 0 ? Math.round((submittedCount / totalStudents) * 100) : 0;
+
+        return {
+          id: exam._id,
+          title: exam.name,
+          subject: subject.name,
+          status: exam.mockExam ? "mock" : "draft", // customize if you have real statuses
+          date: exam.createdAt.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          }),
+          duration: `${exam.totalAttempt} minutes`, // customize based on real logic
+          submissions: `${submittedCount}/${totalStudents} submitted (${percent}%)`,
+          progress: percent,
+          questions: `${exam.totalQuestions} questions`,
+        };
+      })
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "✅ Exams fetched successfully",
+      exams: results,
+    });
+  } catch (error) {
+    console.error("❌ Error fetching exams:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+});
+
+router.get("/getSubmissions/:questionId", verifyInstructorToken, async (req, res) => {
+  try {
+    const { questionId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(questionId)) {
+      return res.status(400).json({ message: "Invalid question ID" });
+    }
+
+    // 1️⃣ Fetch the question details
+    const question = await Questions.findById(questionId);
+    if (!question) {
+      return res.status(404).json({ message: "Question not found" });
+    }
+
+    const totalQuestions = question.totalQuestions;
+
+    // 2️⃣ Fetch all submissions for this question
+    const submissions = await Answer.find({ questionSet: questionId })
+      .populate("Student", "name email") // from TestUser
+      .sort({ createdAt: -1 });
+
+    if (!submissions.length) {
+      return res.status(200).json({
+        success: true,
+        message: "No submissions found for this question",
+        submissions: [],
+      });
+    }
+
+    // 3️⃣ Map and format response
+    const formatted = submissions.map((sub, index) => {
+      const student = sub.Student || {};
+      const answeredCount = sub.answers ? sub.answers.size : 0;
+      console.log(sub.answers.size);
+
+      return {
+        id: index + 1,
+        name: student.name || "Unknown Student",
+        email: student.email || "N/A",
+        status: sub.checked ? "checked" : "submitted",
+        submittedAt: sub.createdAt
+          ? new Date(sub.createdAt).toLocaleString("en-US", {
+              month: "long",
+              day: "numeric",
+              year: "numeric",
+              hour: "numeric",
+              minute: "2-digit",
+            })
+          : "N/A",
+        answered: `${answeredCount}/${totalQuestions} answered`,
+        progress: totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0,
+      };
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "✅ Submissions fetched successfully",
+      total: formatted.length,
+      submissions: formatted,
+    });
+  } catch (error) {
+    console.error("❌ Error fetching submissions:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+});
+
 export default router;
+

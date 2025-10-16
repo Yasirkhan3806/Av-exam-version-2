@@ -53,7 +53,7 @@ const SubjectDetailsPage = () => {
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
                 <div className="text-center">
                     <div className="text-2xl font-bold text-gray-900 mb-2">Subject Not Found</div>
-                    <p className="text-gray-600">The subject you're looking for doesn't exist.</p>
+                    <p className="text-gray-600">The subject you are looking for doesnt exist.</p>
                 </div>
             </div>
         );

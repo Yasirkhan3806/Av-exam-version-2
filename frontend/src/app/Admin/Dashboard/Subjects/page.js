@@ -20,12 +20,12 @@ export default async function Page() {
                     <h1 className="text-3xl font-bold text-gray-900">Subjects</h1>
                     <p className="text-gray-600 mt-1">Manage subjects in the dashboard</p>
                 </div>
-                <a
+                <Link
                     href="/Admin/Dashboard/Subjects/new"
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
                 >
                     + Add Subject
-                </a>
+                </Link>
             </header>
 
             <section className="space-y-4">
