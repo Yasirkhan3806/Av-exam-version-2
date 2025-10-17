@@ -1,5 +1,5 @@
 "use client";
-import React, { use, useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import QuestionPanel from '../../components/QuestionWindow';
 import AnswerPanel from '../../components/AnswerWindow';
 import GradingPanel from '../../components/GradingPanel';
@@ -126,17 +126,25 @@ export default function ReviewAnswer() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [currentMarks, setCurrentMarks] = useState(0);
   const [showAnswer, setShowAnswer] = useState(true);
+
   const maxMarks = 20;
-  const {fetchExamById,fetchAnswersByQuestionId,examQuestions, studentAnswers,currentQuestion,fetchExam,nextQuestion,prevQuestion} = useInstructorStore((state)=>state);
+  const {fetchExamById,fetchAnswersByQuestionId,examQuestions, studentAnswers,currentQuestion,nextQuestion,prevQuestion} = useInstructorStore((state)=>state);
 
   useState(()=>{
     fetchExamById();
     fetchAnswersByQuestionId(studentId);
   },[]);
+  useEffect(()=>{
+    if(!studentAnswers[`q${currentQuestion}`]){
+      setShowAnswer(false)
+    }else{
+      setShowAnswer(true)
+    }
+  },[currentQuestion])
   
 
   // const currentQuestion = mockQuestions[currentQuestionIndex];
-  const currentAnswer = mockAnswers[currentQuestionIndex];
+  const currentAnswer = studentAnswers[`q${currentQuestion}`];
 
 
   const handleMarksChange = (marks) => {
@@ -162,7 +170,7 @@ export default function ReviewAnswer() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Question and Answer Panels - Side by Side */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[100vh]">
           <QuestionPanel 
             currentQuestionPath={examQuestions[`q${currentQuestion}`]}
             currentQuestionIndex={currentQuestion}

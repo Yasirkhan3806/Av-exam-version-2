@@ -100,6 +100,8 @@ const useInstructorStore = create(
       currentExam: null,
       currentExamId: null,
       studentAnswers: [],
+      status: 'submitted',
+      marks:{},
 
       // Actions
       setExamQuestions: (questions) => set({ examQuestions: questions }),
@@ -140,10 +142,15 @@ const useInstructorStore = create(
         }
       },
       prevQuestion: () => {
-        const { currentQuestion, examQuestions } = get();
+        const { currentQuestion } = get();
         if (currentQuestion > 1) {
           set({ currentQuestion: currentQuestion - 1 });
         }
+      },
+      setMarks: (marks)=>{
+        const {currentQuestion} = get();
+        set({[`q${currentQuestion}`]:{...get()[`q${currentQuestion}`],...marks}})
+        return true;
       },
 
       // Reset store (except persisted data)
