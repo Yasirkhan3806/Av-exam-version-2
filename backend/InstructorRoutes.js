@@ -208,7 +208,7 @@ router.get("/getSubmissions/:questionId", verifyInstructorToken, async (req, res
 
     // 2️⃣ Fetch all submissions for this question
     const submissions = await Answer.find({ questionSet: questionId })
-      .populate("Student", "name email") // from TestUser
+      .populate("Student", "_id name email") // from TestUser
       .sort({ createdAt: -1 });
 
     if (!submissions.length) {
@@ -223,10 +223,9 @@ router.get("/getSubmissions/:questionId", verifyInstructorToken, async (req, res
     const formatted = submissions.map((sub, index) => {
       const student = sub.Student || {};
       const answeredCount = sub.answers ? sub.answers.size : 0;
-      console.log(sub.answers.size);
 
       return {
-        id: index + 1,
+        id: student._id || `unknown-${index}`,
         name: student.name || "Unknown Student",
         email: student.email || "N/A",
         status: sub.checked ? "checked" : "submitted",
@@ -256,6 +255,71 @@ router.get("/getSubmissions/:questionId", verifyInstructorToken, async (req, res
       success: false,
       message: "Server error",
       error: error.message,
+    });
+  }
+});
+
+router.get("/getExam/:examId", verifyInstructorToken, async (req, res) => {
+  try {
+    const { examId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(examId)) {
+      return res.status(400).json({ message: "Invalid exam ID" });
+    }
+
+    const exam = await Questions.findById(examId);
+    if (!exam) {
+      return res.status(404).json({ message: "Exam not found" });
+    }
+
+    return res.status(200).json({
+      success: true, 
+      message: "✅ Exam fetched successfully",
+      exam
+    });
+
+  } catch (error) {
+    console.error("❌ Error fetching exam:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message
+    });
+  }
+});
+
+router.get("/getStudentAnswers/:studentId/:examId", verifyInstructorToken, async (req, res) => {
+  try {
+    const { studentId, examId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(studentId) || !mongoose.Types.ObjectId.isValid(examId)) {
+      return res.status(400).json({ message: "Invalid student ID or exam ID" });
+    }
+
+    const answers = await Answer.findOne({
+      Student: studentId,
+      questionSet: examId
+    })
+
+    if (!answers) {
+      return res.status(404).json({ 
+        success: false,
+        message: "No answers found for this student and exam" 
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "✅ Student answers fetched successfully",
+      answers
+    });
+
+  } catch (error) {
+    console.error("❌ Error fetching student answers:", error);
+    return res.status(500).json({
+      success: false, 
+      message: "Server error",
+      error: error.message
     });
   }
 });
