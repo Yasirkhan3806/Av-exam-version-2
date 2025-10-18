@@ -75,7 +75,7 @@ const fetchAnswersByQuestionId = async (set, get, studentId) => {
   try {
     const currentExamId = get().currentExamId;
     const data = await fetchJSON(`${BASE_URL}/instructors/getStudentAnswers/${studentId}/${currentExamId}`);
-    set({ studentAnswers: data.answers.answers });
+    set({ studentAnswers: data.answers.answers, currentStudentId: studentId });
     return data.answers;
   } catch (error) {
     console.error('Failed to fetch student answers:', error);
@@ -102,6 +102,7 @@ const useInstructorStore = create(
       studentAnswers: [],
       status: 'submitted',
       marks:{},
+      currentStudentId: null,
 
       // Actions
       setExamQuestions: (questions) => set({ examQuestions: questions }),
@@ -135,7 +136,6 @@ const useInstructorStore = create(
         }
       },
       nextQuestion: () => {
-        console.log("nextQuestion is called")
         const { currentQuestion, examQuestions } = get();
         if (currentQuestion < Object.keys(examQuestions).length) {
           set({ currentQuestion: currentQuestion + 1 });
@@ -147,25 +147,52 @@ const useInstructorStore = create(
           set({ currentQuestion: currentQuestion - 1 });
         }
       },
-      setMarks: (marks)=>{
-        const {currentQuestion} = get();
-        set({[`q${currentQuestion}`]:{...get()[`q${currentQuestion}`],...marks}})
+      setMarks: (currentQuestion,marks)=>{
+        set({marks: {...get().marks, [`q${currentQuestion}`]:{marks:marks, checked:true}}})
         return true;
+      },
+
+      finishExamReview: () => {
+        async () => {
+          try {
+            const { currentExamId, marks, currentStudentId, studentAnswers } = get();
+            const status = Object.keys(marks).length >= Object.keys(studentAnswers).length ? 'checked' : 'draft';
+
+            await fetchJSON(`${BASE_URL}/instructors/updateStudentMarks/${currentStudentId}/${currentExamId}`, {
+              method: 'PUT',
+              body: JSON.stringify({
+                marksObtained: marks,
+                status,
+              }),
+              credentials: 'include',
+            });
+            
+            get().reset();
+          } catch (error) {
+            console.error('Failed to update marks:', error);
+            set({ error: error.message });
+          }
+        }
       },
 
       // Reset store (except persisted data)
       reset: () =>
         set({
           examQuestions: [],
-          currentQuestion: null,
+          currentQuestion: 1,
           loading: false,
           error: null,
           subjects: [],
           exams: [],
           submissions: [],
+          currentExam: null,
+          currentExamId: null,
+          studentAnswers: [],
+          marks: {},
+          currentStudentId: null,
         }),
-    }),
-    {
+        }),
+        {
       name: 'instructor-storage',
       getStorage: () => localStorage,
       // ✅ Only persist selective data
@@ -177,6 +204,8 @@ const useInstructorStore = create(
         studentAnswers: state.studentAnswers,
         currentQuestion: state.currentQuestion,
         currentExamId: state.currentExamId,
+        marks: state.marks,
+        currentStudentId: state.currentStudentId,
       }),
     }
   )

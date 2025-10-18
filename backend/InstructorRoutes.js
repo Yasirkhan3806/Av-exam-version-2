@@ -324,5 +324,48 @@ router.get("/getStudentAnswers/:studentId/:examId", verifyInstructorToken, async
   }
 });
 
+
+router.put("/updateStudentMarks/:studentId/:examId", verifyInstructorToken, async (req, res) => {
+  try {
+    const { studentId, examId } = req.params;
+    const { marksObtained,status } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(studentId) || !mongoose.Types.ObjectId.isValid(examId)) {
+      return res.status(400).json({ message: "Invalid student ID or exam ID" });
+    }
+
+    const updatedAnswer = await Answer.findOneAndUpdate(
+      { Student: studentId, questionSet: examId },
+      { 
+        marksObtained,
+        status,
+        checkedAt: new Date()
+      },
+      { new: true }
+    );
+
+    if (!updatedAnswer) {
+      return res.status(404).json({
+        success: false,
+        message: "No answer document found for this student and exam"
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "✅ Student marks updated successfully",
+      updatedAnswer
+    });
+
+  } catch (error) {
+    console.error("❌ Error updating student marks:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error", 
+      error: error.message
+    });
+  }
+});
+
 export default router;
 

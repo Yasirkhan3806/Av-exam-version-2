@@ -1,14 +1,18 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Award } from 'lucide-react';
 
 // Grading Panel Component
-const GradingPanel = ({ currentMarks, maxMarks, onMarksChange, onSave, onSkip }) => {
+const GradingPanel = ({ currentMarks, onMarksChange, onSave, onSkip }) => {
   const [localMarks, setLocalMarks] = useState(currentMarks);
+
+  useEffect(() => {
+    setLocalMarks(currentMarks);
+  }, [currentMarks]);
 
   const handleMarksChange = (e) => {
     const value = e.target.value;
-    if (value === '' || (Number(value) >= 0 && Number(value) <= maxMarks)) {
+    if (value === '' || (Number(value) >= 0 )) {
       setLocalMarks(value);
       onMarksChange(value === '' ? 0 : Number(value));
     }
@@ -29,18 +33,17 @@ const GradingPanel = ({ currentMarks, maxMarks, onMarksChange, onSave, onSkip })
                 value={localMarks}
                 onChange={handleMarksChange}
                 min="0"
-                max={maxMarks}
                 className="w-full px-4 py-4 text-xl border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent outline-none transition-all"
                 placeholder="0"
               />
-              <div className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-500 text-lg font-medium">
+              {/* <div className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-500 text-lg font-medium">
                 / {maxMarks}
-              </div>
+              </div> */}
             </div>
-            <div className="mt-3 flex items-center gap-2 text-sm text-gray-500">
+            {/* <div className="mt-3 flex items-center gap-2 text-sm text-gray-500">
               <Award className="w-4 h-4" />
               Maximum marks for this question: {maxMarks}
-            </div>
+            </div> */}
           </div>
           
           <div className="flex items-end gap-4">

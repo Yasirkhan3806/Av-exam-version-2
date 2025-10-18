@@ -101,13 +101,14 @@ const answerSchema = new mongoose.Schema({
     ref: 'Questions', // Reference to Questions collection
     required: true,
   },
-  checked: {
-    type: Boolean,
-    default: false,
+  status: {
+    type: String,
+    enum: ['submitted', 'draft', 'checked'],
+    default: 'submitted',
   },
   marksObtained: {
-    type: Number,
-    default: 0,
+    type: Object,
+    default: {},
   },
   checkedAt: {
     type: Date,
