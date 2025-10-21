@@ -1,12 +1,27 @@
 import Link from 'next/link';
 import React, { useEffect } from 'react';
 
+
+ const scoreCalculation = (marksObtained) => {
+      const totalAnswer = Object.keys(marksObtained).length;
+      let totalMarks = 0;
+      for (const mark of Object.keys(marksObtained)) {
+        totalMarks += Number(marksObtained[mark].marks);
+      }
+      return totalMarks;
+    }
+
 const StudentSubmissionsCard = ({student}) => {
+  const [score, setScore] = React.useState(0);
+
+  useEffect(() => {
+    const score = scoreCalculation(student.score);
+    setScore(score);
+  }, [student.score]);
 
 
 
       const getStatusColor = (status) => {
-        console.log('Student status:', status);
     switch (status) {
       case 'submitted':
         return 'bg-green-100 text-green-800';
@@ -17,6 +32,7 @@ const StudentSubmissionsCard = ({student}) => {
       default:
         return 'bg-gray-100 text-gray-800';
     }
+   
   };
     return(
          <div 
@@ -47,12 +63,14 @@ const StudentSubmissionsCard = ({student}) => {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
                           Submitted: {student.submittedAt}
+                          <br />
+                          Marked At : {student.checkedAt}
                         </div>
                         <div className="flex justify-between text-sm text-gray-600">
                           <span>{student.answered}</span>
                         </div>
                         <div className="text-sm font-medium text-gray-800">
-                          Score: {student.score}
+                          Score: {score}
                         </div>
                       </div>
         

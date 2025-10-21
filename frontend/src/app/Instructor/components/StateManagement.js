@@ -1,4 +1,4 @@
-import next from 'next';
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -76,6 +76,9 @@ const fetchAnswersByQuestionId = async (set, get, studentId) => {
     const currentExamId = get().currentExamId;
     const data = await fetchJSON(`${BASE_URL}/instructors/getStudentAnswers/${studentId}/${currentExamId}`);
     set({ studentAnswers: data.answers.answers, currentStudentId: studentId });
+    if (data.answers.status === 'checked' || data.answers.status === 'draft') {
+      set({ marks: data.answers.marksObtained || {} });
+    }
     return data.answers;
   } catch (error) {
     console.error('Failed to fetch student answers:', error);
@@ -155,7 +158,6 @@ const useInstructorStore = create(
       finishExamReview: async () => {
         try {
           const { currentExamId, marks, currentStudentId, studentAnswers, reset } = get();
-          console.log('Submitting marks:', marks);
 
           const status =
             Object.keys(marks).length >= Object.keys(studentAnswers).length

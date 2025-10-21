@@ -52,7 +52,6 @@ export default function ReviewAnswer() {
   };
 
   const finishReview = async () => {
-    console.log('Finishing review...');
     const done = await finishExamReview();
     if (done) {
       window.location.href = '/Instructor';

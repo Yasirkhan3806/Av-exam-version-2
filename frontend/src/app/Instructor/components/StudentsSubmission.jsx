@@ -10,7 +10,6 @@ const StudentSubmissions = ({questionId, examInfo}) => {
     fetchSubmissions(questionId);
   }, [fetchSubmissions]);
 
-  console.log('Submissions:', submissions);
 
   return (
     <div className="min-h-screen bg-gray-50">

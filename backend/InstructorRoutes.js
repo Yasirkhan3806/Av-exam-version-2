@@ -231,15 +231,23 @@ router.get("/getSubmissions/:questionId", verifyInstructorToken, async (req, res
         status: sub.status ? sub.status : "submitted",
         submittedAt: sub.createdAt
           ? new Date(sub.createdAt).toLocaleString("en-US", {
-              month: "long",
-              day: "numeric",
-              year: "numeric",
-              hour: "numeric",
-              minute: "2-digit",
-            })
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+        })
           : "N/A",
         answered: `${answeredCount}/${totalQuestions} answered`,
         progress: totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0,
+        score: sub.marksObtained ? sub.marksObtained : 'Not graded',
+        checkedAt: sub.checkedAt ? new Date(sub.checkedAt).toLocaleString("en-US", {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+        }) : 'Not Checked',
       };
     });
 
