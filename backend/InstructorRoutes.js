@@ -228,7 +228,7 @@ router.get("/getSubmissions/:questionId", verifyInstructorToken, async (req, res
         id: student._id || `unknown-${index}`,
         name: student.name || "Unknown Student",
         email: student.email || "N/A",
-        status: sub.checked ? "checked" : "submitted",
+        status: sub.status ? sub.status : "submitted",
         submittedAt: sub.createdAt
           ? new Date(sub.createdAt).toLocaleString("en-US", {
               month: "long",

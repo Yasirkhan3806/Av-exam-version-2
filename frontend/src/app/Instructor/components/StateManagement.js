@@ -101,7 +101,7 @@ const useInstructorStore = create(
       currentExamId: null,
       studentAnswers: [],
       status: 'submitted',
-      marks:{},
+      marks: {},
       currentStudentId: null,
 
       // Actions
@@ -147,33 +147,39 @@ const useInstructorStore = create(
           set({ currentQuestion: currentQuestion - 1 });
         }
       },
-      setMarks: (currentQuestion,marks)=>{
-        set({marks: {...get().marks, [`q${currentQuestion}`]:{marks:marks, checked:true}}})
+      setMarks: (currentQuestion, marks) => {
+        set({ marks: { ...get().marks, [`q${currentQuestion}`]: { marks: marks, checked: true } } })
         return true;
       },
 
-      finishExamReview: () => {
-        async () => {
-          try {
-            const { currentExamId, marks, currentStudentId, studentAnswers } = get();
-            const status = Object.keys(marks).length >= Object.keys(studentAnswers).length ? 'checked' : 'draft';
+      finishExamReview: async () => {
+        try {
+          const { currentExamId, marks, currentStudentId, studentAnswers, reset } = get();
+          console.log('Submitting marks:', marks);
 
-            await fetchJSON(`${BASE_URL}/instructors/updateStudentMarks/${currentStudentId}/${currentExamId}`, {
-              method: 'PUT',
-              body: JSON.stringify({
-                marksObtained: marks,
-                status,
-              }),
-              credentials: 'include',
-            });
-            
-            get().reset();
-          } catch (error) {
-            console.error('Failed to update marks:', error);
-            set({ error: error.message });
-          }
+          const status =
+            Object.keys(marks).length >= Object.keys(studentAnswers).length
+              ? 'checked'
+              : 'draft';
+
+          await fetchJSON(`${BASE_URL}/instructors/updateStudentMarks/${currentStudentId}/${currentExamId}`, {
+            method: 'PUT',
+            body: JSON.stringify({
+              marksObtained: marks,
+              status,
+            }),
+            credentials: 'include',
+          });
+
+          reset(); // correctly reset the store
+          return true;
+        } catch (error) {
+          console.error('Failed to update marks:', error);
+          set({ error: error.message });
+          return false;
         }
       },
+
 
       // Reset store (except persisted data)
       reset: () =>
@@ -191,8 +197,8 @@ const useInstructorStore = create(
           marks: {},
           currentStudentId: null,
         }),
-        }),
-        {
+    }),
+    {
       name: 'instructor-storage',
       getStorage: () => localStorage,
       // ✅ Only persist selective data

@@ -6,12 +6,13 @@ const StudentSubmissionsCard = ({student}) => {
 
 
       const getStatusColor = (status) => {
+        console.log('Student status:', status);
     switch (status) {
       case 'submitted':
         return 'bg-green-100 text-green-800';
-      case 'in progress':
+      case 'checked':
         return 'bg-yellow-100 text-yellow-800';
-      case 'not started':
+      case 'draft':
         return 'bg-gray-100 text-gray-800';
       default:
         return 'bg-gray-100 text-gray-800';

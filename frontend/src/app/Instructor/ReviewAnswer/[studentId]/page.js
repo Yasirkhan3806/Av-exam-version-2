@@ -16,7 +16,7 @@ export default function ReviewAnswer() {
 
   const { fetchExamById, fetchAnswersByQuestionId, examQuestions, studentAnswers, currentQuestion, nextQuestion, prevQuestion, setMarks, marks, finishExamReview } = useInstructorStore((state) => state);
 
-  useState(() => {
+  useEffect(() => {
     fetchExamById();
     fetchAnswersByQuestionId(studentId);
   }, [studentId, fetchExamById, fetchAnswersByQuestionId]);
@@ -52,8 +52,11 @@ export default function ReviewAnswer() {
   };
 
   const finishReview = async () => {
-    await finishExamReview();
-    window.location.href = '/Instructor/Dashboard';
+    console.log('Finishing review...');
+    const done = await finishExamReview();
+    if (done) {
+      window.location.href = '/Instructor';
+    }
   };
 
   return (
