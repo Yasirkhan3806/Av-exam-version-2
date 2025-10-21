@@ -76,6 +76,22 @@ async function fetchExamsForSubject(set, get, subjectId) {
   }
 }
 
+async function fetchStudentResults(set, get) {
+  set({ loading: true, error: null });
+  try {
+    const userId = await get().userId || (await fetchUserInfo(set))._id;
+    if (!userId) throw new Error('User ID not available');
+
+    const data = await fetchJSON(`${BASE_URL}/subjects/getResults/${userId}`);
+    set({ studentResults: data, loading: false });
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch results:', error);
+    set({ error: error.message, loading: false });
+    return [];
+  }
+}
+
 // === Zustand Store ===
 const useSubjectStore = create(
   persist(
@@ -87,6 +103,7 @@ const useSubjectStore = create(
       error: null,
       examsBySubject: {}, // ← store exams by subject ID
       userInfo: null,
+      studentResults: [],
 
       // === State actions ===
       setSubjects: (subjects) => set({ subjects }),
@@ -105,9 +122,7 @@ const useSubjectStore = create(
       fetchUserInfo: () => fetchUserInfo(set),
       fetchSubjects: () => fetchSubjects(set, get),
       fetchExamsForSubject: (subjectId) => fetchExamsForSubject(set, get, subjectId),
-
-      // === ✅ NEW: Clear cached exams for one subject ===
-      // === ✅ FIXED: Clear cached exams for one or all subjects ===
+      fetchStudentResults: () => fetchStudentResults(set, get),
       clearSubjectCache: (subjectId = null) => {
         console.log('clearSubjectCache called with subjectId:', subjectId);
 

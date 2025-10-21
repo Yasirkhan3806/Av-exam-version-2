@@ -3,7 +3,6 @@ import React, { useEffect } from 'react';
 
 
  const scoreCalculation = (marksObtained) => {
-      const totalAnswer = Object.keys(marksObtained).length;
       let totalMarks = 0;
       for (const mark of Object.keys(marksObtained)) {
         totalMarks += Number(marksObtained[mark].marks);
