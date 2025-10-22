@@ -241,13 +241,14 @@ router.get("/getStudentAnswers/:studentId/:examId", verifyToken, async (req, res
     const { studentId, examId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(studentId) || !mongoose.Types.ObjectId.isValid(examId)) {
+      console.error("Invalid student ID or exam ID");
       return res.status(400).json({ message: "Invalid student ID or exam ID" });
     }
 
     const answers = await Answer.findOne({
       Student: studentId,
       questionSet: examId
-    })
+    }).populate("questionSet", "_id name totalAttempt totalMarks totalQuestions");
 
     if (!answers) {
       return res.status(404).json({ 

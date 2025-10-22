@@ -92,6 +92,25 @@ async function fetchStudentResults(set, get) {
   }
 }
 
+async function fetchStudentAnswers(set, get, examId) {
+  console.log(`Fetching answers for user and exam ${examId}`);
+  set({ loading: true, error: null });
+  try {
+    const userId = await get().userId || (await fetchUserInfo(set))._id;
+    if (!userId) throw new Error('User ID not available');
+    
+    
+    const data = await fetchJSON(`${BASE_URL}/subjects/getStudentAnswers/${userId}/${examId}`);
+    return data.answers;
+  } catch (error) {
+    console.error('Failed to fetch student answers:', error);
+    set({ error: error.message, loading: false });
+    return null;
+  } finally {
+    set({ loading: false });
+  }
+}
+
 // === Zustand Store ===
 const useSubjectStore = create(
   persist(
@@ -123,6 +142,7 @@ const useSubjectStore = create(
       fetchSubjects: () => fetchSubjects(set, get),
       fetchExamsForSubject: (subjectId) => fetchExamsForSubject(set, get, subjectId),
       fetchStudentResults: () => fetchStudentResults(set, get),
+      fetchStudentAnswers: (examId) => fetchStudentAnswers(set, get, examId),
       clearSubjectCache: (subjectId = null) => {
         console.log('clearSubjectCache called with subjectId:', subjectId);
 

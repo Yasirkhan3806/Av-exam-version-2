@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { CheckCircle, Play, Clock, BookOpen, BarChart } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 const scoreCalculation = (marksObtained) => {
   let totalMarks = 0;
@@ -15,6 +16,7 @@ const scoreCalculation = (marksObtained) => {
 const ResultCard = ({ result, onReviewResults }) => {
   const [scorePercentage, setScorePercentage] = useState(0);
   const [score, setScore] = useState(0);
+  const router = useRouter();
 
   useEffect(() => {
     const calculatedScore = scoreCalculation(result.marksObtained);
@@ -75,7 +77,7 @@ const ResultCard = ({ result, onReviewResults }) => {
           {result?.status?.toUpperCase()}
         </span>
         <button
-          onClick={() => onReviewResults(result.id, result)}
+          onClick={() => router.push(`Results/${result?.questionSet?._id}`)}
           className="px-4 py-2 rounded-lg text-sm font-semibold transition-all bg-white text-green-700 border border-green-300 hover:bg-green-50 hover:border-green-400 hover:shadow-sm active:scale-95 cursor-pointer"
         >
           Show Details
