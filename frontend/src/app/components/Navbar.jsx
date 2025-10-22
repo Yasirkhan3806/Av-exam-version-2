@@ -10,7 +10,7 @@ export default function Navbar({ isSidebarOpen, toggleSidebar }) {
   return (
     <header className="bg-white shadow-sm h-16 flex items-center justify-between px-6 sticky top-0 left-0 right-0 z-10">
       <div className="flex items-center">
-        <h1 className="text-gray-800">
+        <h1 className="text-gray-800 text-sm md:text-normal lg:text-normal font-semibold">
           {new Date().toLocaleDateString('en-US', { 
             weekday: 'long',
             year: 'numeric',

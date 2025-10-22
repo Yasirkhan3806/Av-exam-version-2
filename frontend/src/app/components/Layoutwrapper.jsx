@@ -5,7 +5,7 @@ import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 
 export default function LayoutWrapper({ children }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 

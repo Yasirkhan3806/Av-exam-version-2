@@ -14,7 +14,6 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
     { name: 'Results', icon: Award, href: '/StudentDashboard/Results' }
   ];
 
-
   const handleLogout = async () => {
     try {
       // ✅ 1. Call backend to destroy session
@@ -46,7 +45,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
   return (
     <aside 
       className={`${
-        isOpen ? 'w-64' : 'w-16'
+        isOpen ? 'w-64 fixed md:relative lg:relative top-0 left-0 z-1000' : 'w-16 sticky top-0 left-0'
       } bg-white shadow-lg transition-all duration-300 ease-in-out h-[100vh] flex flex-col`}
     >
       <div className="p-4 border-b border-gray-200 flex items-center justify-between">
