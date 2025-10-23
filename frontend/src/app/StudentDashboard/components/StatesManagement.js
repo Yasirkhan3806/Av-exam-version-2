@@ -98,12 +98,30 @@ async function fetchStudentAnswers(set, get, examId) {
   try {
     const userId = await get().userId || (await fetchUserInfo(set))._id;
     if (!userId) throw new Error('User ID not available');
-    
-    
+
+
     const data = await fetchJSON(`${BASE_URL}/subjects/getStudentAnswers/${userId}/${examId}`);
     return data.answers;
   } catch (error) {
     console.error('Failed to fetch student answers:', error);
+    set({ error: error.message, loading: false });
+    return null;
+  } finally {
+    set({ loading: false });
+  }
+}
+
+async function fetchStudentGrade(set, get, subjectId) {
+  set({ loading: true, error: null });
+  try {
+    const userId = await get().userId || (await fetchUserInfo(set))._id;
+    if (!userId) throw new Error('User ID not available');
+
+    const data = await fetchJSON(`${BASE_URL}/subjects/grade/${userId}/${subjectId}`);
+    set({ studentGrades: data, overallPercentage: [data.percentage,...get().overallPercentage], loading: false });
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch grade:', error);
     set({ error: error.message, loading: false });
     return null;
   } finally {
@@ -123,10 +141,13 @@ const useSubjectStore = create(
       examsBySubject: {}, // ← store exams by subject ID
       userInfo: null,
       studentResults: [],
+      overallProgress: [],
+      studentGrades: null,
+      overallPercentage: [],
 
       // === State actions ===
       setSubjects: (subjects) => set({ subjects }),
-      setCurrentSubject: (subject) =>{ 
+      setCurrentSubject: (subject) => {
         console.log('Setting current subject to:', subject);
         set({ currentSubject: subject })
       },
@@ -143,8 +164,9 @@ const useSubjectStore = create(
       fetchExamsForSubject: (subjectId) => fetchExamsForSubject(set, get, subjectId),
       fetchStudentResults: () => fetchStudentResults(set, get),
       fetchStudentAnswers: (examId) => fetchStudentAnswers(set, get, examId),
+      updateOverallProgress: (progress) => set({ overallProgress: [progress, ...get().overallProgress] }),
+      fetchStudentGrade: (subjectId) => fetchStudentGrade(set, get, subjectId),
       clearSubjectCache: (subjectId = null) => {
-        console.log('clearSubjectCache called with subjectId:', subjectId);
 
         // If no subjectId provided, try to get from currentSubject
         if (!subjectId) {

@@ -11,7 +11,6 @@ export default function MySubjectsSection() {
 
   React.useEffect(() => {
     fetchSubjects();
-    console.log('Subjects fetched:', subjects);
   }, [fetchSubjects]);
  
   return (

@@ -273,6 +273,73 @@ router.get("/getStudentAnswers/:studentId/:examId", verifyToken, async (req, res
   }
 });
 
+router.get("/grade/:studentId/:subjectId", async (req, res) => {
+  try {
+    const { studentId, subjectId } = req.params;
+
+    // 1️⃣ Find all question sets under the given subject
+    const questionSets = await Questions.find({ subject: subjectId });
+    if (!questionSets.length) {
+      return res.status(404).json({ message: "No question sets found for this subject." });
+    }
+
+    const questionSetIds = questionSets.map(q => q._id);
+
+    // 2️⃣ Find all checked answers for this student related to the subject
+    const answers = await Answer.find({
+      Student: studentId,
+      questionSet: { $in: questionSetIds },
+      status: "checked",
+    });
+
+    if (!answers.length) {
+      return res.status(404).json({ message: "No checked answers found for this student in this subject." });
+    }
+
+    // 3️⃣ Calculate obtained & total marks
+    let totalMarks = 0;
+    let obtainedMarks = 0;
+
+    for (const answer of answers) {
+      const relatedQuestionSet = questionSets.find(q => q._id.equals(answer.questionSet));
+      if (!relatedQuestionSet) continue;
+
+      totalMarks += relatedQuestionSet.totalMarks;
+
+      // Extract marks from nested structure: marksObtained.q1.marks
+      const marksData = Object.values(answer.marksObtained || {});
+      const studentMarks = marksData.reduce((sum, item) => {
+        return sum + (item?.marks ? Number(item.marks) : 0);
+      }, 0);
+
+      obtainedMarks += studentMarks;
+    }
+
+    // 4️⃣ Calculate percentage and grade
+    const percentage = ((obtainedMarks / totalMarks) * 100).toFixed(2);
+    let grade = "F";
+    if (percentage >= 85) grade = "A";
+    else if (percentage >= 70) grade = "B";
+    else if (percentage >= 55) grade = "C";
+    else if (percentage >= 40) grade = "D";
+
+    // 5️⃣ Get subject details
+    const subject = await Subject.findById(subjectId);
+
+    // 6️⃣ Send response
+    res.json({
+      subject: subject?.name || "Unknown Subject",
+      totalMarks,
+      obtainedMarks,
+      percentage: Number(percentage),
+      grade,
+    });
+
+  } catch (error) {
+    console.error("Error calculating grade:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+});
 
 
 export default router;

@@ -28,7 +28,8 @@ const getGradeFromProgress = (progress) => {
 };
 
 const SubjectCard = ({ subject }) => {
-  const { fetchExamsForSubject, examsBySubject, loading } = useSubjectStore();
+  const { fetchExamsForSubject, examsBySubject, loading,updateOverallProgress, fetchStudentGrade } = useSubjectStore();
+  const [studentGrades, setStud]
 
   // get cached exams or empty array
   const exams = examsBySubject?.[subject._id] || [];
@@ -38,6 +39,7 @@ const SubjectCard = ({ subject }) => {
     if (!examsBySubject?.[subject._id]) {
       // only fetch if not cached
       fetchExamsForSubject(subject._id);
+      fetchStudentGrade(subject._id);
     }
   }, [subject?._id, fetchExamsForSubject, examsBySubject]);
 
@@ -49,6 +51,10 @@ const SubjectCard = ({ subject }) => {
     const progress = total ? Math.round((completed / total) * 100) : 0;
     return { total, completed, mockCount, progress };
   }, [exams]);
+
+    useEffect(() => {
+    if (progress > 0) updateOverallProgress(progress);
+  }, [progress, updateOverallProgress]);
 
   const calculatedGrade = getGradeFromProgress(progress);
 
