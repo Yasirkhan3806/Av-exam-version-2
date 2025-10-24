@@ -15,7 +15,7 @@ export default function Navbar({ isSidebarOpen, toggleSidebar }) {
             weekday: 'long',
             year: 'numeric',
             month: 'long',
-            day: 'numeric'
+            day: 'numeric'   
           })}
         </h1>
       </div>
