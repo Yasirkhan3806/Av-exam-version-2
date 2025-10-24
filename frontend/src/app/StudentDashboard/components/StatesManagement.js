@@ -118,7 +118,7 @@ async function fetchStudentGrade(set, get, subjectId) {
     if (!userId) throw new Error('User ID not available');
 
     const data = await fetchJSON(`${BASE_URL}/subjects/grade/${userId}/${subjectId}`);
-    set({ studentGrades: data, overallPercentage: [data.percentage,...get().overallPercentage], loading: false });
+    set({ studentGrades: { [subjectId]: data }, overallPercentage: [data.percentage,...get().overallPercentage], loading: false });
     return data;
   } catch (error) {
     console.error('Failed to fetch grade:', error);
@@ -148,7 +148,6 @@ const useSubjectStore = create(
       // === State actions ===
       setSubjects: (subjects) => set({ subjects }),
       setCurrentSubject: (subject) => {
-        console.log('Setting current subject to:', subject);
         set({ currentSubject: subject })
       },
       clearSubjects: () => set({ subjects: [], currentSubject: null }),

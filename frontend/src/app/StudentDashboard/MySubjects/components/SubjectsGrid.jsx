@@ -9,10 +9,17 @@ const SubjectsGrid = () => {
     const subjects = useSubjectStore((state) => state.subjects);
     const loading = useSubjectStore((state) => state.loading);
     const error = useSubjectStore((state) => state.error);
+    const fetchStudentGrade = useSubjectStore((state) => state.fetchStudentGrade);
 
     React.useEffect(() => {
         fetchSubjects();
     }, [fetchSubjects]);
+
+    React.useEffect(() => {
+        subjects.forEach((subject) => {
+            fetchStudentGrade(subject._id);
+        });
+    }, [subjects, fetchStudentGrade]);
 
     if (loading) return <div className="p-6">Loading subjects...</div>;
     if (error) return <div className="p-6 text-red-500">Error: {error}</div>;

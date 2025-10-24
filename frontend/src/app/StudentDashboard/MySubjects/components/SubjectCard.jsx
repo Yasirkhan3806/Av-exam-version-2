@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState,useRef, use } from 'react';
 import { BookOpen, CheckCircle } from 'lucide-react';
 import useSubjectStore from '../../components/StatesManagement';
 import Link from 'next/link';
@@ -12,36 +12,30 @@ const colorMap = {
   gray: 'bg-gray-500',
 };
 
-const getGradeFromProgress = (progress) => {
-  if (progress >= 90) return 'A+';
-  if (progress >= 85) return 'A';
-  if (progress >= 80) return 'A-';
-  if (progress >= 75) return 'B+';
-  if (progress >= 70) return 'B';
-  if (progress >= 65) return 'B-';
-  if (progress >= 60) return 'C+';
-  if (progress >= 55) return 'C';
-  if (progress >= 50) return 'C-';
-  if (progress >= 45) return 'D+';
-  if (progress >= 40) return 'D';
-  return 'F';
-};
+
 
 const SubjectCard = ({ subject }) => {
-  const { fetchExamsForSubject, examsBySubject, loading,updateOverallProgress, fetchStudentGrade } = useSubjectStore();
-  const [studentGrades, setStud]
+  const fetchedRef = useRef(false);
+  const { fetchExamsForSubject, examsBySubject, loading, updateOverallProgress, studentGrades } = useSubjectStore();
+  const [calculatedGrade, setCalculatedGrade] = useState('F');
 
   // get cached exams or empty array
   const exams = examsBySubject?.[subject._id] || [];
+
 
   useEffect(() => {
     if (!subject?._id) return;
     if (!examsBySubject?.[subject._id]) {
       // only fetch if not cached
       fetchExamsForSubject(subject._id);
-      fetchStudentGrade(subject._id);
+
     }
+  
   }, [subject?._id, fetchExamsForSubject, examsBySubject]);
+
+  useEffect(() => {
+    setCalculatedGrade(studentGrades ? studentGrades[subject._id]?.grade : 'N/A' || 'N/A');
+  }, [studentGrades, subject._id]);
 
   // memoized computed stats
   const { total, completed, mockCount, progress } = useMemo(() => {
@@ -52,17 +46,17 @@ const SubjectCard = ({ subject }) => {
     return { total, completed, mockCount, progress };
   }, [exams]);
 
-    useEffect(() => {
+  useEffect(() => {
     if (progress > 0) updateOverallProgress(progress);
   }, [progress, updateOverallProgress]);
 
-  const calculatedGrade = getGradeFromProgress(progress);
+  // const calculatedGrade = studentGrades[subject._id]?.grade || 'N/A';
 
   const progressColor =
     progress >= 80 ? 'bg-green-500' :
-    progress >= 60 ? 'bg-blue-500' :
-    progress >= 40 ? 'bg-yellow-500' :
-    'bg-red-500';
+      progress >= 60 ? 'bg-blue-500' :
+        progress >= 40 ? 'bg-yellow-500' :
+          'bg-red-500';
 
   return (
     <div className="bg-white rounded-xl shadow-md p-6 transition-all duration-300 hover:shadow-lg hover:scale-[1.02]">
