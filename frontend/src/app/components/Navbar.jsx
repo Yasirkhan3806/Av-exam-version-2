@@ -13,7 +13,7 @@ export default function Navbar({ isSidebarOpen, toggleSidebar }) {
         <h1 className="text-gray-800 text-sm md:text-normal lg:text-normal font-semibold">
           {new Date().toLocaleDateString('en-US', { 
             weekday: 'long',
-            year: 'numeric',
+            year: 'numeric',    
             month: 'long',
             day: 'numeric'   
           })}
