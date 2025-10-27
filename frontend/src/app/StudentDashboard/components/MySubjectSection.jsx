@@ -1,17 +1,21 @@
 'use client';
 import React from 'react';
-import { BookOpen, ChevronRight } from 'lucide-react';
+import { BookOpen } from 'lucide-react';
 import useSubjectStore from './StatesManagement'
 import SubjectCard from '../MySubjects/components/SubjectCard';
 import Link from 'next/link';
 
 export default function MySubjectsSection() {
    const fetchSubjects = useSubjectStore((state) => state.fetchSubjects);
+   const userInfo = useSubjectStore((state) => state.userInfo);
   const subjects = useSubjectStore((state) => state.subjects);
+
 
   React.useEffect(() => {
     fetchSubjects();
-  }, [fetchSubjects]);
+  }, [fetchSubjects, userInfo]);
+
+  console.log(subjects);
  
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm">
