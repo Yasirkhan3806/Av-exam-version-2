@@ -34,11 +34,11 @@ export default async function AdminDashboardLayout({ children }) {
             Settings
           </Link>
         </nav>
-        <div className="px-4 py-4 border-t border-gray-700">
+        {/* <div className="px-4 py-4 border-t border-gray-700">
           <button className="w-full px-3 py-2 bg-red-600 rounded-md hover:bg-red-500">
             Logout
           </button>
-        </div>
+        </div> */}
       </aside>
 
       {/* Main Content */}

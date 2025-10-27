@@ -77,7 +77,7 @@ export default function Login() {
       // ✅ Successful login
       console.log("✅ Login successful:", data);
       setLoginStatus("You are successfully logged in! 🎉");
-      window.location.href = `${BASEURL}/StudentDashboard`; // Redirect to home or dashboard
+      window.location.href = `/StudentDashboard`; // Redirect to home or dashboard
 
     } catch (error) {
       console.error("❌ Login error:", error);
