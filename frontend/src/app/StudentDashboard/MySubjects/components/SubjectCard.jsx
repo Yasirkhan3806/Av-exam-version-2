@@ -22,6 +22,8 @@ const SubjectCard = ({ subject }) => {
   // get cached exams or empty array
   const exams = examsBySubject?.[subject._id] || [];
 
+  console.log(exams)
+
 
   useEffect(() => {
     if (!subject?._id) return;
