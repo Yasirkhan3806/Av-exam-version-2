@@ -5,6 +5,12 @@ import { generateTokenAndSetCookie, verifyToken } from "./middleware.js";
 
 const router = express.Router();
 
+router.get("/",(req,res) => {
+return res.status(200).json({ message: "auth is working" });
+
+});
+
+
 // ✅ Register
 router.post("/register", async (req, res) => {
   try {
