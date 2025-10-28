@@ -24,7 +24,7 @@ const ExamResultPage = () => {
 
     return (
         <div className="container mx-auto p-4">
-            <h1 className="text-2xl font-bold mb-4">Exam Results with {examId}</h1>
+            <h1 className="text-2xl font-bold mb-4">Exam Results</h1>
             {results ? (
                 <div>
                     <DetailedResult result={results} />

@@ -1,6 +1,9 @@
 import express from "express";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
+import puppeteer from "puppeteer";
+import path from "path";
+import fs from "fs";
 import { Instructor, Subject, TestUser, Questions, Answer } from "./schema.js";
 import { generateTokenAndSetCookie, verifyInstructorToken, verifyToken } from "./middleware.js";
 
@@ -296,6 +299,36 @@ router.get("/getExam/:examId", verifyInstructorToken, async (req, res) => {
   }
 });
 
+async function generatePDF(html, fileName) {
+  try {
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
+
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: "networkidle0" });
+
+    const pdfBuffer = await page.pdf({
+      format: "A4",
+      printBackground: true,
+    });
+
+    const pdfDir = path.resolve("Answer_pdfs");
+    if (!fs.existsSync(pdfDir)) fs.mkdirSync(pdfDir);
+
+    const pdfPath = path.join(pdfDir, `${fileName}.pdf`);
+    fs.writeFileSync(pdfPath, pdfBuffer);
+
+    await browser.close();
+    return path.join("Answer_pdfs", `${fileName}.pdf`);
+  } catch (error) {
+    console.error("PDF generation error:", error);
+    throw error;
+  }
+}
+
+// 🧩 Main route — Fetch answers, generate PDFs, and update marksObtained per question
 router.get("/getStudentAnswers/:studentId/:examId", verifyInstructorToken, async (req, res) => {
   try {
     const { studentId, examId } = req.params;
@@ -304,34 +337,57 @@ router.get("/getStudentAnswers/:studentId/:examId", verifyInstructorToken, async
       return res.status(400).json({ message: "Invalid student ID or exam ID" });
     }
 
-    const answers = await Answer.findOne({
+    const answersDoc = await Answer.findOne({
       Student: studentId,
-      questionSet: examId
-    })
+      questionSet: examId,
+    });
 
-    if (!answers) {
-      return res.status(404).json({ 
+    if (!answersDoc) {
+      return res.status(404).json({
         success: false,
-        message: "No answers found for this student and exam" 
+        message: "No answers found for this student and exam",
       });
     }
 
+    // ✅ Prepare marksObtained if not exists
+    if (!answersDoc.marksObtained || typeof answersDoc.marksObtained !== "object") {
+      answersDoc.marksObtained = {};
+    }
+
+    // ✅ Convert each answer into its own PDF and attach to its marks entry
+    for (const [questionKey, answerHTML] of answersDoc.answers.entries()) {
+      const fileName = `${studentId}_${examId}_${questionKey}`;
+      const pdfPath = await generatePDF(answerHTML, fileName);
+
+      // Initialize the marks entry if missing
+      if (!answersDoc.marksObtained[questionKey]) {
+        answersDoc.marksObtained[questionKey] = {
+          marks: 0,
+          checked: false,
+          pdfUrl: "",
+        };
+      }
+
+      // ✅ Update only the pdfUrl field
+      answersDoc.marksObtained[questionKey].pdfUrl = pdfPath;
+    }
+
+    await answersDoc.save();
+
     return res.status(200).json({
       success: true,
-      message: "✅ Student answers fetched successfully",
-      answers
+      message: "✅ Student answers fetched and PDFs generated successfully",
+      answers: answersDoc,
     });
-
   } catch (error) {
     console.error("❌ Error fetching student answers:", error);
     return res.status(500).json({
-      success: false, 
+      success: false,
       message: "Server error",
-      error: error.message
+      error: error.message,
     });
   }
 });
-
 
 router.put("/updateStudentMarks/:studentId/:examId", verifyInstructorToken, async (req, res) => {
   try {
@@ -374,6 +430,27 @@ router.put("/updateStudentMarks/:studentId/:examId", verifyInstructorToken, asyn
     });
   }
 });
+
+
+
+// router.post("/generate-pdf", async (req, res) => {
+//   try {
+//     const { html } = req.body;
+//     if (!html) {
+//       return res.status(400).json({ error: "HTML content is required" });
+//     }
+
+//     const pdfBuffer = await generatePDF(html);
+
+//     res.set({
+//       "Content-Type": "application/pdf",
+//       "Content-Disposition": "inline; filename=answer.pdf",
+//     });
+//     res.send(pdfBuffer);
+//   } catch (error) {
+//     res.status(500).json({ error: "Failed to generate PDF" });
+//   }
+// });
 
 router.post('/logout', verifyInstructorToken, (req, res) => {
   try {

@@ -88,11 +88,11 @@ const ExamCard = ({ test, onReviewResults }) => {
                     onClick={() => onReviewResults(test.id,test)}
                     disabled={test.completed}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${test.completed
-                            ? 'bg-white text-green-700 border border-green-300 hover:bg-green-50'
+                            ? 'bg-white text-green-700 border border-green-300 hover:bg-green-50 cursor-not-allowed'
                             : 'bg-white text-blue-700 border border-blue-300 hover:bg-blue-50'
                         }`}
                 >
-                    {test.completed ? 'Review Results' : 'Start Test'}
+                    Start Test
                 </button>
             </div>
         </div>
