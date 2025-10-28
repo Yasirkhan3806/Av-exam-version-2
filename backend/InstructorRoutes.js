@@ -375,5 +375,22 @@ router.put("/updateStudentMarks/:studentId/:examId", verifyInstructorToken, asyn
   }
 });
 
+router.post('/logout', verifyInstructorToken, (req, res) => {
+  try {
+    res.clearCookie('instructorToken');
+    return res.status(200).json({
+      success: true,
+      message: "✅ Instructor logged out successfully"
+    });
+  } catch (error) {
+    console.error("❌ Error logging out:", error);
+    return res.status(500).json({
+      success: false, 
+      message: "Server error",
+      error: error.message
+    });
+  }
+});
+
 export default router;
 

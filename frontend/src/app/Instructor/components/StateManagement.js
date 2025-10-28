@@ -86,6 +86,16 @@ const fetchAnswersByQuestionId = async (set, get, studentId) => {
   }
 };
 
+const logout = async () => {
+  try {
+    await fetchJSON(`${BASE_URL}/instructors/logout`, { method: 'POST' });
+    return true;
+  } catch (error) {
+    console.error('Logout failed:', error);
+    return false;
+  }
+};
+
 // === Zustand Store ===
 const useInstructorStore = create(
   persist(
@@ -181,6 +191,14 @@ const useInstructorStore = create(
           return false;
         }
       },
+      logout: async () => {
+        const success = await logout();
+        if (success) {
+          get().reset();
+        }
+        return success;
+      },
+
 
 
       // Reset store (except persisted data)

@@ -18,7 +18,7 @@ export default async function AdminDashboardLayout({ children }) {
           Admin Panel
         </div>
         <nav className="flex-1 px-4 py-6 space-y-3">
-          <Link href="/admin/dashboard" className="block px-3 py-2 rounded-md hover:bg-gray-700">
+          <Link href="/Admin/Dashboard" className="block px-3 py-2 rounded-md hover:bg-gray-700">
             Dashboard
           </Link>
           <Link href="/Admin/Dashboard/AddStudents" className="block px-3 py-2 rounded-md hover:bg-gray-700">
