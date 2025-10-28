@@ -54,7 +54,6 @@ const useExamStore = create(
 
       // Save workbook state for a specific question (in-memory only)
       saveWorkbookState: (questionNumber, workbookData) => {
-        console.log('Saving workbook state for question:', questionNumber, workbookData)
         set((state) => ({
           workbookStates: {
             ...state.workbookStates,
@@ -245,6 +244,10 @@ const useExamStore = create(
           set({ error: error.message, saving: false });
         }
       },
+      TimesUp: async () => {
+        await get().finishExam();
+      },
+
 
       finishExam: async () => {
         const { saveAnswers, reset, BASEURL } = get();
@@ -273,7 +276,6 @@ const useExamStore = create(
           Object.entries(state).filter(([key]) => key !== "BASEURL")
         ),
       onRehydrateStorage: () => (state) => {
-        console.log("✅ Zustand rehydrated from localStorage", state);
         state?.setHydrated();
       }
     }

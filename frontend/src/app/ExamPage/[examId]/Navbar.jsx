@@ -2,12 +2,11 @@
 
 import React, { useState } from 'react';
 import useExamStore from './StateManagement';
-import { useRouter } from 'next/navigation';
+
 
 const Navbar = () => {
-  const { currentQuestion, totalQuestions, questionName, totalTime, remainingTime, tick, getFormattedTime, goToQuestion, saving, nextQuestion, prevQuestion, finishExam } = useExamStore();
+  const { currentQuestion, totalQuestions, questionName, totalTime, remainingTime, tick, getFormattedTime, goToQuestion, saving, nextQuestion, prevQuestion, finishExam, TimesUp } = useExamStore();
   const [isOverviewDropdownOpen, setIsOverviewDropdownOpen] = useState(false);
-  const router = useRouter();
 
   const questionNumbers = Array.from({ length: totalQuestions }, (_, i) => i + 1);
   const formattedTime = getFormattedTime();
@@ -17,6 +16,8 @@ const Navbar = () => {
     const timer = setInterval(() => {
       if (remainingTime === 0 && totalTime !== 0) {
         clearInterval(timer);
+        TimesUp();
+        window.location.href = '/';
         return;
       }
       tick();

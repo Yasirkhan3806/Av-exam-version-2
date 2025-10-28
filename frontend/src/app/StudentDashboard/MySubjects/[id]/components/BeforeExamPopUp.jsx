@@ -40,7 +40,7 @@ const ExamInstructionsPopup = ({ exam, onClose, onStartExam }) => {
                   <h3 className="text-lg font-semibold text-gray-800 mb-2">Exam Details</h3>
                   <ul className="text-gray-700 space-y-1">
                     <li>• Total Questions: <span className="font-medium">{exam.totalQuestions}</span></li>
-                    <li>• Time Limit: <span className="font-medium">{exam.totalAttempt} minutes</span></li>
+                    <li>• Time Limit: <span className="font-medium">{exam.totalTime} minutes</span></li>
                     <li>• Attempt All Questions: <span className="font-medium">Required</span></li>
                   </ul>
                 </div>
