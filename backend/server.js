@@ -56,6 +56,7 @@ return res.status(200).json("server is running");
   app.use('/auth', authRouter);
   app.use('/questions', questionRouter);
   app.use("/TestQuestions", express.static(path.join(process.cwd(), "TestQuestions")));
+  app.use("/Answer_pdfs", express.static(path.join(process.cwd(), "Answer_pdfs")));
   app.use('/subjects', SubjectRouter);
   app.use('/instructors', InstuctorRoutes);
   // Start server

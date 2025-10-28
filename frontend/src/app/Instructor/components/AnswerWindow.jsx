@@ -5,6 +5,8 @@ import { FileCheck, Eye, EyeOff } from 'lucide-react';
 
 
 const AnswerPanel = ({ answer, showAnswer, onToggleAnswer }) => {
+
+  const BaseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:5000';
   return (
     <div className="flex flex-col h-full bg-white border border-gray-200 rounded-lg overflow-hidden">
       <div className="p-6 border-b border-gray-200">
@@ -26,10 +28,7 @@ const AnswerPanel = ({ answer, showAnswer, onToggleAnswer }) => {
       </div>
       <div className="flex-1 p-6 overflow-auto">
         {showAnswer ? (
-          <div 
-            className="prose prose-gray max-w-none bg-gray-50 rounded-lg p-6 min-h-64"
-            dangerouslySetInnerHTML={{ __html: answer }}
-          />
+          <iframe src={`${BaseUrl}/${answer}`} className="w-full h-full" />
         ) : (
           <div className="flex items-center justify-center h-full bg-gray-50 rounded-lg">
             <div className="text-center">

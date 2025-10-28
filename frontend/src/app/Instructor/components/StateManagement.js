@@ -75,10 +75,10 @@ const fetchAnswersByQuestionId = async (set, get, studentId) => {
   try {
     const currentExamId = get().currentExamId;
     const data = await fetchJSON(`${BASE_URL}/instructors/getStudentAnswers/${studentId}/${currentExamId}`);
-    set({ studentAnswers: data.answers.answers, currentStudentId: studentId });
-    if (data.answers.status === 'checked' || data.answers.status === 'draft') {
-      set({ marks: data.answers.marksObtained || {} });
-    }
+    set({ studentAnswers: data.answers, currentStudentId: studentId, marks: data.answers.marksObtained});
+    // if (data.answers.status === 'checked' || data.answers.status === 'draft') {
+    //   set({ marks: data.answers.marksObtained || {} });
+    // }
     return data.answers;
   } catch (error) {
     console.error('Failed to fetch student answers:', error);

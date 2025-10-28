@@ -23,14 +23,16 @@ export default function ReviewAnswer() {
 
 
   useEffect(() => {
-    if (!studentAnswers[`q${currentQuestion}`]) {
+    if (!studentAnswers?.marksObtained?.[`q${currentQuestion}`]) {
       setShowAnswer(false)
     } else {
       setShowAnswer(true)
     }
   }, [currentQuestion, studentAnswers])
 
-  const currentAnswer = studentAnswers[`q${currentQuestion}`];
+  console.log("Student Answers:", studentAnswers);
+
+  const currentAnswer = studentAnswers?.marksObtained?.[`q${currentQuestion}`]?.pdfUrl || "";
 
 
   const handleMarksChange = (marks) => {
