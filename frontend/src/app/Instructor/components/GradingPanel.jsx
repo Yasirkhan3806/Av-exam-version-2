@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Award } from 'lucide-react';
 
 // Grading Panel Component
-const GradingPanel = ({ currentMarks, onMarksChange, onSave, onSkip }) => {
+const GradingPanel = ({ currentMarks, onMarksChange, onSave, onPdfUpload, currentPdf }) => {
   const [localMarks, setLocalMarks] = useState(currentMarks);
 
   useEffect(() => {
@@ -20,7 +20,7 @@ const GradingPanel = ({ currentMarks, onMarksChange, onSave, onSkip }) => {
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-6">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <h2 className="text-xl font-semibold text-gray-900 mb-6">Grading</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
@@ -47,12 +47,30 @@ const GradingPanel = ({ currentMarks, onMarksChange, onSave, onSkip }) => {
           </div>
           
           <div className="flex items-end gap-4">
-            <button
-              onClick={onSkip}
-              className="flex-1 px-6 py-4 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium text-lg"
-            >
-              Skip Question
-            </button>
+      
+
+            <div className='flex flex-col gap-2 w-1/2'>
+              <input
+              type="file"
+              accept="application/pdf"
+            
+              onChange={(e) => onPdfUpload(e.target.files[0])}
+              className="flex-1 w-10/12 px-6 py-4 border border-gray-300 rounded-lg"
+            />
+               {currentPdf && (
+        <div className="flex items-center justify-between border border-gray-300 rounded-lg px-3 py-2">
+          <p className="text-sm text-gray-700">
+            ✅ {currentPdf.name} ({(currentPdf.size / 1024).toFixed(1)} KB)
+          </p>
+          <button
+            className="text-red-500 text-sm"
+          >
+            Remove
+          </button>
+        </div>
+      )}
+            </div>
+            
             <button
               onClick={onSave}
               className="flex-1 px-6 py-4 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors font-medium text-lg"

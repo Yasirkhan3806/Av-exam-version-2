@@ -118,7 +118,7 @@ const verifyExamToken = (req, res, next) => {
 };
 
 
-export const verifyInstructorToken = (req, res, next) => {
+ const verifyInstructorToken = (req, res, next) => {
   try {
     let token;
 
@@ -172,6 +172,18 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+const answerStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "Answer_pdfs/");
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, `${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`);
+  },
+});
+
+const answerUpload = multer({ storage: answerStorage });
 
 
-export {generateTokenAndSetCookie, verifyToken, upload,verifyExamToken};
+
+export {generateTokenAndSetCookie, verifyToken,  upload, verifyExamToken, answerUpload, verifyInstructorToken};

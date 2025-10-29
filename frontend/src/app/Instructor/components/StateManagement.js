@@ -75,7 +75,7 @@ const fetchAnswersByQuestionId = async (set, get, studentId) => {
   try {
     const currentExamId = get().currentExamId;
     const data = await fetchJSON(`${BASE_URL}/instructors/getStudentAnswers/${studentId}/${currentExamId}`);
-    set({ studentAnswers: data.answers, currentStudentId: studentId, marks: data.answers.marksObtained});
+    set({ studentAnswers: data.answers, currentStudentId: studentId, marks: data.answers.marksObtained });
     // if (data.answers.status === 'checked' || data.answers.status === 'draft') {
     //   set({ marks: data.answers.marksObtained || {} });
     // }
@@ -116,6 +116,7 @@ const useInstructorStore = create(
       status: 'submitted',
       marks: {},
       currentStudentId: null,
+      checkedPdfs: {},
 
       // Actions
       setExamQuestions: (questions) => set({ examQuestions: questions }),
@@ -161,36 +162,53 @@ const useInstructorStore = create(
         }
       },
       setMarks: (currentQuestion, marks) => {
-        set({ marks: { ...get().marks, [`q${currentQuestion}`]: { marks: marks, checked: true } } })
+        set({ marks: { ...get().marks, [`q${currentQuestion}`]: { ...get().marks[`q${currentQuestion}`], marks: marks, checked: true } } });
         return true;
+      },
+      setCheckedPdf: (questionNumber, pdfFile) => {
+        set({ checkedPdfs: { ...get().checkedPdfs, [`q${questionNumber}`]: pdfFile } });
       },
 
       finishExamReview: async () => {
         try {
-          const { currentExamId, marks, currentStudentId, studentAnswers, reset } = get();
+          const { currentExamId, marks, currentStudentId, checkedPdfs } = get();
 
-          const status =
-            Object.keys(marks).length >= Object.keys(studentAnswers).length
-              ? 'checked'
-              : 'draft';
-
-          await fetchJSON(`${BASE_URL}/instructors/updateStudentMarks/${currentStudentId}/${currentExamId}`, {
-            method: 'PUT',
-            body: JSON.stringify({
-              marksObtained: marks,
-              status,
-            }),
-            credentials: 'include',
+          // Prepare form data
+          const formData = new FormData();
+          Object.entries(checkedPdfs).forEach(([key, file]) => {
+            formData.append(key, file);
           });
 
-          reset(); // correctly reset the store
+          // Include the marksObtained object in request body
+          formData.append("data", JSON.stringify({ marksObtained: marks }));
+
+          // Upload all PDFs and replace old ones
+          const res = await fetch(`${BASE_URL}/instructors/uploadCheckedPdfs`, {
+            method: "POST",
+            body: formData,
+          });
+          const { updatedMarks } = await res.json();
+          console.log("✅ Uploaded checked PDFs and obtained updated marks:", updatedMarks);
+
+          // Now update student marks in DB
+          await fetchJSON(`${BASE_URL}/instructors/updateStudentMarks/${currentStudentId}/${currentExamId}`, {
+            method: "PUT",
+            body: JSON.stringify({
+              marksObtained: updatedMarks,
+              status: "checked",
+            }),
+            credentials: "include",
+          });
+
+          // get().reset();
           return true;
         } catch (error) {
-          console.error('Failed to update marks:', error);
+          console.error("❌ Failed to update marks:", error);
           set({ error: error.message });
           return false;
         }
       },
+
       logout: async () => {
         const success = await logout();
         if (success) {

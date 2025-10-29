@@ -5,7 +5,7 @@ import puppeteer from "puppeteer";
 import path from "path";
 import fs from "fs";
 import { Instructor, Subject, TestUser, Questions, Answer } from "./schema.js";
-import { generateTokenAndSetCookie, verifyInstructorToken, verifyToken } from "./middleware.js";
+import { generateTokenAndSetCookie, verifyInstructorToken, verifyToken, answerUpload } from "./middleware.js";
 
 const router = express.Router();
 
@@ -388,6 +388,48 @@ router.get("/getStudentAnswers/:studentId/:examId", verifyInstructorToken, async
     });
   }
 });
+
+
+router.post("/uploadCheckedPdfs", answerUpload.any(), async (req, res) => {
+  try {
+    const { marksObtained } = JSON.parse(req.body.data); 
+    // body.data should contain the current marksObtained object from your frontend
+
+    const updatedMarks = { ...marksObtained };
+
+    // 🔄 Iterate over each uploaded file
+    req.files.forEach((file) => {
+      const questionKey = file.fieldname; // e.g. q1, q2
+      const newPath = file.path; // e.g. uploads/q1-123456789.pdf
+
+      // 🗑️ Delete old file if it exists
+      const oldPath = updatedMarks[questionKey]?.pdfUrl;
+      if (oldPath && fs.existsSync(oldPath)) {
+        fs.unlinkSync(oldPath);
+        console.log(`🗑️ Deleted old file for ${questionKey}:`, oldPath);
+      }
+
+      // 🔁 Replace old path with new one
+      updatedMarks[questionKey] = {
+        ...updatedMarks[questionKey],
+        pdfurl: newPath,
+        checked: true,
+      };
+    });
+
+    console.log("✅ Updated Marks:", updatedMarks);
+
+    // TODO: Save updatedMarks back to DB if needed here
+    res.json({
+      message: "✅ Checked PDFs uploaded and old ones replaced successfully",
+      updatedMarks,
+    });
+  } catch (error) {
+    console.error("❌ Error in uploadCheckedPdfs:", error);
+    res.status(500).json({ error: "Failed to process files" });
+  }
+});
+
 
 router.put("/updateStudentMarks/:studentId/:examId", verifyInstructorToken, async (req, res) => {
   try {

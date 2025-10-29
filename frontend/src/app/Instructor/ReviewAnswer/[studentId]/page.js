@@ -13,8 +13,10 @@ export default function ReviewAnswer() {
   const studentId = params.studentId;
   const [currentMarks, setCurrentMarks] = useState(0);
   const [showAnswer, setShowAnswer] = useState(true);
+  const [currentCheckedPdf, setCurrentCheckedPdf] = useState(null);
+  const [currentPdf, setCurrentPdf] = useState(null);
 
-  const { fetchExamById, fetchAnswersByQuestionId, examQuestions, studentAnswers, currentQuestion, nextQuestion, prevQuestion, setMarks, marks, finishExamReview } = useInstructorStore((state) => state);
+  const { fetchExamById, fetchAnswersByQuestionId, examQuestions, studentAnswers, currentQuestion, nextQuestion, prevQuestion, setMarks, marks, finishExamReview,setCheckedPdf, checkedPdfs } = useInstructorStore((state) => state);
 
   useEffect(() => {
     fetchExamById();
@@ -30,7 +32,11 @@ export default function ReviewAnswer() {
     }
   }, [currentQuestion, studentAnswers])
 
-  console.log("Student Answers:", studentAnswers);
+  useEffect(() => {
+    console.log("Checked PDF changed:", checkedPdfs[`q${currentQuestion}`]);
+    setCurrentPdf(checkedPdfs[`q${currentQuestion}`] || null);
+  }, [checkedPdfs, currentQuestion]);
+
 
   const currentAnswer = studentAnswers?.marksObtained?.[`q${currentQuestion}`]?.pdfUrl || "";
 
@@ -41,23 +47,24 @@ export default function ReviewAnswer() {
   };
 
   const handleSave = () => {
+    setCheckedPdf(currentQuestion, currentCheckedPdf);
     setMarks(currentQuestion, currentMarks);
     if (currentQuestion < Object.keys(examQuestions).length) {
       nextQuestion();
     }
   };
 
-  const handleSkip = () => {
-    if (currentQuestion < Object.keys(examQuestions).length) {
-      nextQuestion();
-    }
+  const handlePdfUpload = (pdfFile) => {
+    setCurrentCheckedPdf(pdfFile);
+    
   };
+
 
   const finishReview = async () => {
     const done = await finishExamReview();
-    if (done) {
-      window.location.href = '/Instructor';
-    }
+    // if (done) {
+    //   window.location.href = '/Instructor';
+    // }
   };
 
   return (
@@ -90,7 +97,8 @@ export default function ReviewAnswer() {
           currentMarks={marks[`q${currentQuestion}`]?.marks || 0}
           onMarksChange={handleMarksChange}
           onSave={handleSave}
-          onSkip={handleSkip}
+          onPdfUpload={handlePdfUpload}
+          currentPdf={currentPdf}
         />
       </main>
     </div>
