@@ -333,10 +333,12 @@ router.get("/getStudentAnswers/:studentId/:examId", verifyInstructorToken, async
   try {
     const { studentId, examId } = req.params;
 
+    // 🧩 Validate IDs
     if (!mongoose.Types.ObjectId.isValid(studentId) || !mongoose.Types.ObjectId.isValid(examId)) {
       return res.status(400).json({ message: "Invalid student ID or exam ID" });
     }
 
+    // 🧠 Fetch student answers
     const answersDoc = await Answer.findOne({
       Student: studentId,
       questionSet: examId,
@@ -349,16 +351,13 @@ router.get("/getStudentAnswers/:studentId/:examId", verifyInstructorToken, async
       });
     }
 
-    // ✅ Prepare marksObtained if not exists
+    // ✅ Ensure marksObtained exists
     if (!answersDoc.marksObtained || typeof answersDoc.marksObtained !== "object") {
       answersDoc.marksObtained = {};
     }
 
-    // ✅ Convert each answer into its own PDF and attach to its marks entry
+    // ✅ Generate PDFs only for unanswered (missing) pdfUrls
     for (const [questionKey, answerHTML] of answersDoc.answers.entries()) {
-      const fileName = `${studentId}_${examId}_${questionKey}`;
-      const pdfPath = await generatePDF(answerHTML, fileName);
-
       // Initialize the marks entry if missing
       if (!answersDoc.marksObtained[questionKey]) {
         answersDoc.marksObtained[questionKey] = {
@@ -368,17 +367,29 @@ router.get("/getStudentAnswers/:studentId/:examId", verifyInstructorToken, async
         };
       }
 
-      // ✅ Update only the pdfUrl field
+      // Skip if pdf already exists
+      const existingPdfUrl = answersDoc.marksObtained[questionKey].pdfUrl;
+      if (existingPdfUrl && existingPdfUrl.trim() !== "") {
+        console.log(`📄 Skipping ${questionKey}: already has PDF -> ${existingPdfUrl}`);
+        continue;
+      }
+
+      // Generate new PDF if missing
+      const fileName = `${studentId}_${examId}_${questionKey}`;
+      const pdfPath = await generatePDF(answerHTML, fileName);
+
       answersDoc.marksObtained[questionKey].pdfUrl = pdfPath;
     }
 
+    // ✅ Save updated document
     await answersDoc.save();
 
     return res.status(200).json({
       success: true,
-      message: "✅ Student answers fetched and PDFs generated successfully",
+      message: "✅ Student answers fetched (new PDFs created only where missing)",
       answers: answersDoc,
     });
+
   } catch (error) {
     console.error("❌ Error fetching student answers:", error);
     return res.status(500).json({
@@ -388,6 +399,7 @@ router.get("/getStudentAnswers/:studentId/:examId", verifyInstructorToken, async
     });
   }
 });
+
 
 
 router.post("/uploadCheckedPdfs", answerUpload.any(), async (req, res) => {
@@ -406,18 +418,15 @@ router.post("/uploadCheckedPdfs", answerUpload.any(), async (req, res) => {
       const oldPath = updatedMarks[questionKey]?.pdfUrl;
       if (oldPath && fs.existsSync(oldPath)) {
         fs.unlinkSync(oldPath);
-        console.log(`🗑️ Deleted old file for ${questionKey}:`, oldPath);
       }
 
       // 🔁 Replace old path with new one
       updatedMarks[questionKey] = {
         ...updatedMarks[questionKey],
-        pdfurl: newPath,
+        pdfUrl: newPath,
         checked: true,
       };
     });
-
-    console.log("✅ Updated Marks:", updatedMarks);
 
     // TODO: Save updatedMarks back to DB if needed here
     res.json({

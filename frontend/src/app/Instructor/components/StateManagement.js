@@ -200,7 +200,7 @@ const useInstructorStore = create(
             credentials: "include",
           });
 
-          // get().reset();
+          get().reset();
           return true;
         } catch (error) {
           console.error("❌ Failed to update marks:", error);

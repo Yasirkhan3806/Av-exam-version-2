@@ -60,6 +60,7 @@ console.log('DetailedResult received result:', result);
               key={questionId}
               question={questionText}
               studentAnswer={answerData}
+              pdfUrl={marksData.pdfUrl || ""}
               marksObtained={Number(marksData.marks)}
               totalMarks={result.questionSet.questions?.find(q => q.id === questionId)?.marks || 1}
             />

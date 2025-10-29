@@ -62,9 +62,9 @@ export default function ReviewAnswer() {
 
   const finishReview = async () => {
     const done = await finishExamReview();
-    // if (done) {
-    //   window.location.href = '/Instructor';
-    // }
+    if (done) {
+      window.location.href = '/Instructor';
+    }
   };
 
   return (
