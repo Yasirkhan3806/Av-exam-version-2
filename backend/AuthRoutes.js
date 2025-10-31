@@ -114,6 +114,20 @@ router.get("/verifySession", verifyToken, (req, res) => {
   });
 });
 
+router.get('/get-instructors', verifyToken, async (req, res) => {
+  try {
+    const instructors = await Instructor.find({}, 'doc_id name userName courses');
+    return res.status(200).json({
+      message: "✅ Instructors fetched successfully",
+      success: true,
+      instructors,
+    });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ message: "Server error", error: e.message });
+  }
+});
+
 
 // ✅ Logout
 router.post("/logout", (req, res) => {

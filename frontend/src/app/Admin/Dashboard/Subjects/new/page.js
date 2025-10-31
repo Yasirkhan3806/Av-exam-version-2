@@ -26,14 +26,22 @@ export default function AddSubject() {
     const [instructors, setInstructors] = useState([]); // New state for instructors
 
     useEffect(() => {
-        console.log(BASEURL);
-        fetchInstructors(BASEURL)
-            .then((data) => {
+        const fetchInstructors = async () => {
+            try {
+                const response = await fetch(`${BASEURL}/auth/get-instructors`, { credentials: 'include' });
+                const data = await response.json();
+                console.log(data);
+                if (!data.success) {
+                    throw new Error(`Error fetching instructors: ${response.statusText}`);
+                }
                 setInstructors(data.instructors);
-            })
-            .catch((error) => {
+            } catch (error) {
+                console.error(error);
                 setErrors((prev) => ({ ...prev, fetch: "Error fetching instructors: " + error.message }));
-            });
+            }
+        };
+
+        fetchInstructors();
     }, [BASEURL]);
 
     function validate(values) {

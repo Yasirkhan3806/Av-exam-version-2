@@ -34,19 +34,7 @@ router.post('/register-instructor', verifyToken, async (req, res) => {
   }
 });
 
-router.get('/get-instructors', verifyInstructorToken, async (req, res) => {
-  try {
-    const instructors = await Instructor.find({}, 'doc_id name userName courses');
-    return res.status(200).json({
-      message: "✅ Instructors fetched successfully",
-      success: true,
-      instructors,
-    });
-  } catch (e) {
-    console.error(e);
-    return res.status(500).json({ message: "Server error", error: e.message });
-  }
-});
+
 
 router.post('/instructor-login', async (req, res) => {
   try {
