@@ -12,6 +12,7 @@ import {
 } from "react-resizable-panels";
 import useExamStore from "./StateManagement";
 import Navbar from "./Navbar";
+import handleLogout from '../../Logout'
 
 const ExamPage = () => {
   const params = useParams();
@@ -30,7 +31,8 @@ const ExamPage = () => {
         console.log("User switched tab or minimized.");
         document.title = "Come back!";
         finishExam();
-        window.location.href = "/";
+        handleLogout();
+        window.location.href = '/Login';
       } else {
         console.log("User came back.");
         document.title = "Exam Page";

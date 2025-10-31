@@ -1,10 +1,8 @@
 import React from 'react';
 import useExamStore from './ExamPage/[examId]/StateManagement';
 
-function Logout() {
-  const BASEURL = useExamStore((state) => state.BASEURL);
-
-  const handleLogout = async () => {
+export const handleLogout = async () => {
+  const BASEURL = process.env.NEXT_PUBLIC_BASEURL || 'http://localhost:5000';
     try {
       // ✅ 1. Call backend to destroy session
       const response = await fetch(`${BASEURL}/auth/logout`, {
@@ -21,6 +19,7 @@ function Logout() {
 
       // ✅ 2. Optional: Clear any client-side auth tokens (if you use them)
       localStorage.removeItem('authToken');
+      localStorage.clear();
 
       // ✅ 3. Redirect after successful logout
       window.location.href = '/Login'; // or '/login' — make sure path matches your route
@@ -31,6 +30,10 @@ function Logout() {
       alert("Logout failed. Please try again.");
     }
   };
+
+function Logout() {
+
+  
 
   return (
     <button
