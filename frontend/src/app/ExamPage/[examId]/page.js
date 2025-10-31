@@ -19,20 +19,42 @@ const ExamPage = () => {
   const { examId } = params;
 
 
-  const {startExam,reset, finishExam} = useExamStore();
+  const { startExam, reset, finishExam } = useExamStore();
 
   // useEffect(() => {
   //   fetchExam(examId);
   // }, [examId]);
 
- useEffect(() => {
-    const handleVisibilityChange = () => {
+  useEffect(() => {
+    const handleVisibilityChange = async () => {
       if (document.hidden) {
-        console.log("User switched tab or minimized.");
         document.title = "Come back!";
-        finishExam();
-        handleLogout();
-        window.location.href = '/Login';
+        await finishExam();
+        const BASEURL = process.env.NEXT_PUBLIC_BASEURL || 'http://localhost:5000';
+        try {
+          // ✅ 1. Call backend to destroy session
+          const response = await fetch(`${BASEURL}/auth/logout`, {
+            method: "POST",
+            credentials: "include", // 👈 Sends cookies (including connect.sid)
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error(`Logout failed: ${response.statusText}`);
+          }
+
+          // ✅ 2. Optional: Clear any client-side auth tokens (if you use them)
+          localStorage.removeItem('authToken');
+          localStorage.clear();
+
+          // ✅ 3. Redirect after successful logout
+          window.location.href = '/Login'; // or '/login' — make sure path matches your route
+
+        } catch (error) {
+          console.error("Logout error:", error);
+        }
       } else {
         console.log("User came back.");
         document.title = "Exam Page";
@@ -46,12 +68,12 @@ const ExamPage = () => {
     };
   }, []);
 
-useEffect(() => {
+  useEffect(() => {
     startExam();
     return () => {
-        reset();
+      reset();
     }
-}, []);
+  }, []);
 
 
 
