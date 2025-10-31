@@ -16,7 +16,7 @@ const Navbar = () => {
     const timer = setInterval(() => {
       if (remainingTime === 0 && totalTime !== 0) {
         clearInterval(timer);
-        TimesUp();
+        finishExam();
         window.location.href = '/';
         return;
       }

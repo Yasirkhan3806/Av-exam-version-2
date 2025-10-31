@@ -121,8 +121,8 @@ async function fetchStudentGrade(set, get, subjectId) {
     set({ studentGrades: { [subjectId]: data }, overallPercentage: [data.percentage,...get().overallPercentage], loading: false });
     return data;
   } catch (error) {
-    console.error('Failed to fetch grade:', error);
-    set({ error: error.message, loading: false });
+    // console.error('Failed to fetch grade:', error);
+    // set({ error: error.message, loading: false });
     return null;
   } finally {
     set({ loading: false });
