@@ -12,14 +12,13 @@ import {
 } from "react-resizable-panels";
 import useExamStore from "./StateManagement";
 import Navbar from "./Navbar";
-import handleLogout from '../../Logout'
 
 const ExamPage = () => {
   const params = useParams();
   const { examId } = params;
 
 
-  const { startExam, reset, finishExam } = useExamStore();
+  const { startExam, reset } = useExamStore();
 
 
 
