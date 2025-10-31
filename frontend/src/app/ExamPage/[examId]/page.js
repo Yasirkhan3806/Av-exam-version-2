@@ -24,17 +24,25 @@ const ExamPage = () => {
   //   fetchExam(examId);
   // }, [examId]);
 
-//   document.addEventListener("visibilitychange", function () {
-//   if (document.hidden) {
-//     document.title = "Come back!";
-//     console.log("User switched tab or minimized.");
-//     finishExam();
-//     window.location.href = "/"; // Redirect to homepage
-//   } else {
-//     document.title = "Exam Page";
-//     console.log("User came back.");
-//   }
-// });
+ useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        console.log("User switched tab or minimized.");
+        document.title = "Come back!";
+        finishExam();
+        window.location.href = "/";
+      } else {
+        console.log("User came back.");
+        document.title = "Exam Page";
+      }
+    };
+
+    window.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
 
 useEffect(() => {
     startExam();
