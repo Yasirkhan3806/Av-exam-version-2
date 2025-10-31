@@ -21,52 +21,8 @@ const ExamPage = () => {
 
   const { startExam, reset, finishExam } = useExamStore();
 
-  // useEffect(() => {
-  //   fetchExam(examId);
-  // }, [examId]);
 
-  useEffect(() => {
-    const handleVisibilityChange = async () => {
-      if (document.hidden) {
-        document.title = "Come back!";
-        await finishExam();
-        const BASEURL = process.env.NEXT_PUBLIC_BASEURL || 'http://localhost:5000';
-        try {
-          // ✅ 1. Call backend to destroy session
-          const response = await fetch(`${BASEURL}/auth/logout`, {
-            method: "POST",
-            credentials: "include", // 👈 Sends cookies (including connect.sid)
-            headers: {
-              "Content-Type": "application/json",
-            },
-          });
 
-          if (!response.ok) {
-            throw new Error(`Logout failed: ${response.statusText}`);
-          }
-
-          // ✅ 2. Optional: Clear any client-side auth tokens (if you use them)
-          localStorage.removeItem('authToken');
-          localStorage.clear();
-
-          // ✅ 3. Redirect after successful logout
-          window.location.href = '/Login'; // or '/login' — make sure path matches your route
-
-        } catch (error) {
-          console.error("Logout error:", error);
-        }
-      } else {
-        console.log("User came back.");
-        document.title = "Exam Page";
-      }
-    };
-
-    window.addEventListener("visibilitychange", handleVisibilityChange);
-
-    return () => {
-      window.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, []);
 
   useEffect(() => {
     startExam();
