@@ -159,7 +159,7 @@ const verifyExamToken = (req, res, next) => {
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const dir = `TestQuestions/${req.body.name}`;
+    const dir = `TestQuestions/${req.body.subjectId}/${req.body.name}`;
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }

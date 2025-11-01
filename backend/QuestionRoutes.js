@@ -11,7 +11,7 @@ import { JWT_SECRET } from "./middleware.js";
 
 
 
-async function splitPDF(inputPath, originalName, name) {
+async function splitPDF(inputPath, originalName, name, subjectId) {
   try {
     const pdfBuffer = await fs.readFile(inputPath);
     const pdfDoc = await PDFDocument.load(pdfBuffer);
@@ -28,13 +28,13 @@ async function splitPDF(inputPath, originalName, name) {
 
       // Save the page as a separate PDF
       const pageFileName = `${baseName}_page_${i + 1}.pdf`;
-      const pageFilePath = path.join(`TestQuestions/${name}`, pageFileName);
+      const pageFilePath = path.join(`TestQuestions/${subjectId}/${name}`, pageFileName);
       const pdfBytes = await newPdf.save();
 
       await fs.writeFile(pageFilePath, pdfBytes);
 
       // Store the relative path
-      pagesData[`q${i + 1}`] = `TestQuestions/${name}/${pageFileName}`;
+      pagesData[`q${i + 1}`] = `TestQuestions/${subjectId}/${name}/${pageFileName}`;
     }
 
     // Remove the original uploaded file
@@ -63,7 +63,7 @@ router.post(
         return res.status(400).json({ error: 'No PDF file uploaded' });
       }
 
-      const pagesData = await splitPDF(req.file.path, req.file.originalname, name);
+      const pagesData = await splitPDF(req.file.path, req.file.originalname, name, subjectId);
 
       const dataset = new Questions({
         name,
