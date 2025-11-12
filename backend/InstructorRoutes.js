@@ -295,7 +295,34 @@ async function generatePDF(html, fileName) {
     });
 
     const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: "networkidle0" });
+
+    // Wrap your HTML to ensure it has a full document structure
+    const wrappedHTML = `
+      <html>
+        <head>
+          <style>
+            table {
+              width: 100%;
+              border-collapse: collapse;
+            }
+            table, th, td {
+              border: 1px solid #000;
+            }
+            th, td {
+              padding: 8px;
+              text-align: left;
+              vertical-align: top;
+            }
+          </style>
+        </head>
+        <body>
+          ${html}
+        </body>
+      </html>
+    `;
+
+    await page.setContent(wrappedHTML, { waitUntil: "networkidle0" });
+    await page.emulateMediaType("screen");
 
     const pdfBuffer = await page.pdf({
       format: "A4",
