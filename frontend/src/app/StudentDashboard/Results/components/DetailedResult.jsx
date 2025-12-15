@@ -40,10 +40,10 @@ console.log('DetailedResult received result:', result);
           </div>
           <div className="text-right">
             <div className="text-2xl font-bold text-gray-900">
-              {Object.values(result.marksObtained).reduce((sum, mark) => sum + Number(mark.marks), 0)} / {result.questionSet.totalMarks}
+              {Object.values(result?.marksObtained || {}).reduce((sum, mark) => sum + Number(mark.marks), 0)} / {result?.questionSet?.totalMarks}
             </div>
             <div className="text-sm text-gray-600">
-              {Math.round((Object.values(result.marksObtained).reduce((sum, mark) => sum + Number(mark.marks), 0) / result.questionSet.totalMarks) * 100)}% Score
+              {Math.round((Object.values(result?.marksObtained || {}).reduce((sum, mark) => sum + Number(mark.marks), 0) / result?.questionSet?.totalMarks) * 100)}% Score
             </div>
           </div>
         </div>
@@ -51,9 +51,9 @@ console.log('DetailedResult received result:', result);
 
       {/* Answer Panels */}
       <div className="space-y-4">
-        {Object.entries(result.answers).map(([questionId, answerData]) => {
-          const marksData = result.marksObtained[questionId] || { marks: 0 };
-          const questionText = result.questionSet.questions?.find(q => q.id === questionId)?.text || `Question ${questionId[1]}`;
+        {Object.entries(result?.answers || {}).map(([questionId, answerData]) => {
+          const marksData = result?.marksObtained[questionId] || { marks: 0 };
+          const questionText = result?.questionSet?.questions?.find(q => q.id === questionId)?.text || `Question ${questionId[1]}`;
           
           return (
             <AnswerPanel
@@ -69,7 +69,7 @@ console.log('DetailedResult received result:', result);
       </div>
 
       {/* Empty State */}
-      {Object.keys(result.answers).length === 0 && (
+      {Object.keys(result?.answers || {}).length === 0 && (
         <div className="text-center py-12">
           <div className="text-gray-400 mb-4">
             <HelpCircle className="w-12 h-12 mx-auto" />

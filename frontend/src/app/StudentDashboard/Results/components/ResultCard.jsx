@@ -18,11 +18,11 @@ const ResultCard = ({ result, onReviewResults }) => {
   const router = useRouter();
 
   useEffect(() => {
-    const calculatedScore = scoreCalculation(result.marksObtained);
-    const percentage = (calculatedScore / result.questionSet.totalMarks) * 100;
+    const calculatedScore = scoreCalculation(result?.marksObtained || {});
+    const percentage = (calculatedScore / result?.questionSet?.totalMarks) * 100;
     setScorePercentage(Math.round(percentage));
     setScore(calculatedScore);
-  }, [result.marksObtained]);
+  }, [result?.marksObtained]);
 
   const getProgressClass = () => {
     if (scorePercentage >= 80) return 'bg-green-500 text-white';
@@ -36,7 +36,7 @@ const ResultCard = ({ result, onReviewResults }) => {
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-4">
         <div className="flex-1">
           <div className="flex items-start justify-between gap-2 mb-1">
-            <h2 className="text-base sm:text-lg font-bold text-gray-900 flex-1">{result.questionSet.name}</h2>
+            <h2 className="text-base sm:text-lg font-bold text-gray-900 flex-1">{result?.questionSet?.name}</h2>
             <span className={`px-2.5 py-1 sm:hidden rounded-full text-xs font-bold ${getProgressClass()} shadow-sm whitespace-nowrap flex-shrink-0`}>
               {scorePercentage}%
             </span>
