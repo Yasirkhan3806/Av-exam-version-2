@@ -3,7 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { UserPlus, BookOpen, CalendarPlus, ChevronLeft } from 'lucide-react';
-import AddQuestionsPopup from './components/AddQuestions';
+import TypeExamPopup from './components/TypeExamPopup';
 import Exams from './components/Exams';
 import EnrollStudentPopup from './components/EnrollStudentForm';
 import EnrollStudentsList from './components/EnrolledStudents';
@@ -161,7 +161,7 @@ const SubjectDetailsPage = () => {
                 <EnrollStudentsList subjectId={id} />
               
             </div>
-            <AddQuestionsPopup
+            <TypeExamPopup
                 isOpen={isPopupOpen}
                 onClose={() => setIsPopupOpen(false)}
                 subjectId={id}

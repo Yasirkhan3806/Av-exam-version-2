@@ -1,7 +1,7 @@
 "use client";
 
 import { use, useEffect, useRef } from "react";
-import useExamStore from "./StateManagement";
+import useExamStore from "../../../store/useExamStore";
 
 export default function QuestionPanel({ examId }) {
   const { fetchExam, questionName, currentQuestion, questionsObj, totalQuestions, loading, error,BASEURL } = useExamStore();

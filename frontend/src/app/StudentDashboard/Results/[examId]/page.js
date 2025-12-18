@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation';
-import useSubjectStore from '../../components/StatesManagement';
+import useSubjectStore from '../../../../store/useSubjectStore';
 import DetailedResult from '../components/DetailedResult';
 
 

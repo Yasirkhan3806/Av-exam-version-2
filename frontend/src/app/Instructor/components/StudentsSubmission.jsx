@@ -1,15 +1,16 @@
 "use client";
-import React,{useEffect} from 'react';
-import useInstructorStore from './StateManagement';
-import StudentSubmissionsCard from './StudentSubmissionsCard';
+import React, { useEffect } from "react";
+import useInstructorStore from "../../../store/useInstructorStore";
+import StudentSubmissionsCard from "./StudentSubmissionsCard";
 
-const StudentSubmissions = ({questionId, examInfo}) => {
-  const {fetchSubmissions, submissions } = useInstructorStore((state)=> state);
+const StudentSubmissions = ({ questionId, examInfo }) => {
+  const { fetchSubmissions, submissions } = useInstructorStore(
+    (state) => state
+  );
 
-  useEffect(() => { 
+  useEffect(() => {
     fetchSubmissions(questionId);
   }, [fetchSubmissions]);
-
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -18,13 +19,26 @@ const StudentSubmissions = ({questionId, examInfo}) => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <button className="flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4 mr-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
               </svg>
               Back to Exams
             </button>
             <div>
-              <h1 className="text-lg font-semibold text-gray-800">Student Submissions</h1>
+              <h1 className="text-lg font-semibold text-gray-800">
+                Student Submissions
+              </h1>
               <p className="text-sm text-gray-500">{examInfo?.title}</p>
             </div>
           </div>
@@ -54,7 +68,9 @@ const StudentSubmissions = ({questionId, examInfo}) => {
         {/* Section Header */}
         <div className="mb-6">
           <h2 className="text-xl font-bold text-gray-800">Student List</h2>
-          <p className="text-sm text-gray-500 mt-1">Select a student submission to review their answers</p>
+          <p className="text-sm text-gray-500 mt-1">
+            Select a student submission to review their answers
+          </p>
         </div>
 
         {/* Students Grid */}

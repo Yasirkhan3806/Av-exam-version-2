@@ -1,24 +1,27 @@
-import express from 'express';
-import cors from 'cors';
-import cookieParser from 'cookie-parser';
-import db from './client.js';
-import path from 'path';
+import express from "express";
+import cors from "cors";
+import cookieParser from "cookie-parser";
+import connectDB from "./config/database.js";
+import path from "path";
 
-import authRouter from './AuthRoutes.js';
-import questionRouter from './QuestionRoutes.js';
-import SubjectRouter from './SubjectRoutes.js';
-import InstuctorRoutes from './InstructorRoutes.js';
+import authRouter from "./routes/authRoutes.js";
+import questionRouter from "./routes/questionRoutes.js";
+import subjectRouter from "./routes/subjectRoutes.js";
+import instructorRoutes from "./routes/instructorRoutes.js";
 
 const app = express();
 const PORT = 5000;
 
-
 (async () => {
+  // Connect to database
+  await connectDB();
 
   // Middlewares
   app.use((req, res, next) => {
-    // Allow specific origin instead of *
-    const allowedOrigins = ['http://localhost:3000', 'https://academicvitality.org'];
+    const allowedOrigins = [
+      "http://localhost:3000",
+      "https://academicvitality.org",
+    ];
     const origin = req.headers.origin;
 
     if (allowedOrigins.includes(origin)) {
@@ -35,8 +38,7 @@ const PORT = 5000;
     );
     res.header("Access-Control-Allow-Credentials", "true");
 
-    // Handle preflight requests
-    if (req.method === 'OPTIONS') {
+    if (req.method === "OPTIONS") {
       return res.sendStatus(200);
     }
 
@@ -47,18 +49,26 @@ const PORT = 5000;
   app.use(express.urlencoded({ extended: true }));
   app.use(cookieParser());
 
-app.get('/',(req,res)=>{
-return res.status(200).json("server is running");
-})
+  app.get("/", (req, res) => {
+    return res.status(200).json("server is running");
+  });
 
+  // Routes
+  app.use("/auth", authRouter);
+  app.use("/questions", questionRouter);
+  app.use(
+    "/TestQuestions",
+    express.static(path.join(process.cwd(), "TestQuestions"))
+  );
+  app.use(
+    "/Answer_pdfs",
+    express.static(path.join(process.cwd(), "Answer_pdfs"))
+  );
+  app.use("/subjects", subjectRouter);
+  app.use("/instructors", instructorRoutes);
 
-
-  app.use('/auth', authRouter);
-  app.use('/questions', questionRouter);
-  app.use("/TestQuestions", express.static(path.join(process.cwd(), "TestQuestions")));
-  app.use("/Answer_pdfs", express.static(path.join(process.cwd(), "Answer_pdfs")));
-  app.use('/subjects', SubjectRouter);
-  app.use('/instructors', InstuctorRoutes);
   // Start server
-  app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}/`));
+  app.listen(PORT, () =>
+    console.log(`Server running at http://localhost:${PORT}/`)
+  );
 })();

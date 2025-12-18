@@ -1,9 +1,5 @@
-
 import "./globals.css";
-import { BaseUrlProvider } from "./BASEURLContext";
-
-
-
+import { BaseUrlProvider } from "../context/BASEURLContext";
 
 export const metadata = {
   title: "Exam Page",
@@ -11,17 +7,11 @@ export const metadata = {
 };
 
 export default async function RootLayout({ children }) {
-
   return (
     <html lang="en">
       <body>
-        <BaseUrlProvider>
-          {children}
-        </BaseUrlProvider>
+        <BaseUrlProvider>{children}</BaseUrlProvider>
       </body>
     </html>
   );
 }
-
-
-

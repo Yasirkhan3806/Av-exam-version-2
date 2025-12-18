@@ -3,7 +3,7 @@ import React, { use, useEffect, useState } from 'react';
 import QuestionPanel from '../../components/QuestionWindow';
 import AnswerPanel from '../../components/AnswerWindow';
 import GradingPanel from '../../components/GradingPanel';
-import useInstructorStore from '../../components/StateManagement';
+import useInstructorStore from '../../../../store/useInstructorStore';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 

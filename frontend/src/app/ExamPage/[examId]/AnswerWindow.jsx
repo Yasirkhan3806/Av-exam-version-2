@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import "react-quill-new/dist/quill.snow.css";
-import useExamStore from "./StateManagement";
+import useExamStore from "../../../store/useExamStore";
 
 // Dynamically load to avoid SSR issues
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });

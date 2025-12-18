@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import StudentSubmissions from '../../components/StudentsSubmission';
-import useInstructorStore from '../../components/StateManagement';
+import useInstructorStore from '../../../../store/useInstructorStore';
 
 const ExamPage = () => {
     const params = useParams();

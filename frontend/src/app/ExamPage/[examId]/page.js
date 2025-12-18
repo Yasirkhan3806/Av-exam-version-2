@@ -10,7 +10,7 @@ import {
   PanelGroup,
   PanelResizeHandle,
 } from "react-resizable-panels";
-import useExamStore from "./StateManagement";
+import useExamStore from "../../../store/useExamStore";
 import Navbar from "./Navbar";
 
 const ExamPage = () => {

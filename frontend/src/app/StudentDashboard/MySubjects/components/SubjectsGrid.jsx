@@ -1,7 +1,7 @@
 "use client";
 import React from 'react';
 import SubjectCard  from './SubjectCard';
-import useSubjectStore from '../../components/StatesManagement';
+import useSubjectStore from '../../../../store/useSubjectStore';
 
 // Example usage component
 const SubjectsGrid = () => {

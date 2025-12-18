@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import useSubjectStore from '../../StudentDashboard/components/StatesManagement'
+import useSubjectStore from "./useSubjectStore";
 
 const useExamStore = create(
   persist(
@@ -18,13 +18,15 @@ const useExamStore = create(
       loading: false,
       error: null,
       saving: false,
-      BASEURL: process.env.NEXT_PUBLIC_MODE == "production" ? "https://academicvitality.org/api" : "http://localhost:5000",
+      BASEURL:
+        process.env.NEXT_PUBLIC_MODE == "production"
+          ? "https://academicvitality.org/api"
+          : "http://localhost:5000",
       totalTime: 0,
       remainingTime: 0,
       startTime: null,
       endTime: null,
       ExamId: null,
-      
 
       reset: () => {
         console.log("Resetting exam state");
@@ -57,8 +59,8 @@ const useExamStore = create(
         set((state) => ({
           workbookStates: {
             ...state.workbookStates,
-            [questionNumber]: workbookData
-          }
+            [questionNumber]: workbookData,
+          },
         }));
       },
 
@@ -90,9 +92,12 @@ const useExamStore = create(
         set({ loading: true, error: null });
         const { BASEURL } = get();
         try {
-          const response = await fetch(`${BASEURL}/questions/getQuestionById/${examId}`, {
-            credentials: "include"
-          });
+          const response = await fetch(
+            `${BASEURL}/questions/getQuestionById/${examId}`,
+            {
+              credentials: "include",
+            }
+          );
           if (!response.ok) {
             throw new Error("Failed to fetch exam data");
           }
@@ -105,7 +110,7 @@ const useExamStore = create(
             totalTime: data.time,
             currentQuestion: 1,
             ExamId: data.docId,
-            workbookStates: {} // Reset workbook states for new exam
+            workbookStates: {}, // Reset workbook states for new exam
           });
         } catch (error) {
           set({ error: error.message, loading: false });
@@ -116,7 +121,7 @@ const useExamStore = create(
         const { BASEURL } = get();
         let attempts = 0;
         const maxAttempts = 50;
-        const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+        const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
         while (attempts < maxAttempts) {
           const { totalTime, totalQuestions } = get();
@@ -153,7 +158,7 @@ const useExamStore = create(
         }
 
         const now = Date.now();
-        const endTimeMs = now + (totalTime * 60 * 1000);
+        const endTimeMs = now + totalTime * 60 * 1000;
 
         set({
           startTime: now,
@@ -225,17 +230,20 @@ const useExamStore = create(
         set({ saving: true, error: null });
         try {
           // Only send answers to backend, NOT workbook states (rough work)
-          const response = await fetch(`${get().BASEURL}/questions/submitAnswers`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            credentials: "include",
-            body: JSON.stringify({
-              answers: get().answers,
-              questionSet: get().ExamId
-            }),
-          });
+          const response = await fetch(
+            `${get().BASEURL}/questions/submitAnswers`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              credentials: "include",
+              body: JSON.stringify({
+                answers: get().answers,
+                questionSet: get().ExamId,
+              }),
+            }
+          );
           if (!response.ok) {
             throw new Error("Failed to save answers");
           }
@@ -247,7 +255,6 @@ const useExamStore = create(
       TimesUp: async () => {
         await get().finishExam();
       },
-
 
       finishExam: async () => {
         const { saveAnswers, reset, BASEURL } = get();
@@ -262,12 +269,15 @@ const useExamStore = create(
         });
         if (res.status !== 200) {
           console.error(`Failed to finish exam. Status: ${res.status}`);
-          set({ error: `Failed to finish exam. Status: ${res.status}`, saving: false });
+          set({
+            error: `Failed to finish exam. Status: ${res.status}`,
+            saving: false,
+          });
           return;
         }
         reset();
         set({ saving: false });
-      }
+      },
     }),
     {
       name: "exam-storage",
@@ -277,7 +287,7 @@ const useExamStore = create(
         ),
       onRehydrateStorage: () => (state) => {
         state?.setHydrated();
-      }
+      },
     }
   )
 );

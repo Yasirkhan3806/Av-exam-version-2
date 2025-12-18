@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import useExamStore from './StateManagement';
+import useExamStore from '../../../store/useExamStore';
 
 
 const Navbar = () => {

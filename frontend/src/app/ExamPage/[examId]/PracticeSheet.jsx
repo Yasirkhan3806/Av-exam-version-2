@@ -24,7 +24,7 @@ import SheetsUIEnUS from '@univerjs/sheets-ui/locale/en-US'
 import SheetsEnUS from '@univerjs/sheets/locale/en-US'
 import { UniverUIPlugin } from '@univerjs/ui'
 import UIEnUS from '@univerjs/ui/locale/en-US'
-import useExamStore from './StateManagement'
+import useExamStore from '../../../store/useExamStore'
 
 import '@univerjs/design/lib/index.css'
 import '@univerjs/ui/lib/index.css'
