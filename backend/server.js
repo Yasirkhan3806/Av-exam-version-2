@@ -9,7 +9,7 @@ import questionRouter from "./routes/questionRoutes.js";
 import subjectRouter from "./routes/subjectRoutes.js";
 import instructorRoutes from "./routes/instructorRoutes.js";
 
-const app = express();
+const app = express(); 
 const PORT = 5000;
 
 (async () => {

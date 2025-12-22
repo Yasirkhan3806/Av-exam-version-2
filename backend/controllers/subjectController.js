@@ -6,8 +6,9 @@ export const healthCheck = (req, res) => {
 
 export const addSubject = async (req, res) => {
   try {
-    const { name, description, instructor, courses } = req.body;
-    await subjectService.addSubject(name, description, instructor, courses);
+    console.log(req.body)
+    const { name, description, instructor, courses, type } = req.body;
+    await subjectService.addSubject(name, description, instructor, courses, type);
     res.status(201).send("Subject added successfully.");
   } catch (error) {
     console.error("Error adding subject:", error);

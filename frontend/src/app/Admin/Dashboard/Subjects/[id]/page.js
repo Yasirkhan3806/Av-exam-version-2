@@ -4,6 +4,8 @@ import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { UserPlus, BookOpen, CalendarPlus, ChevronLeft } from 'lucide-react';
 import TypeExamPopup from './components/TypeExamPopup';
+import CAFExamForm from './components/CAFExamForm';
+import PRCExamForm from './components/PRCExamForm';
 import Exams from './components/Exams';
 import EnrollStudentPopup from './components/EnrollStudentForm';
 import EnrollStudentsList from './components/EnrolledStudents';
@@ -14,6 +16,8 @@ const SubjectDetailsPage = () => {
     const [loading, setLoading] = useState(true);
     const BaseUrl = process.env.NEXT_PUBLIC_BASEURL || 'http://localhost:5000';
     const [isPopupOpen, setIsPopupOpen] = useState(false);
+    const [isCAFPopupOpen, setIsCAFPopupOpen] = useState(false);
+    const [isPRCPopupOpen, setIsPRCPopupOpen] = useState(false);
     const [isEnrollPopupOpen, setIsEnrollPopupOpen] = useState(false);
 
     useEffect(() => {
@@ -37,6 +41,16 @@ const SubjectDetailsPage = () => {
 
     const onEnroll = () => {
         window.location.reload();
+    }
+
+    const handleAddExamPopUp = (subjectType) => {
+        if (subjectType === 'CAF') {
+            setIsCAFPopupOpen(true);
+        } else if (subjectType === 'PRC') {
+            setIsPRCPopupOpen(true);
+        } else {
+            setIsPopupOpen(true);
+        }
     }
 
 
@@ -93,7 +107,7 @@ const SubjectDetailsPage = () => {
                                 Enroll Student
                             </button>
                             <button
-                                onClick={() => setIsPopupOpen(true)}
+                                onClick={() => handleAddExamPopUp(subject.type)}    
                                 className="flex items-center justify-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium shadow-md hover:shadow-lg"
                             >
                                 <CalendarPlus className="w-5 h-5" />
@@ -164,6 +178,16 @@ const SubjectDetailsPage = () => {
             <TypeExamPopup
                 isOpen={isPopupOpen}
                 onClose={() => setIsPopupOpen(false)}
+                subjectId={id}
+            />
+            <CAFExamForm
+                isOpen={isCAFPopupOpen}
+                onClose={() => setIsCAFPopupOpen(false)}
+                subjectId={id}
+            />
+            <PRCExamForm
+                isOpen={isPRCPopupOpen}
+                onClose={() => setIsPRCPopupOpen(false)}
                 subjectId={id}
             />
             <EnrollStudentPopup

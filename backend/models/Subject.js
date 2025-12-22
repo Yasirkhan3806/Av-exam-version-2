@@ -21,6 +21,11 @@ const subjectSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    type: {
+      type: String,
+      required: true,
+      enum: ["CAF", "PRC", "CFAP"],
+    },
   },
   {
     timestamps: true,

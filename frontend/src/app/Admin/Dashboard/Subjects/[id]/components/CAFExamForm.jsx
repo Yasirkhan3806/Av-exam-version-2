@@ -3,10 +3,15 @@
 import React, { useState } from "react";
 import { Upload, X, FileText, ArrowLeft } from "lucide-react";
 
-const CAFExamForm = ({ subjectId, onBack, onClose }) => {
+const CAFExamForm = ({ subjectId, isOpen, onClose }) => {
+  const BASE_URL = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
+  console.log("this is baseurl", BASE_URL);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
+    numQuestions: "",
+    totalMarks: "",
+    mockExam: false,
     pdfFile: null,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -55,13 +60,17 @@ const CAFExamForm = ({ subjectId, onBack, onClose }) => {
       const formDataToSend = new FormData();
       formDataToSend.append("name", formData.name);
       formDataToSend.append("description", formData.description);
+      formDataToSend.append("numQuestions", formData.numQuestions);
+      formDataToSend.append("totalMarks", formData.totalMarks);
+      formDataToSend.append("mockExam", formData.mockExam);
       formDataToSend.append("pdf", formData.pdfFile);
       formDataToSend.append("subjectId", subjectId);
 
       // TODO: Replace with your actual API endpoint
-      const response = await fetch("/api/caf-exams", {
+      const response = await fetch(`${BASE_URL}/questions/addCAFQuestions`, {
         method: "POST",
         body: formDataToSend,
+        credentials: "include",
       });
 
       if (!response.ok) {
@@ -84,141 +93,208 @@ const CAFExamForm = ({ subjectId, onBack, onClose }) => {
     }));
     setError("");
   };
-
+  if (!isOpen) return null;
   return (
-    <div className="bg-white p-8 rounded-xl shadow-2xl max-w-md w-full transform transition-all">
-      <div className="flex items-center justify-between mb-6">
-        <button
-          onClick={onBack}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          type="button"
-        >
-          <ArrowLeft className="w-5 h-5 text-gray-600" />
-        </button>
-        <h2 className="text-2xl font-bold text-gray-800">CAF Exam</h2>
-        <button
-          onClick={onClose}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          type="button"
-        >
-          <X className="w-5 h-5 text-gray-600" />
-        </button>
-      </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+        onClick={onClose}
+      />
 
-      <form onSubmit={handleSubmit} className="space-y-5">
-        {/* Name Input */}
-        <div>
-          <label
-            htmlFor="name"
-            className="block text-sm font-semibold text-gray-700 mb-2"
+      {/* Modal Container */}
+      <div className="relative bg-white p-8 rounded-xl shadow-2xl max-w-md w-full transform transition-all overflow-auto h-[50vh] z-10">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-gray-800">CAF Exam</h2>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            type="button"
           >
-            Exam Name <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none"
-            placeholder="Enter exam name"
-            required
-          />
+            <X className="w-5 h-5 text-gray-600" />
+          </button>
         </div>
 
-        {/* Description Input */}
-        <div>
-          <label
-            htmlFor="description"
-            className="block text-sm font-semibold text-gray-700 mb-2"
-          >
-            Description
-          </label>
-          <textarea
-            id="description"
-            name="description"
-            rows="3"
-            value={formData.description}
-            onChange={handleChange}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none resize-none"
-            placeholder="Enter exam description (optional)"
-          />
-        </div>
-
-        {/* PDF File Upload */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Exam PDF <span className="text-red-500">*</span>
-          </label>
-
-          {!formData.pdfFile ? (
-            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/50 transition-all">
-              <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                <Upload className="w-10 h-10 text-gray-400 mb-2" />
-                <p className="text-sm text-gray-600 font-medium">
-                  Click to upload PDF
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  Max file size: 10MB
-                </p>
-              </div>
-              <input
-                type="file"
-                className="hidden"
-                accept=".pdf,application/pdf"
-                onChange={handleFileChange}
-              />
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Name Input */}
+          <div>
+            <label
+              htmlFor="name"
+              className="block text-sm font-semibold text-gray-700 mb-2"
+            >
+              Exam Name <span className="text-red-500">*</span>
             </label>
-          ) : (
-            <div className="flex items-center justify-between p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
-              <div className="flex items-center gap-3">
-                <FileText className="w-8 h-8 text-indigo-600" />
-                <div>
-                  <p className="text-sm font-medium text-gray-800">
-                    {formData.pdfFile.name}
+            <input
+              type="text"
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none"
+              placeholder="Enter exam name"
+              required
+            />
+          </div>
+
+          {/* Description Input */}
+          <div>
+            <label
+              htmlFor="description"
+              className="block text-sm font-semibold text-gray-700 mb-2"
+            >
+              Description
+            </label>
+            <textarea
+              id="description"
+              name="description"
+              rows="3"
+              value={formData.description}
+              onChange={handleChange}
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none resize-none"
+              placeholder="Enter exam description (optional)"
+            />
+          </div>
+
+          {/* Number of Questions Input */}
+          <div>
+            <label
+              htmlFor="numQuestions"
+              className="block text-sm font-semibold text-gray-700 mb-2"
+            >
+              Number of Questions <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="number"
+              id="numQuestions"
+              name="numQuestions"
+              value={formData.numQuestions}
+              onChange={handleChange}
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none"
+              placeholder="Enter number of questions"
+              min="1"
+              required
+            />
+          </div>
+
+          {/* Total Marks Input */}
+          <div>
+            <label
+              htmlFor="totalMarks"
+              className="block text-sm font-semibold text-gray-700 mb-2"
+            >
+              Total Marks <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="number"
+              id="totalMarks"
+              name="totalMarks"
+              value={formData.totalMarks}
+              onChange={handleChange}
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none"
+              placeholder="Enter total marks"
+              min="1"
+              required
+            />
+          </div>
+
+          {/* Mock Exam Checkbox */}
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              id="mockExam"
+              name="mockExam"
+              checked={formData.mockExam}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  mockExam: e.target.checked,
+                }))
+              }
+              className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-2 focus:ring-indigo-500"
+            />
+            <label
+              htmlFor="mockExam"
+              className="text-sm font-semibold text-gray-700"
+            >
+              This is a Mock Exam
+            </label>
+          </div>
+
+          {/* PDF File Upload */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Exam PDF <span className="text-red-500">*</span>
+            </label>
+
+            {!formData.pdfFile ? (
+              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/50 transition-all">
+                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                  <Upload className="w-10 h-10 text-gray-400 mb-2" />
+                  <p className="text-sm text-gray-600 font-medium">
+                    Click to upload PDF
                   </p>
-                  <p className="text-xs text-gray-500">
-                    {(formData.pdfFile.size / 1024 / 1024).toFixed(2)} MB
+                  <p className="text-xs text-gray-500 mt-1">
+                    Max file size: 10MB
                   </p>
                 </div>
+                <input
+                  type="file"
+                  className="hidden"
+                  accept=".pdf,application/pdf"
+                  onChange={handleFileChange}
+                />
+              </label>
+            ) : (
+              <div className="flex items-center justify-between p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <FileText className="w-8 h-8 text-indigo-600" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">
+                      {formData.pdfFile.name}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {(formData.pdfFile.size / 1024 / 1024).toFixed(2)} MB
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleRemoveFile}
+                  className="p-1.5 hover:bg-red-100 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5 text-red-600" />
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={handleRemoveFile}
-                className="p-1.5 hover:bg-red-100 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5 text-red-600" />
-              </button>
+            )}
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-600">{error}</p>
             </div>
           )}
-        </div>
 
-        {/* Error Message */}
-        {error && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-600">{error}</p>
+          {/* Action Buttons */}
+          <div className="flex gap-3 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 py-2.5 px-4 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors"
+              disabled={isSubmitting}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="flex-1 py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Submitting..." : "Submit Exam"}
+            </button>
           </div>
-        )}
-
-        {/* Action Buttons */}
-        <div className="flex gap-3 pt-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 py-2.5 px-4 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors"
-            disabled={isSubmitting}
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="flex-1 py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? "Submitting..." : "Submit Exam"}
-          </button>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   );
 };

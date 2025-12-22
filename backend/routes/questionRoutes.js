@@ -11,6 +11,12 @@ router.post(
   upload.single("pdf"),
   questionController.addQuestions
 );
+router.post(
+  "/addCAFQuestions",
+  verifyToken,
+  upload.single("pdf"),
+  questionController.addCafQuestionsController
+);  
 router.get(
   "/getQuestions/:subjectId",
   verifyToken,

@@ -2,7 +2,7 @@ import { PDFDocument } from "pdf-lib";
 import fs from "fs/promises";
 import path from "path";
 import jwt from "jsonwebtoken";
-import { Questions, Answer } from "../models/index.js";
+import { Questions, Answer, CafExamQuestions } from "../models/index.js";
 import { JWT_SECRET } from "../utils/middleware.js";
 
 export const splitPDF = async (inputPath, originalName, name, subjectId) => {
@@ -150,3 +150,37 @@ export const startExam = async (questionSet, studentId) => {
 
   return { answerDoc, examToken };
 };
+
+export const addCafQuestions = async (questionData, file) => {
+  const {
+    name,
+    description,
+    numQuestions,
+    subjectId,
+    mockExam,
+    totalMarks,
+  } = questionData;
+
+  if (!name || !numQuestions || !file || !subjectId) {
+    throw new Error("All fields are required");
+  }
+
+  if (!file) {
+    throw new Error("No PDF file uploaded");
+  }
+
+
+  const dataset = new CafExamQuestions({
+    name,
+    description,
+    totalQuestions: numQuestions,
+    pdfPath: file.path,
+    subject: subjectId,
+    mockExam,
+    totalMarks,
+  });
+
+  await dataset.save();
+  return dataset;
+};
+

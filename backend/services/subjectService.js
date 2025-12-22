@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
 import { Subject, TestUser, Questions, Answer } from "../models/index.js";
 
-export const addSubject = async (name, description, instructor, courses) => {
-  if (!name || !description || !instructor) {
-    throw new Error("Name, description, and instructor are required.");
+export const addSubject = async (name, description, instructor, courses, type) => {
+  if (!name || !description || !instructor || !type) {
+    throw new Error("Name, description, type and instructor are required.");
   }
 
   const existingSubject = await Subject.findOne({ name, instructor });
@@ -16,6 +16,7 @@ export const addSubject = async (name, description, instructor, courses) => {
     description,
     instructor,
     courses,
+    type
   });
 
   await newSubject.save();

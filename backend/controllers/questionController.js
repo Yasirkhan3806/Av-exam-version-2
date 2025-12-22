@@ -140,3 +140,23 @@ export const finishExam = async (req, res) => {
       .json({ error: err.message || "Internal Server Error" });
   }
 };
+
+export const addCafQuestionsController = async (req, res) => {
+  try {
+    const result = await questionService.addCafQuestions(req.body, req.file);
+    return res.status(201).json({
+      message: "CAF questions added successfully",
+      data: result,
+    });
+  } catch (err) {
+    if (
+      err.message === "All fields are required" ||
+      err.message === "No PDF file uploaded"
+    ) {
+      return res.status(400).json({ error: err.message });
+    }
+    return res
+      .status(500)
+      .json({ error: err.message || "Internal Server Error" });
+  }
+};
