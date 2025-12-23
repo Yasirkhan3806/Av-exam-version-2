@@ -22,8 +22,8 @@ export const addQuestions = async (req, res) => {
 
 export const getQuestions = async (req, res) => {
   try {
-    const { subjectId } = req.params;
-    const questions = await questionService.getQuestionsBySubject(subjectId);
+    const { subjectId,subjectType } = req.params;
+    const questions = await questionService.getQuestionsBySubject(subjectId, subjectType);
     return res.status(200).json(questions);
   } catch (err) {
     if (err.message === "subjectId is required") {

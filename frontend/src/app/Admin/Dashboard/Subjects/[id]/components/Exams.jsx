@@ -2,18 +2,21 @@
 import React, { useState, useEffect } from 'react';
 import { Trash2, FileText, Users, Clock } from 'lucide-react';
 
-const Exams = ({ subjectId }) => {
+const Exams = ({ subjectId, subjectType }) => {
     const [exams, setExams] = useState([]);
     const [loading, setLoading] = useState(true);
     const BaseUrl = process.env.NEXT_PUBLIC_BASEURL || 'http://localhost:5000';
 
     useEffect(() => {
         fetchExams();
-    }, [subjectId]);
+    }, [subjectId, subjectType]);
+
+    console.log(subjectType)
 
     const fetchExams = async () => {
         try {
-            const response = await fetch(`${BaseUrl}/questions/getQuestions/${subjectId}`, {
+            const response = await fetch(`${BaseUrl}/questions/getQuestions/${subjectType}/${subjectId}`, {
+                method: 'GET',
                 credentials: 'include'
             });
             const data = await response.json();

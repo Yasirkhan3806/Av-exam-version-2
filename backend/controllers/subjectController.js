@@ -6,9 +6,15 @@ export const healthCheck = (req, res) => {
 
 export const addSubject = async (req, res) => {
   try {
-    console.log(req.body)
+    console.log(req.body);
     const { name, description, instructor, courses, type } = req.body;
-    await subjectService.addSubject(name, description, instructor, courses, type);
+    await subjectService.addSubject(
+      name,
+      description,
+      instructor,
+      courses,
+      type
+    );
     res.status(201).send("Subject added successfully.");
   } catch (error) {
     console.error("Error adding subject:", error);
@@ -207,5 +213,42 @@ export const calculateGrade = async (req, res) => {
       return res.status(404).json({ message: error.message });
     }
     res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+export const updateSubject = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+    const updatedSubject = await subjectService.updateSubject(id, updateData);
+    res.status(200).json({
+      message: "Subject updated successfully.",
+      subject: updatedSubject,
+    });
+  } catch (error) {
+    console.error("Error updating subject:", error);
+    if (error.message === "Subject not found.") {
+      return res.status(404).send(error.message);
+    }
+    if (error.message === "Subject ID is required.") {
+      return res.status(400).send(error.message);
+    }
+    res.status(500).send("Error updating subject: " + error.message);
+  }
+};
+
+export const deleteSubject = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await subjectService.deleteSubject(id);
+    res
+      .status(200)
+      .json({ message: "Subject and associated data deleted successfully." });
+  } catch (error) {
+    console.error("Error deleting subject:", error);
+    if (error.message === "Subject not found.") {
+      return res.status(404).send(error.message);
+    }
+    res.status(500).send("Error deleting subject: " + error.message);
   }
 };

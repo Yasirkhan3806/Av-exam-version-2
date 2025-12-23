@@ -1,7 +1,21 @@
 import mongoose from "mongoose";
-import { Subject, TestUser, Questions, Answer } from "../models/index.js";
+import fs from "fs";
+import path from "path";
+import {
+  Subject,
+  TestUser,
+  Questions,
+  Answer,
+  CafExamQuestions,
+} from "../models/index.js";
 
-export const addSubject = async (name, description, instructor, courses, type) => {
+export const addSubject = async (
+  name,
+  description,
+  instructor,
+  courses,
+  type
+) => {
   if (!name || !description || !instructor || !type) {
     throw new Error("Name, description, type and instructor are required.");
   }
@@ -16,7 +30,7 @@ export const addSubject = async (name, description, instructor, courses, type) =
     description,
     instructor,
     courses,
-    type
+    type,
   });
 
   await newSubject.save();
@@ -257,4 +271,94 @@ export const calculateGrade = async (studentId, subjectId) => {
     percentage: Number(percentage),
     grade,
   };
+};
+
+export const updateSubject = async (id, updateData) => {
+  if (!id) {
+    throw new Error("Subject ID is required.");
+  }
+
+  const updatedSubject = await Subject.findByIdAndUpdate(
+    id,
+    { $set: updateData },
+    { new: true, runValidators: true }
+  ).populate("instructor", "name userName");
+
+  if (!updatedSubject) {
+    throw new Error("Subject not found.");
+  }
+
+  return updatedSubject;
+};
+
+export const deleteSubject = async (subjectId) => {
+  if (!subjectId) {
+    throw new Error("Subject ID is required.");
+  }
+
+  // 1. Find all exam IDs for this subject
+  const questions = await Questions.find({ subject: subjectId }).select("_id");
+  const cafQuestions = await CafExamQuestions.find({
+    subject: subjectId,
+  }).select("_id");
+  const allExamIds = [
+    ...questions.map((q) => q._id),
+    ...cafQuestions.map((q) => q._id),
+  ];
+
+  // 2. Delete all answers and their associated PDFs
+  if (allExamIds.length > 0) {
+    const answers = await Answer.find({ questionSet: { $in: allExamIds } });
+
+    for (const answer of answers) {
+      if (answer.marksObtained) {
+        // marksObtained is an object/map where each question might have a pdfUrl
+        Object.values(answer.marksObtained).forEach((data) => {
+          if (data && data.pdfUrl) {
+            const fullPath = path.resolve(data.pdfUrl);
+            if (fs.existsSync(fullPath)) {
+              try {
+                fs.unlinkSync(fullPath);
+              } catch (err) {
+                console.error(`Failed to delete answer PDF ${fullPath}:`, err);
+              }
+            }
+          }
+        });
+      }
+    }
+
+    await Answer.deleteMany({ questionSet: { $in: allExamIds } });
+  }
+ 
+  // 3. Delete standard exams
+  await Questions.deleteMany({ subject: subjectId });
+
+  // 4. Delete CAF exams
+  await CafExamQuestions.deleteMany({ subject: subjectId });
+
+  // 5. Delete PDF assets (Exam PDFs and split pages) from local storage
+  const subjectDir = path.join("TestQuestions", subjectId.toString());
+  if (fs.existsSync(subjectDir)) {
+    try {
+      fs.rmSync(subjectDir, { recursive: true, force: true });
+    } catch (err) {
+      console.error(`Failed to delete PDF directory ${subjectDir}:`, err);
+    }
+  }
+
+  // 6. Unenroll all students
+  await TestUser.updateMany(
+    { subjectsEnrolled: subjectId },
+    { $pull: { subjectsEnrolled: subjectId } }
+  );
+
+  // 7. Delete the subject itself
+  const result = await Subject.findByIdAndDelete(subjectId);
+
+  if (!result) {
+    throw new Error("Subject not found.");
+  }
+
+  return result;
 };

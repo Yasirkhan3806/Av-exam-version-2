@@ -82,11 +82,20 @@ export const addQuestions = async (questionData, file) => {
   return dataset;
 };
 
-export const getQuestionsBySubject = async (subjectId) => {
+export const getQuestionsBySubject = async (subjectId, subjectType) => {
   if (!subjectId) {
     throw new Error("subjectId is required");
   }
-  const questions = await Questions.find({ subject: subjectId });
+  if (!subjectType) {
+    throw new Error("subjectType is required");
+  }
+
+  let questions = [];
+  if (subjectType === "CAF") {
+    questions = await CafExamQuestions.find({ subject: subjectId });
+  } else {
+    questions = await Questions.find({ subject: subjectId });
+  }
   return questions;
 };
 

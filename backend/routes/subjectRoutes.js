@@ -41,5 +41,11 @@ router.get(
   subjectController.getStudentAnswers
 );
 router.get("/grade/:studentId/:subjectId", subjectController.calculateGrade);
+router.put("/updateSubject/:id", verifyToken, subjectController.updateSubject);
+router.delete(
+  "/deleteSubject/:id",
+  verifyToken,
+  subjectController.deleteSubject
+);
 
 export default router;

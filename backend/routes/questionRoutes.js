@@ -18,7 +18,7 @@ router.post(
   questionController.addCafQuestionsController
 );  
 router.get(
-  "/getQuestions/:subjectId",
+  "/getQuestions/:subjectType/:subjectId",
   verifyToken,
   questionController.getQuestions
 );
