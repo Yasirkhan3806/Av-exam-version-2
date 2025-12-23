@@ -4,6 +4,7 @@ import fs from "fs";
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
+    console.log("Multer Destination - req.body:", req.body);
     const dir = `TestQuestions/${req.body.subjectId}/${req.body.name}`;
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });

@@ -53,4 +53,20 @@ router.put(
 );
 router.post("/logout", verifyInstructorToken, instructorController.logout);
 
+router.get(
+  "/getInstructors",
+  verifyToken,
+  instructorController.getAllInstructors
+);
+router.put(
+  "/updateInstructor/:id",
+  verifyToken,
+  instructorController.updateInstructor
+);
+router.delete(
+  "/deleteInstructor/:id",
+  verifyToken,
+  instructorController.deleteInstructor
+);
+
 export default router;

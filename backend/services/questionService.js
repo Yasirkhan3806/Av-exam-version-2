@@ -161,14 +161,8 @@ export const startExam = async (questionSet, studentId) => {
 };
 
 export const addCafQuestions = async (questionData, file) => {
-  const {
-    name,
-    description,
-    numQuestions,
-    subjectId,
-    mockExam,
-    totalMarks,
-  } = questionData;
+  const { name, description, numQuestions, subjectId, mockExam, totalMarks } =
+    questionData;
 
   if (!name || !numQuestions || !file || !subjectId) {
     throw new Error("All fields are required");
@@ -177,7 +171,6 @@ export const addCafQuestions = async (questionData, file) => {
   if (!file) {
     throw new Error("No PDF file uploaded");
   }
-
 
   const dataset = new CafExamQuestions({
     name,
@@ -193,3 +186,111 @@ export const addCafQuestions = async (questionData, file) => {
   return dataset;
 };
 
+export const updateQuestion = async (examId, updateData, file) => {
+  const exam = await Questions.findById(examId);
+  if (!exam) throw new Error("Exam not found");
+
+  const {
+    name,
+    description,
+    totalAttempt,
+    numQuestions,
+    mockExam,
+    totalMarks,
+    subjectId,
+  } = updateData;
+
+  // 1. Handle PDF/Folder changes
+  if (file) {
+    // Delete old folder
+    const oldFolderPath = path.join(
+      "TestQuestions",
+      exam.subject.toString(),
+      exam.name
+    );
+    try {
+      await fs.rm(oldFolderPath, { recursive: true, force: true });
+    } catch (err) {
+      console.error("Error deleting old exam folder:", err);
+    }
+
+    // Split new PDF
+    const pagesData = await splitPDF(
+      file.path,
+      file.originalname,
+      name,
+      subjectId
+    );
+    exam.pagesData = pagesData;
+    exam.pdfName = file.originalname;
+    exam.totalQuestions = Object.keys(pagesData).length;
+  } else if (name && name !== exam.name) {
+    // Name changed, rename folder and update paths
+    const oldFolderPath = path.join(
+      "TestQuestions",
+      exam.subject.toString(),
+      exam.name
+    );
+    const newFolderPath = path.join(
+      "TestQuestions",
+      exam.subject.toString(),
+      name
+    );
+
+    try {
+      if (
+        await fs
+          .stat(oldFolderPath)
+          .then(() => true)
+          .catch(() => false)
+      ) {
+        await fs.rename(oldFolderPath, newFolderPath);
+
+        const newPagesData = {};
+        for (const [key, oldPath] of Object.entries(exam.pagesData)) {
+          newPagesData[key] = oldPath.replace(`/${exam.name}/`, `/${name}/`);
+        }
+        exam.pagesData = newPagesData;
+      }
+    } catch (err) {
+      console.error("Error renaming exam folder:", err);
+    }
+  }
+
+  // 2. Update metadata
+  if (name) exam.name = name;
+  if (description !== undefined) exam.description = description;
+  if (totalAttempt) exam.totalAttempt = totalAttempt;
+  if (numQuestions && !file) exam.totalQuestions = numQuestions;
+  if (mockExam !== undefined) exam.mockExam = mockExam;
+  if (totalMarks) exam.totalMarks = totalMarks;
+
+  await exam.save();
+  return exam;
+};
+
+export const updateCafQuestion = async (examId, updateData, file) => {
+  const exam = await CafExamQuestions.findById(examId);
+  if (!exam) throw new Error("CAF Exam not found");
+
+  const { name, description, numQuestions, mockExam, totalMarks } = updateData;
+
+  if (file) {
+    // Delete old PDF
+    if (exam.pdfPath && (await fs.stat(exam.pdfPath).catch(() => null))) {
+      await fs
+        .unlink(exam.pdfPath)
+        .catch((err) => console.error("Error deleting old CAF PDF:", err));
+    }
+    exam.pdfPath = file.path;
+  }
+
+  if (name) exam.name = name;
+  if (description !== undefined) exam.description = description;
+  if (numQuestions) exam.totalQuestions = numQuestions;
+  if (mockExam !== undefined) exam.mockExam = mockExam;
+  if (totalMarks) exam.totalMarks = totalMarks;
+
+  await exam.save();
+  return exam;
+};

@@ -56,3 +56,42 @@ export const getInstructors = async () => {
   const instructors = await Instructor.find({}, "doc_id name userName courses");
   return instructors;
 };
+
+export const getAllStudents = async () => {
+  return await TestUser.find({}).select("-password");
+};
+
+export const updateStudent = async (id, updateData) => {
+  if (updateData.userName) {
+    const existing = await TestUser.findOne({
+      userName: updateData.userName,
+      _id: { $ne: id },
+    });
+    if (existing) {
+      throw new Error("Username already taken");
+    }
+  }
+
+  if (updateData.password) {
+    updateData.password = await bcrypt.hash(updateData.password, 10);
+  }
+  const updatedStudent = await TestUser.findByIdAndUpdate(
+    id,
+    { $set: updateData },
+    { new: true, runValidators: true }
+  ).select("-password");
+
+  if (!updatedStudent) {
+    throw new Error("Student not found");
+  }
+
+  return updatedStudent;
+};
+
+export const deleteStudent = async (id) => {
+  const result = await TestUser.findByIdAndDelete(id);
+  if (!result) {
+    throw new Error("Student not found");
+  }
+  return result;
+};

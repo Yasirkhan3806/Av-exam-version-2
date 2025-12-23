@@ -22,8 +22,11 @@ export const addQuestions = async (req, res) => {
 
 export const getQuestions = async (req, res) => {
   try {
-    const { subjectId,subjectType } = req.params;
-    const questions = await questionService.getQuestionsBySubject(subjectId, subjectType);
+    const { subjectId, subjectType } = req.params;
+    const questions = await questionService.getQuestionsBySubject(
+      subjectId,
+      subjectType
+    );
     return res.status(200).json(questions);
   } catch (err) {
     if (err.message === "subjectId is required") {
@@ -155,6 +158,44 @@ export const addCafQuestionsController = async (req, res) => {
     ) {
       return res.status(400).json({ error: err.message });
     }
+    return res
+      .status(500)
+      .json({ error: err.message || "Internal Server Error" });
+  }
+};
+
+export const updateQuestion = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedExam = await questionService.updateQuestion(
+      id,
+      req.body,
+      req.file
+    );
+    return res.status(200).json({
+      message: "Exam updated successfully",
+      exam: updatedExam,
+    });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ error: err.message || "Internal Server Error" });
+  }
+};
+
+export const updateCafQuestion = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedExam = await questionService.updateCafQuestion(
+      id,
+      req.body,
+      req.file
+    );
+    return res.status(200).json({
+      message: "CAF Exam updated successfully",
+      exam: updatedExam,
+    });
+  } catch (err) {
     return res
       .status(500)
       .json({ error: err.message || "Internal Server Error" });

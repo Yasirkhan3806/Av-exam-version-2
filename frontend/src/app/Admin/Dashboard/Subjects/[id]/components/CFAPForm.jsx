@@ -69,8 +69,8 @@ export default function AddQuestionsPopup({ subjectId, isOpen, onClose }) {
       formData.append("numQuestions", numQuestions);
       formData.append("totalMarks", totalMarks); // Add total marks to form data
       formData.append("subjectId", subjectId);
-      formData.append("pdf", pdfFile);
       formData.append("mockExam", mockExam.toString());
+      formData.append("pdf", pdfFile);
 
       setLog("⏳ Uploading and saving to database...");
 

@@ -63,8 +63,8 @@ const CAFExamForm = ({ subjectId, isOpen, onClose }) => {
       formDataToSend.append("numQuestions", formData.numQuestions);
       formDataToSend.append("totalMarks", formData.totalMarks);
       formDataToSend.append("mockExam", formData.mockExam);
-      formDataToSend.append("pdf", formData.pdfFile);
       formDataToSend.append("subjectId", subjectId);
+      formDataToSend.append("pdf", formData.pdfFile);
 
       // TODO: Replace with your actual API endpoint
       const response = await fetch(`${BASE_URL}/questions/addCAFQuestions`, {

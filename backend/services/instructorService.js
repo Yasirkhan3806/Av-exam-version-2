@@ -357,3 +357,42 @@ export const updateStudentMarks = async (
 
   return updatedAnswer;
 };
+
+export const getAllInstructors = async () => {
+  return await Instructor.find({}).select("-password");
+};
+
+export const updateInstructor = async (id, updateData) => {
+  if (updateData.userName) {
+    const existing = await Instructor.findOne({
+      userName: updateData.userName,
+      _id: { $ne: id },
+    });
+    if (existing) {
+      throw new Error("Username already taken");
+    }
+  }
+
+  if (updateData.password) {
+    updateData.password = await bcrypt.hash(updateData.password, 10);
+  }
+  const updatedInstructor = await Instructor.findByIdAndUpdate(
+    id,
+    { $set: updateData },
+    { new: true, runValidators: true }
+  ).select("-password");
+
+  if (!updatedInstructor) {
+    throw new Error("Instructor not found");
+  }
+
+  return updatedInstructor;
+};
+
+export const deleteInstructor = async (id) => {
+  const result = await Instructor.findByIdAndDelete(id);
+  if (!result) {
+    throw new Error("Instructor not found");
+  }
+  return result;
+};

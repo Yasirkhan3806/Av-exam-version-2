@@ -10,6 +10,9 @@ router.post("/login", authController.login);
 router.post("/admin-login", authController.adminLogin);
 router.get("/verifySession", verifyToken, authController.verifySession);
 router.get("/get-instructors", verifyToken, authController.getInstructors);
+router.get("/get-students", verifyToken, authController.getAllStudents);
+router.put("/update-student/:id", verifyToken, authController.updateStudent);
+router.delete("/delete-student/:id", verifyToken, authController.deleteStudent);
 router.post("/logout", authController.logout);
 
 export default router;

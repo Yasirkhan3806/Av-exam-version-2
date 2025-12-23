@@ -16,7 +16,7 @@ router.post(
   verifyToken,
   upload.single("pdf"),
   questionController.addCafQuestionsController
-);  
+);
 router.get(
   "/getQuestions/:subjectType/:subjectId",
   verifyToken,
@@ -39,5 +39,18 @@ router.post(
 );
 router.post("/startExam", verifyToken, questionController.startExam);
 router.post("/finishExam", verifyToken, questionController.finishExam);
+
+router.put(
+  "/updateQuestion/:id",
+  verifyToken,
+  upload.single("pdf"),
+  questionController.updateQuestion
+);
+router.put(
+  "/updateCafQuestion/:id",
+  verifyToken,
+  upload.single("pdf"),
+  questionController.updateCafQuestion
+);
 
 export default router;

@@ -278,3 +278,53 @@ export const logout = (req, res) => {
     });
   }
 };
+
+export const getAllInstructors = async (req, res) => {
+  try {
+    const instructors = await instructorService.getAllInstructors();
+    res.status(200).json(instructors);
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Error fetching instructors", error: err.message });
+  }
+};
+
+export const updateInstructor = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedInstructor = await instructorService.updateInstructor(
+      id,
+      req.body
+    );
+    res.status(200).json({
+      message: "Instructor updated successfully",
+      instructor: updatedInstructor,
+    });
+  } catch (err) {
+    if (err.message === "Instructor not found") {
+      return res.status(404).json({ message: err.message });
+    }
+    if (err.message === "Username already taken") {
+      return res.status(400).json({ message: err.message });
+    }
+    res
+      .status(500)
+      .json({ message: "Error updating instructor", error: err.message });
+  }
+};
+
+export const deleteInstructor = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await instructorService.deleteInstructor(id);
+    res.status(200).json({ message: "Instructor deleted successfully" });
+  } catch (err) {
+    if (err.message === "Instructor not found") {
+      return res.status(404).json({ message: err.message });
+    }
+    res
+      .status(500)
+      .json({ message: "Error deleting instructor", error: err.message });
+  }
+};
