@@ -153,7 +153,6 @@ const ExamInstructionsPopup = ({ exam, onClose, onStartExam }) => {
             </button>
             <button
               onClick={() => {
-                console.log("Starting exam:", exam._id);
                 onStartExam(exam._id);
               }}
               className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-md hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transform hover:-translate-y-0.5"

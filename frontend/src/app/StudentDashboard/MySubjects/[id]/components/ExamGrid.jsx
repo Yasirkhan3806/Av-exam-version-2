@@ -5,13 +5,15 @@ import ExamCard from "./ExamCard";
 import useSubjectStore from "../../../../../store/useSubjectStore";
 import ExamInstructionsPopup from "../components/BeforeExamPopUp";
 
-const ExamGrid = ({ subjectId }) => {
+const ExamGrid = ({ subjectId, subjectType }) => {
   const {
     fetchExamsForSubject,
     examsBySubject,
     loading,
     error,
     setCurrentSubject,
+    setCurrentSubjectType,
+    currentSubjectType
   } = useSubjectStore();
   const [selectedExam, setSelectedExam] = useState(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -20,11 +22,17 @@ const ExamGrid = ({ subjectId }) => {
 
   useEffect(() => {
     setCurrentSubject(subjectId);
-  }, [subjectId]);
+    setCurrentSubjectType(subjectType);
+  }, [subjectId, subjectType]);
 
   const handleExamClick = (examId, exam) => {
     setSelectedExam(exam);
+    if(currentSubjectType === 'CAF'){
+      window.location.href = `/CAFExamPage/${examId}`;
+    }else{
     setIsPopupOpen(true);
+    }
+    
   };
 
   const handleClosePopup = () => {
@@ -75,7 +83,7 @@ const ExamGrid = ({ subjectId }) => {
             <ExamCard
               key={test._id || test.id}
               test={test}
-              onReviewResults={handleExamClick}
+              handleExamClick={handleExamClick}
             />
           ))}
         </div>

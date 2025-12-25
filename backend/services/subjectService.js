@@ -123,7 +123,7 @@ export const getEnrolledSubjects = async (studentId) => {
 
   const student = await TestUser.findById(studentId).populate({
     path: "subjectsEnrolled",
-    select: "_id name description",
+    select: "_id name description type",
   });
 
   if (!student) {
@@ -133,12 +133,19 @@ export const getEnrolledSubjects = async (studentId) => {
   return student.subjectsEnrolled;
 };
 
-export const getExamsForSubject = async (subjectId, userId) => {
+export const getExamsForSubject = async (subjectId, userId,subjectType) => {
   if (!subjectId) {
     throw new Error("subjectId is required.");
   }
+  console.log(subjectType)
+  let collectionType ;
+  if(subjectType === "CAF"){
+    collectionType = CafExamQuestions;
+  }else{
+    collectionType = Questions;
+  }
 
-  const exams = await Questions.aggregate([
+  const exams = await collectionType.aggregate([
     {
       $match: { subject: new mongoose.Types.ObjectId(subjectId) },
     },

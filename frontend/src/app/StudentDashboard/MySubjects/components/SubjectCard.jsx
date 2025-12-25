@@ -20,19 +20,19 @@ const SubjectCard = ({ subject }) => {
     loading,
     updateOverallProgress,
     studentGrades,
+    setCurrentSubjectType,
   } = useSubjectStore();
   const [calculatedGrade, setCalculatedGrade] = useState("F");
 
   // get cached exams or empty array
   const exams = examsBySubject?.[subject._id] || [];
-
   useEffect(() => {
     if (!subject?._id) return;
     if (!examsBySubject?.[subject._id]) {
       // only fetch if not cached
-      fetchExamsForSubject(subject._id);
+      fetchExamsForSubject(subject._id,subject?.type);
     }
-  }, [subject?._id, fetchExamsForSubject, examsBySubject]);
+  }, [subject?._id, fetchExamsForSubject, examsBySubject,subject?.type]);
 
   useEffect(() => {
     setCalculatedGrade(
@@ -121,7 +121,7 @@ const SubjectCard = ({ subject }) => {
 
       {/* View Tests Button */}
       <Link
-        href={`/StudentDashboard/MySubjects/${subject._id}`}
+        href={`/StudentDashboard/MySubjects/${subject._id}?type=${subject.type}`}
         aria-label={`View tests for ${subject.name}`}
         disabled={loading}
         className="w-full py-2 px-4 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium disabled:opacity-60 disabled:cursor-not-allowed"

@@ -144,7 +144,8 @@ export const getExamsForSubject = async (req, res) => {
   try {
     const subjectId = req.params.id;
     const userId = req.user.userId;
-    const exams = await subjectService.getExamsForSubject(subjectId, userId);
+    const subjectType = req.params.subjectType;
+    const exams = await subjectService.getExamsForSubject(subjectId, userId,subjectType);
     res.status(200).json(exams);
   } catch (error) {
     console.error("Error fetching exams for subject:", error);

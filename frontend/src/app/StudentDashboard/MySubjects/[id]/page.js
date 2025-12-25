@@ -1,10 +1,10 @@
-import React from 'react';
-import ExamGrid from './components/ExamGrid';
+import React from "react";
+import ExamGrid from "./components/ExamGrid";
 
-const SubjectPage = async ({ params }) => {
+const SubjectPage = async ({ params, searchParams }) => {
   const { id } = await params;
-  console.log('Rendering SubjectPage for subject ID:', id); 
-  return <ExamGrid subjectId={id} />;
+  const { type } = await searchParams;
+  return <ExamGrid subjectId={id} subjectType={type} />;
 };
 
 export default SubjectPage;

@@ -52,7 +52,7 @@ async function fetchSubjects(set, get) {
 }
 
 // === Fetch exams for a subject (with caching) ===
-async function fetchExamsForSubject(set, get, subjectId) {
+async function fetchExamsForSubject(set, get, subjectId,subjectType) {
   if (!subjectId) return console.error('fetchExamsForSubject called without subjectId');
 
   const existing = get().examsBySubject?.[subjectId];
@@ -63,7 +63,7 @@ async function fetchExamsForSubject(set, get, subjectId) {
 
   set({ loading: true, error: null });
   try {
-    const data = await fetchJSON(`${BASE_URL}/subjects/getExamsForSubject/${subjectId}`);
+    const data = await fetchJSON(`${BASE_URL}/subjects/getExamsForSubject/${subjectType}/${subjectId}`);
     set((state) => ({
       examsBySubject: { ...state.examsBySubject, [subjectId]: data },
       loading: false,
@@ -144,12 +144,16 @@ const useSubjectStore = create(
       overallProgress: [],
       studentGrades: null,
       overallPercentage: [],
+      currentSubjectType: null,
 
       // === State actions ===
       setSubjects: (subjects) => set({ subjects }),
       setCurrentSubject: (subject) => {
         set({ currentSubject: subject })
       },
+      setCurrentSubjectType: (type) => {
+        set({ currentSubjectType: type })
+      },  
       clearSubjects: () => set({ subjects: [], currentSubject: null }),
       addSubject: (subject) => set((state) => ({ subjects: [...state.subjects, subject] })),
       removeSubject: (subjectId) =>
@@ -160,7 +164,7 @@ const useSubjectStore = create(
       // === Async actions ===
       fetchUserInfo: () => fetchUserInfo(set),
       fetchSubjects: () => fetchSubjects(set, get),
-      fetchExamsForSubject: (subjectId) => fetchExamsForSubject(set, get, subjectId),
+      fetchExamsForSubject: (subjectId,subjectType) => fetchExamsForSubject(set, get, subjectId,subjectType),
       fetchStudentResults: () => fetchStudentResults(set, get),
       fetchStudentAnswers: (examId) => fetchStudentAnswers(set, get, examId),
       updateOverallProgress: (progress) => set({ overallProgress: [progress, ...get().overallProgress] }),
@@ -223,6 +227,7 @@ const useSubjectStore = create(
         examsBySubject: state.examsBySubject,
         currentSubject: state.currentSubject,
         userInfo: state.userInfo,
+        currentSubjectType: state.currentSubjectType,
       }),
     }
   )

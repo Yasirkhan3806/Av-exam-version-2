@@ -52,6 +52,20 @@ export const getQuestionById = async (req, res) => {
   }
 };
 
+export const getFullQuestionById = async (req, res) => {
+  try {
+    const exam = await questionService.getFullQuestionById(req.params.id);
+    return res.status(200).json(exam);
+  } catch (err) {
+    if (err.message === "Exam not found") {
+      return res.status(404).json({ error: err.message });
+    }
+    return res
+      .status(500)
+      .json({ error: err.message || "Internal Server Error" });
+  }
+};
+
 export const deleteQuestion = async (req, res) => {
   try {
     await questionService.deleteQuestion(req.params.id);

@@ -27,6 +27,11 @@ router.get(
   verifyToken,
   questionController.getQuestionById
 );
+router.get(
+  "/getFullQuestionById/:id",
+  verifyToken,
+  questionController.getFullQuestionById
+);
 router.delete(
   "/deleteQuestion/:id",
   verifyToken,

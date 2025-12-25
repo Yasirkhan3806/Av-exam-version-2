@@ -14,7 +14,6 @@ export default function MySubjectsSection() {
     fetchSubjects();
   }, [fetchSubjects, userInfo]);
 
-  console.log(subjects);
 
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm">

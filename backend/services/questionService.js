@@ -112,6 +112,17 @@ export const getQuestionById = async (id) => {
   };
 };
 
+export const getFullQuestionById = async (id) => {
+  let exam = await Questions.findById(id);
+  if (!exam) {
+    exam = await CafExamQuestions.findById(id);
+  }
+  if (!exam) {
+    throw new Error("Exam not found");
+  }
+  return exam;
+};
+
 export const deleteQuestion = async (id) => {
   const question = await Questions.findByIdAndDelete(id);
   if (!question) {

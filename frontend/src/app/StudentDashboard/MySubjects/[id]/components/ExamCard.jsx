@@ -3,9 +3,7 @@
 import { useState, useEffect } from 'react';
 import { CheckCircle, Play, Clock, BookOpen, BarChart } from 'lucide-react';
 
-const ExamCard = ({ test, onReviewResults }) => {
-    const [isHovered, setIsHovered] = useState(false);
-    console.log('Rendering ExamCard for test:', test);
+const ExamCard = ({ test, handleExamClick }) => {
 
     // Determine card color based on test status
     const getCardClass = () => {
@@ -20,13 +18,6 @@ const ExamCard = ({ test, onReviewResults }) => {
         return test.completed ? 'text-green-600' : 'text-blue-600';
     };
 
-    // Determine progress circle color
-    const getProgressClass = () => {
-        if (test.score >= 80) return 'bg-green-500 text-white';
-        if (test.score >= 60) return 'bg-blue-500 text-white';
-        if (test.score >= 40) return 'bg-yellow-500 text-white';
-        return 'bg-red-500 text-white';
-    };
 
     return (
         <div
@@ -85,7 +76,7 @@ const ExamCard = ({ test, onReviewResults }) => {
                     {test.completed ? 'Completed' : 'Not Started'}
                 </span>
                 <button
-                    onClick={() => onReviewResults(test.id,test)}
+                    onClick={() => handleExamClick(test.id || test._id,test)}
                     disabled={test.completed}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${test.completed
                             ? 'bg-white text-green-700 border border-green-300 hover:bg-green-50 cursor-not-allowed'

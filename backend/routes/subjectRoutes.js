@@ -30,7 +30,7 @@ router.get(
   subjectController.getEnrolledSubjects
 );
 router.get(
-  "/getExamsForSubject/:id",
+  "/getExamsForSubject/:subjectType/:id",
   verifyToken,
   subjectController.getExamsForSubject
 );

@@ -31,7 +31,7 @@ export default function EditExamPage() {
     const fetchExam = async () => {
       try {
         const response = await fetch(
-          `${BaseUrl}/questions/getQuestionById/${examId}`,
+          `${BaseUrl}/questions/getFullQuestionById/${examId}`,
           {
             credentials: "include",
           }
@@ -39,19 +39,11 @@ export default function EditExamPage() {
         if (!response.ok) throw new Error("Failed to fetch exam details");
         const data = await response.json();
 
-        // Note: getQuestionById returns a specific format
-        // { questionsObj, time, name, docId }
-        // We might need more fields if it's a CAF exam or if we want full edit.
-        // Actually, let's assume we might need a better getExamById for editing.
-        // For now, let's use what we have and maybe adjust.
-
         setFormData({
           name: data.name || "",
           description: data.description || "",
-          totalAttempt: data.time || "",
-          numQuestions: data.questionsObj
-            ? Object.keys(data.questionsObj).length
-            : "",
+          totalAttempt: data.totalAttempt || "",
+          numQuestions: data.totalQuestions || "",
           totalMarks: data.totalMarks || "",
           mockExam: data.mockExam || false,
           pdfFile: null,
