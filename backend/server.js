@@ -8,8 +8,9 @@ import authRouter from "./routes/authRoutes.js";
 import questionRouter from "./routes/questionRoutes.js";
 import subjectRouter from "./routes/subjectRoutes.js";
 import instructorRoutes from "./routes/instructorRoutes.js";
+import cafExamAnswerRoutes from "./routes/cafExamAnswerRoutes.js";
 
-const app = express(); 
+const app = express();
 const PORT = 5000;
 
 (async () => {
@@ -66,6 +67,7 @@ const PORT = 5000;
   );
   app.use("/subjects", subjectRouter);
   app.use("/instructors", instructorRoutes);
+  app.use("/caf-answers", cafExamAnswerRoutes);
 
   // Start server
   app.listen(PORT, () =>

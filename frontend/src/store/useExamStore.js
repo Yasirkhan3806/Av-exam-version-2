@@ -29,7 +29,6 @@ const useExamStore = create(
       ExamId: null,
 
       reset: () => {
-        console.log("Resetting exam state");
         const subjectStore = useSubjectStore.getState();
         subjectStore.clearSubjectCache(); // Clear cached exams for current subject
         // This will clear all workbook states (rough work) when exam is finished
@@ -88,12 +87,12 @@ const useExamStore = create(
         set({ workbookStates: {} });
       },
 
-      fetchExam: async (examId) => {
+      fetchExam: async (examId, subjectType) => {
         set({ loading: true, error: null });
         const { BASEURL } = get();
         try {
           const response = await fetch(
-            `${BASEURL}/questions/getQuestionById/${examId}`,
+            `${BASEURL}/questions/getQuestionById/${subjectType}/${examId}`,
             {
               credentials: "include",
             }
@@ -102,16 +101,20 @@ const useExamStore = create(
             throw new Error("Failed to fetch exam data");
           }
           const data = await response.json();
-          set({
-            questionsObj: data.questionsObj,
-            totalQuestions: Object.keys(data.questionsObj).length,
-            questionName: data.name,
-            loading: false,
-            totalTime: data.time,
-            currentQuestion: 1,
-            ExamId: data.docId,
-            workbookStates: {}, // Reset workbook states for new exam
-          });
+          if (subjectType === "CFAP") {
+            set({
+              questionsObj: data.questionsObj,
+              totalQuestions: Object.keys(data.questionsObj).length,
+              questionName: data.name,
+              loading: false,
+              totalTime: data.time,
+              currentQuestion: 1,
+              ExamId: data.docId,
+              workbookStates: {}, // Reset workbook states for new exam
+            });
+          }
+
+          return data;
         } catch (error) {
           set({ error: error.message, loading: false });
         }
@@ -277,6 +280,33 @@ const useExamStore = create(
         }
         reset();
         set({ saving: false });
+      },
+      submitCafAnswer: async (cafExamId, file) => {
+        set({ saving: true, error: null });
+        const { BASEURL } = get();
+        try {
+          const formData = new FormData();
+          formData.append("questionId", cafExamId);
+          formData.append("pdf", file);
+
+          const response = await fetch(`${BASEURL}/caf-answers/submitAnswer`, {
+            method: "POST",
+            credentials: "include",
+            body: formData,
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to submit CAF answer");
+          }
+
+          const result = await response.json();
+          set({ saving: false });
+          return result;
+        } catch (error) {
+          set({ error: error.message, saving: false });
+          throw error;
+        }
       },
     }),
     {

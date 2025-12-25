@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export default function AnswerPanel({ onSubmit }) {
+export default function AnswerPanel({ onSubmit, isLoading }) {
   const [selectedFile, setSelectedFile] = useState(null);
 
   const handleFileChange = (e) => {
@@ -69,13 +69,13 @@ export default function AnswerPanel({ onSubmit }) {
         <button
           onClick={handleSubmit}
           className={`w-full py-3 px-6 rounded-lg font-semibold text-white transition-all transform active:scale-95 ${
-            selectedFile
+            selectedFile && !isLoading
               ? "bg-blue-600 hover:bg-blue-700 shadow-md"
               : "bg-gray-400 cursor-not-allowed"
           }`}
-          disabled={!selectedFile}
+          disabled={!selectedFile || isLoading}
         >
-          Submit Answer
+          {isLoading ? "Submitting..." : "Submit Answer"}
         </button>
       </div>
     </div>

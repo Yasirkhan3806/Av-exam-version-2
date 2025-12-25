@@ -4,53 +4,48 @@ import { useEffect, useState, use } from "react";
 import QuestionPanel from "./components/QuestionPanel";
 import AnswerPanel from "./components/AnswerPanel";
 import useExamStore from "../../../store/useExamStore";
+import useSubjectStore from "../../../store/useSubjectStore";
 
 export default function CafExamPage({ params: paramsPromise }) {
   const params = use(paramsPromise);
   const { CafExamId } = params;
-  const { fetchExam, questionsObj, BASEURL, loading, error } = useExamStore();
+  const { fetchExam, BASEURL, submitCafAnswer, saving } = useExamStore();
+  const currentSubjectType = useSubjectStore(
+    (state) => state.currentSubjectType
+  );
   const [pdfUrl, setPdfUrl] = useState("");
+  const [examData, setExamData] = useState({});
+
+  console.log(currentSubjectType);
 
   useEffect(() => {
-    if (CafExamId) {
-      fetchExam(CafExamId);
-    }
-  }, [CafExamId, fetchExam]);
+    const getExamData = async () => {
+      if (CafExamId && currentSubjectType) {
+        const response = await fetchExam(CafExamId, currentSubjectType);
+        console.log(response);
+        setExamData(response);
+      }
+    };
+
+    getExamData();
+  }, [CafExamId, fetchExam, currentSubjectType]);
 
   useEffect(() => {
     // For CAF exams, we assume the first question PDF is the main exam paper
-    if (questionsObj && Object.keys(questionsObj).length > 0) {
-      const firstQKey = Object.keys(questionsObj)[0];
-      setPdfUrl(`${BASEURL}/${questionsObj[firstQKey]}`);
+    if (examData?.pdfPath) {
+      setPdfUrl(`${BASEURL}/${examData.pdfPath}`);
     }
-  }, [questionsObj, BASEURL]);
+  }, [examData, BASEURL]);
 
   const handleSubmit = async (file) => {
-    console.log("Submitting file:", file);
-    // TODO: Implement actual upload logic
-    alert(
-      `File "${file.name}" ready for upload! Implementation pending based on backend API.`
-    );
+    try {
+      const result = await submitCafAnswer(CafExamId, file);
+      alert("Exam submitted successfully!");
+      windows.location.href = "/StudentDashboard/MySubjects";
+    } catch (error) {
+      alert(`Submission failed: ${error.message}`);
+    }
   };
-
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-gray-50">
-        <div className="text-red-500 bg-red-50 p-6 rounded-lg shadow-sm border border-red-100">
-          <h2 className="text-xl font-bold mb-2">Error</h2>
-          <p>{error}</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row">
@@ -58,7 +53,7 @@ export default function CafExamPage({ params: paramsPromise }) {
         <QuestionPanel pdfUrl={pdfUrl} />
       </div>
       <div className="w-full md:w-1/3 min-w-[350px] bg-white">
-        <AnswerPanel onSubmit={handleSubmit} />
+        <AnswerPanel onSubmit={handleSubmit} isLoading={saving} />
       </div>
     </div>
   );

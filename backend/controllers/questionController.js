@@ -40,7 +40,7 @@ export const getQuestions = async (req, res) => {
 
 export const getQuestionById = async (req, res) => {
   try {
-    const questionData = await questionService.getQuestionById(req.params.id);
+    const questionData = await questionService.getQuestionById(req.params.id, req.params.subjectType);
     return res.status(200).json(questionData);
   } catch (err) {
     if (err.message === "Question not found") {

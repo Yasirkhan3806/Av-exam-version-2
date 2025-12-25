@@ -99,17 +99,26 @@ export const getQuestionsBySubject = async (subjectId, subjectType) => {
   return questions;
 };
 
-export const getQuestionById = async (id) => {
-  const question = await Questions.findById(id);
-  if (!question) {
-    throw new Error("Question not found");
+export const getQuestionById = async (id, subjectType) => {
+  let question;
+  if (subjectType === "CAF") {
+    question = await CafExamQuestions.findById(id);
+    if (!question) {
+      throw new Error("Question not found");
+    }
+    return question;
+  } else {
+    question = await Questions.findById(id);
+    if (!question) {
+      throw new Error("Question not found");
+    }
+    return {
+      questionsObj: question.pagesData,
+      time: question.totalAttempt,
+      name: question.name,
+      docId: question._id,
+    };
   }
-  return {
-    questionsObj: question.pagesData,
-    time: question.totalAttempt,
-    name: question.name,
-    docId: question._id,
-  };
 };
 
 export const getFullQuestionById = async (id) => {

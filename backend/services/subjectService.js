@@ -133,17 +133,19 @@ export const getEnrolledSubjects = async (studentId) => {
   return student.subjectsEnrolled;
 };
 
-export const getExamsForSubject = async (subjectId, userId,subjectType) => {
+export const getExamsForSubject = async (subjectId, userId, subjectType) => {
   if (!subjectId) {
     throw new Error("subjectId is required.");
   }
-  console.log(subjectType)
-  let collectionType ;
-  if(subjectType === "CAF"){
+  console.log(subjectType);
+  let collectionType;
+  if (subjectType === "CAF") {
     collectionType = CafExamQuestions;
-  }else{
+  } else {
     collectionType = Questions;
   }
+
+  const answerCollection = subjectType === "CAF" ? "CafExamAnswers" : "Answers";
 
   const exams = await collectionType.aggregate([
     {
@@ -151,7 +153,7 @@ export const getExamsForSubject = async (subjectId, userId,subjectType) => {
     },
     {
       $lookup: {
-        from: "Answers",
+        from: answerCollection,
         let: { examId: "$_id" },
         pipeline: [
           {
@@ -337,7 +339,7 @@ export const deleteSubject = async (subjectId) => {
 
     await Answer.deleteMany({ questionSet: { $in: allExamIds } });
   }
- 
+
   // 3. Delete standard exams
   await Questions.deleteMany({ subject: subjectId });
 

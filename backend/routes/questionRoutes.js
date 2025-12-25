@@ -23,7 +23,7 @@ router.get(
   questionController.getQuestions
 );
 router.get(
-  "/getQuestionById/:id",
+  "/getQuestionById/:subjectType/:id",
   verifyToken,
   questionController.getQuestionById
 );
