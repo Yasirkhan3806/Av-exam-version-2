@@ -171,6 +171,7 @@ export const getSubmissionsByQuestion = async (questionId, subjectType) => {
     return [];
   }
 
+
   const formatted = submissions.map((sub, index) => {
     const student = sub.Student || {};
     const answeredCount = sub.answers ? sub.answers.size : 0;
@@ -189,15 +190,16 @@ export const getSubmissionsByQuestion = async (questionId, subjectType) => {
             minute: "2-digit",
           })
         : "N/A",
-      answered: `${answeredCount}/${totalQuestions} answered`,
+      answered: subjectType === 'CAF'?`${totalQuestions}/${totalQuestions} answered`: `${answeredCount}/${totalQuestions} answered`,
       progress:
         totalQuestions > 0
           ? Math.round((answeredCount / totalQuestions) * 100)
           : 0,
       score:
-        sub.marksObtained && typeof sub.marksObtained !== "object"
+        sub.marksObtained && typeof sub.marksObtained == "object"
           ? sub.marksObtained
           : "Not graded",
+      cafMarks: subjectType === "CAF" ? sub.marksObtained : null,
       checkedAt: sub.checkedAt
         ? new Date(sub.checkedAt).toLocaleString("en-US", {
             month: "long",
@@ -321,9 +323,6 @@ export const getStudentAnswers = async (studentId, examId, subjectType) => {
 
     const existingPdfUrl = answersDoc.marksObtained[questionKey].pdfUrl;
     if (existingPdfUrl && existingPdfUrl.trim() !== "") {
-      console.log(
-        `📄 Skipping ${questionKey}: already has PDF -> ${existingPdfUrl}`
-      );
       continue;
     }
 

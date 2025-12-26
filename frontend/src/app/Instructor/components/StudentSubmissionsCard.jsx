@@ -95,7 +95,7 @@ const StudentSubmissionsCard = ({ student }) => {
         <div className="flex justify-between text-sm text-gray-600">
           <span>{student.answered}</span>
         </div>
-        <div className="text-sm font-medium text-gray-800">Score: {score}</div>
+        <div className="text-sm font-medium text-gray-800">Score: {student.cafMarks ? student.cafMarks : score}</div>
       </div>
 
       {/* Progress Bar */}

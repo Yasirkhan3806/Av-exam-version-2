@@ -1,4 +1,5 @@
 import { CafExamAnswer } from "../models/index.js";
+import fs from "fs";
 
 export const submitCafAnswer = async (answerData, file) => {
   const { studentId, questionId } = answerData;
@@ -50,19 +51,41 @@ export const markSubmission = async (studentId, examId, file, marks) => {
     throw new Error("Checked PDF is required");
   }
 
-  const updatedAnswer = await CafExamAnswer.findOneAndUpdate(
-    { Student: studentId, questionSet: examId },
-    {
-      marksObtained: marks,
-      checkedPdfUrl: file.path,
-      status: "checked",
-      checkedAt: new Date(),
-    },
-    { new: true }
-  );
+  const deleted = await deleteOldPdf(studentId, examId);
 
-  if (!updatedAnswer) {
-    throw new Error("Submission not found");
+  if (deleted) {
+    const updatedAnswer = await CafExamAnswer.findOneAndUpdate(
+      { Student: studentId, questionSet: examId },
+      {
+        marksObtained: marks,
+        submittedPdfUrl: file.path,
+        status: "checked",
+        checkedAt: new Date(),
+      },
+      { new: true }
+    );
+
+    if (!updatedAnswer) {
+      throw new Error("Submission not found");
+    }
+    return updatedAnswer;
   }
-  return updatedAnswer;
+
+  return null;
+};
+
+const deleteOldPdf = async (studentId, examId) => {
+  const oldAnswer = await CafExamAnswer.findOne({ Student: studentId, questionSet: examId });
+  
+  if (!oldAnswer) return true; // Or handle error: no record to delete
+
+  const filePath = oldAnswer.submittedPdfUrl;
+  if (filePath && fs.existsSync(filePath)) {
+    try {
+      fs.unlinkSync(filePath);
+    } catch (err) {
+      console.error("File deletion failed", err);
+    }
+  }
+  return true;
 };
