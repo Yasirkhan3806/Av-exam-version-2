@@ -1,22 +1,26 @@
-'use client'
-import React from 'react'
-import { useParams } from 'next/navigation'
-import InstructorExamGrid from '../../../components/InstructorExamsGrid'
-
-
+"use client";
+import React, { useEffect } from "react";
+import { useParams, useSearchParams } from "next/navigation";
+import InstructorExamGrid from "../../../components/InstructorExamsGrid";
+import useInstructorStore from "../../../../../store/useInstructorStore";
 
 const SubjectTests = () => {
-    const params = useParams()
-    const subjectId = params.id
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const subjectId = params.id;
+  const subjectType = searchParams.get("subjectType");
+  const setCurrentSubjectType = useInstructorStore((state)=>state.setCurrentSubjectType)
 
-    return (
+  useEffect(()=>{
+    setCurrentSubjectType(subjectType)
+  },[subjectId,subjectType])
 
-        <>
-            <InstructorExamGrid subjectId={subjectId} />
-            {/* Add your tests listing or management components here */}
-        </>
+  return (
+    <>
+      <InstructorExamGrid subjectId={subjectId} subjectType={subjectType} />
+      {/* Add your tests listing or management components here */}
+    </>
+  );
+};
 
-    )
-}
-
-export default SubjectTests
+export default SubjectTests;

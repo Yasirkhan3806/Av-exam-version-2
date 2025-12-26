@@ -47,7 +47,7 @@ const InstructorSubjectCard = ({ subjects,getStatusColor }) => {
               </div>
 
               {/* View Submissions Button */}
-              <Link href={`/Instructor/subjects/${subject._id}/exams`} className="w-full flex items-center justify-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200">
+              <Link href={`/Instructor/subjects/${subject._id}/exams?subjectType=${subject.type}`} className="w-full flex items-center justify-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200">
                 View Submissions
                 <svg xmlns="http://www.w3.org/2000/svg" className="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

@@ -92,7 +92,11 @@ export const verifyInstructorSession = (req, res) => {
 export const getExamsBySubject = async (req, res) => {
   try {
     const { subjectId } = req.params;
-    const exams = await instructorService.getExamsBySubject(subjectId);
+    const { subjectType } = req.query; // Extract subjectType
+    const exams = await instructorService.getExamsBySubject(
+      subjectId,
+      subjectType
+    );
 
     return res.status(200).json({
       success: true,
@@ -118,8 +122,10 @@ export const getExamsBySubject = async (req, res) => {
 export const getSubmissions = async (req, res) => {
   try {
     const { questionId } = req.params;
+    const { subjectType } = req.query;
     const submissions = await instructorService.getSubmissionsByQuestion(
-      questionId
+      questionId,
+      subjectType
     );
 
     return res.status(200).json({
@@ -176,9 +182,11 @@ export const getExam = async (req, res) => {
 export const getStudentAnswers = async (req, res) => {
   try {
     const { studentId, examId } = req.params;
+    const { subjectType } = req.query;
     const answersDoc = await instructorService.getStudentAnswers(
       studentId,
-      examId
+      examId,
+      subjectType
     );
 
     return res.status(200).json({
@@ -228,12 +236,14 @@ export const updateStudentMarks = async (req, res) => {
   try {
     const { studentId, examId } = req.params;
     const { marksObtained, status } = req.body;
+    const { subjectType } = req.query;
 
     const updatedAnswer = await instructorService.updateStudentMarks(
       studentId,
       examId,
       marksObtained,
-      status
+      status,
+      subjectType
     );
 
     return res.status(200).json({

@@ -9,6 +9,8 @@ import {
   TestUser,
   Questions,
   Answer,
+  CafExamQuestions,
+  CafExamAnswer,
 } from "../models/index.js";
 import { generateTokenAndSetCookie } from "../utils/middleware.js";
 
@@ -82,7 +84,7 @@ export const getAllSubjectsByInstructor = async (instructorId) => {
   return subjects;
 };
 
-export const getExamsBySubject = async (subjectId) => {
+export const getExamsBySubject = async (subjectId, subjectType) => {
   if (!mongoose.Types.ObjectId.isValid(subjectId)) {
     throw new Error("Invalid subject ID");
   }
@@ -95,13 +97,24 @@ export const getExamsBySubject = async (subjectId) => {
   const totalStudents = await TestUser.countDocuments({
     subjectsEnrolled: subjectId,
   });
-  const exams = await Questions.find({ subject: subjectId }).sort({
-    createdAt: -1,
-  });
+
+  let exams = [];
+  let AnswerModel = Answer;
+
+  if (subjectType === "CAF") {
+    exams = await CafExamQuestions.find({ subject: subjectId }).sort({
+      createdAt: -1,
+    });
+    AnswerModel = CafExamAnswer;
+  } else {
+    exams = await Questions.find({ subject: subjectId }).sort({
+      createdAt: -1,
+    });
+  }
 
   const results = await Promise.all(
     exams.map(async (exam) => {
-      const submittedCount = await Answer.countDocuments({
+      const submittedCount = await AnswerModel.countDocuments({
         questionSet: exam._id,
       });
       const percent =
@@ -119,7 +132,7 @@ export const getExamsBySubject = async (subjectId) => {
           month: "long",
           day: "numeric",
         }),
-        duration: `${exam.totalAttempt} minutes`,
+        duration: exam.totalAttempt ? `${exam.totalAttempt} minutes` : "N/A",
         submissions: `${submittedCount}/${totalStudents} submitted (${percent}%)`,
         progress: percent,
         questions: `${exam.totalQuestions} questions`,
@@ -130,18 +143,27 @@ export const getExamsBySubject = async (subjectId) => {
   return results;
 };
 
-export const getSubmissionsByQuestion = async (questionId) => {
+export const getSubmissionsByQuestion = async (questionId, subjectType) => {
   if (!mongoose.Types.ObjectId.isValid(questionId)) {
     throw new Error("Invalid question ID");
   }
 
-  const question = await Questions.findById(questionId);
+  let question;
+  let AnswerModel = Answer; // Default
+
+  if (subjectType === "CAF") {
+    question = await CafExamQuestions.findById(questionId);
+    AnswerModel = CafExamAnswer;
+  } else {
+    question = await Questions.findById(questionId);
+  }
+
   if (!question) {
     throw new Error("Question not found");
   }
 
   const totalQuestions = question.totalQuestions;
-  const submissions = await Answer.find({ questionSet: questionId })
+  const submissions = await AnswerModel.find({ questionSet: questionId })
     .populate("Student", "_id name email")
     .sort({ createdAt: -1 });
 
@@ -172,7 +194,10 @@ export const getSubmissionsByQuestion = async (questionId) => {
         totalQuestions > 0
           ? Math.round((answeredCount / totalQuestions) * 100)
           : 0,
-      score: sub.marksObtained ? sub.marksObtained : "Not graded",
+      score:
+        sub.marksObtained && typeof sub.marksObtained !== "object"
+          ? sub.marksObtained
+          : "Not graded",
       checkedAt: sub.checkedAt
         ? new Date(sub.checkedAt).toLocaleString("en-US", {
             month: "long",
@@ -256,7 +281,7 @@ export const generatePDF = async (html, fileName) => {
   }
 };
 
-export const getStudentAnswers = async (studentId, examId) => {
+export const getStudentAnswers = async (studentId, examId, subjectType) => {
   if (
     !mongoose.Types.ObjectId.isValid(studentId) ||
     !mongoose.Types.ObjectId.isValid(examId)
@@ -264,7 +289,12 @@ export const getStudentAnswers = async (studentId, examId) => {
     throw new Error("Invalid student ID or exam ID");
   }
 
-  const answersDoc = await Answer.findOne({
+  let AnswerModel = Answer;
+  if (subjectType === "CAF") {
+    AnswerModel = CafExamAnswer;
+  }
+
+  const answersDoc = await AnswerModel.findOne({
     Student: studentId,
     questionSet: examId,
   });
@@ -332,7 +362,8 @@ export const updateStudentMarks = async (
   studentId,
   examId,
   marksObtained,
-  status
+  status,
+  subjectType
 ) => {
   if (
     !mongoose.Types.ObjectId.isValid(studentId) ||
@@ -341,7 +372,12 @@ export const updateStudentMarks = async (
     throw new Error("Invalid student ID or exam ID");
   }
 
-  const updatedAnswer = await Answer.findOneAndUpdate(
+  let AnswerModel = Answer;
+  if (subjectType === "CAF") {
+    AnswerModel = CafExamAnswer;
+  }
+
+  const updatedAnswer = await AnswerModel.findOneAndUpdate(
     { Student: studentId, questionSet: examId },
     {
       marksObtained,

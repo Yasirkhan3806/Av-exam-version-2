@@ -35,3 +35,37 @@ export const getStudentAnswers = async (req, res) => {
       .json({ error: err.message || "Internal Server Error" });
   }
 };
+
+export const getSubmissionForInstructor = async (req, res) => {
+  try {
+    const { studentId, examId } = req.params;
+    const submission = await cafExamAnswerService.getSubmission(
+      studentId,
+      examId
+    );
+    return res.status(200).json(submission);
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ error: err.message || "Internal Server Error" });
+  }
+};
+
+export const markSubmission = async (req, res) => {
+  try {
+    const { studentId, examId, marks } = req.body;
+    const result = await cafExamAnswerService.markSubmission(
+      studentId,
+      examId,
+      req.file,
+      marks
+    );
+    return res
+      .status(200)
+      .json({ message: "Submission marked successfully", data: result });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ error: err.message || "Internal Server Error" });
+  }
+};

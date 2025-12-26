@@ -5,12 +5,12 @@ import { useEffect } from "react";
 import useInstructorStore from "../../../store/useInstructorStore";
 import InstructorExamCard from "./InstructorExamCard";
 
-const InstructorExamGrid = ({ subjectId }) => {
+const InstructorExamGrid = ({ subjectId, subjectType }) => {
   const { fetchExams, exams } = useInstructorStore((state) => state);
 
   useEffect(() => {
-    fetchExams(subjectId);
-  }, [fetchExams]);
+    fetchExams(subjectId, subjectType);
+  }, [fetchExams, subjectId, subjectType]);
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -1,14 +1,13 @@
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-
-const BASE_URL = process.env.NEXT_PUBLIC_BASEURL || 'http://localhost:5000';
+const BASE_URL = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
 
 // === Centralized Fetch Helper ===
 async function fetchJSON(url, options = {}) {
   const res = await fetch(url, {
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
     ...options,
   });
   if (!res.ok) throw new Error(`Request failed: ${res.status}`);
@@ -18,11 +17,16 @@ async function fetchJSON(url, options = {}) {
 // === Async helper functions ===
 async function fetchUserInfo(set) {
   try {
-    const data = await fetchJSON(`${BASE_URL}/instructors/verifyInstructorSession`);
-    set({ instructorId: data.instructor.userId, instructorInfo: data.instructor });
+    const data = await fetchJSON(
+      `${BASE_URL}/instructors/verifyInstructorSession`
+    );
+    set({
+      instructorId: data.instructor.userId,
+      instructorInfo: data.instructor,
+    });
     return data.instructor;
   } catch (error) {
-    console.error('Failed to fetch instructor info:', error);
+    console.error("Failed to fetch instructor info:", error);
     set({ error: error.message });
     return null;
   }
@@ -30,31 +34,43 @@ async function fetchUserInfo(set) {
 
 const fetchSubjects = async (set, get) => {
   try {
-    const instructorId = get().instructorId || (await fetchUserInfo(set))?.userId;
-    const data = await fetchJSON(`${BASE_URL}/instructors/getAllSubjects/${instructorId}`);
+    const instructorId =
+      get().instructorId || (await fetchUserInfo(set))?.userId;
+    const data = await fetchJSON(
+      `${BASE_URL}/instructors/getAllSubjects/${instructorId}`
+    );
     set({ subjects: data.subjects });
   } catch (error) {
-    console.error('Failed to fetch subjects:', error);
+    console.error("Failed to fetch subjects:", error);
     throw error;
   }
 };
 
-const fetchExams = async (set, get, subjectId) => {
+const fetchExams = async (set, get, subjectId, subjectType) => {
   try {
-    const data = await fetchJSON(`${BASE_URL}/instructors/getExamsBySubject/${subjectId}`);
+    const query = subjectType ? `?subjectType=${subjectType}` : "";
+    const data = await fetchJSON(
+      `${BASE_URL}/instructors/getExamsBySubject/${subjectId}${query}`
+    );
     set({ exams: data.exams });
   } catch (error) {
-    console.error('Failed to fetch exams:', error);
+    console.error("Failed to fetch exams:", error);
     throw error;
   }
 };
 
 const fetchSubmissions = async (set, get, questionId) => {
   try {
-    const data = await fetchJSON(`${BASE_URL}/instructors/getSubmissions/${questionId}`);
+    const currentSubjectType = get().currentSubjectType;
+    const query = currentSubjectType
+      ? `?subjectType=${currentSubjectType}`
+      : "";
+    const data = await fetchJSON(
+      `${BASE_URL}/instructors/getSubmissions/${questionId}${query}`
+    );
     set({ submissions: data.submissions });
   } catch (error) {
-    console.error('Failed to fetch submissions:', error);
+    console.error("Failed to fetch submissions:", error);
     throw error;
   }
 };
@@ -62,11 +78,13 @@ const fetchSubmissions = async (set, get, questionId) => {
 const fetchExamById = async (set, get) => {
   try {
     const currentExamId = get().currentExamId;
-    const data = await fetchJSON(`${BASE_URL}/instructors/getExam/${currentExamId}`);
+    const data = await fetchJSON(
+      `${BASE_URL}/instructors/getExam/${currentExamId}`
+    );
     set({ examQuestions: data.exam.pagesData });
     return data.exam;
   } catch (error) {
-    console.error('Failed to fetch exam:', error);
+    console.error("Failed to fetch exam:", error);
     throw error;
   }
 };
@@ -74,24 +92,34 @@ const fetchExamById = async (set, get) => {
 const fetchAnswersByQuestionId = async (set, get, studentId) => {
   try {
     const currentExamId = get().currentExamId;
-    const data = await fetchJSON(`${BASE_URL}/instructors/getStudentAnswers/${studentId}/${currentExamId}`);
-    set({ studentAnswers: data.answers, currentStudentId: studentId, marks: data.answers.marksObtained });
+    const currentSubjectType = get().currentSubjectType;
+    const query = currentSubjectType
+      ? `?subjectType=${currentSubjectType}`
+      : "";
+    const data = await fetchJSON(
+      `${BASE_URL}/instructors/getStudentAnswers/${studentId}/${currentExamId}${query}`
+    );
+    set({
+      studentAnswers: data.answers,
+      currentStudentId: studentId,
+      marks: data.answers.marksObtained,
+    });
     // if (data.answers.status === 'checked' || data.answers.status === 'draft') {
     //   set({ marks: data.answers.marksObtained || {} });
     // }
     return data.answers;
   } catch (error) {
-    console.error('Failed to fetch student answers:', error);
+    console.error("Failed to fetch student answers:", error);
     throw error;
   }
 };
 
 const logout = async () => {
   try {
-    await fetchJSON(`${BASE_URL}/instructors/logout`, { method: 'POST' });
+    await fetchJSON(`${BASE_URL}/instructors/logout`, { method: "POST" });
     return true;
   } catch (error) {
-    console.error('Logout failed:', error);
+    console.error("Logout failed:", error);
     return false;
   }
 };
@@ -113,10 +141,11 @@ const useInstructorStore = create(
       currentExam: null,
       currentExamId: null,
       studentAnswers: [],
-      status: 'submitted',
+      status: "submitted",
       marks: {},
       currentStudentId: null,
       checkedPdfs: {},
+      currentSubjectType: "",
 
       // Actions
       setExamQuestions: (questions) => set({ examQuestions: questions }),
@@ -125,10 +154,14 @@ const useInstructorStore = create(
       setError: (error) => set({ error }),
       fetchSubjects: () => fetchSubjects(set, get),
       fetchUserInfo: () => fetchUserInfo(set),
-      fetchExams: (subjectId) => fetchExams(set, get, subjectId),
+      fetchExams: (subjectId, subjectType) =>
+        fetchExams(set, get, subjectId, subjectType),
+      setCurrentSubjectType: (subjectType) =>
+        set({ currentSubjectType: subjectType }),
       fetchSubmissions: (questionId) => fetchSubmissions(set, get, questionId),
       fetchExamById: (examId) => fetchExamById(set, get, examId),
-      fetchAnswersByQuestionId: (studentId, examId) => fetchAnswersByQuestionId(set, get, studentId, examId),
+      fetchAnswersByQuestionId: (studentId, examId) =>
+        fetchAnswersByQuestionId(set, get, studentId, examId),
       // === Optimized currentExam setter ===
       setCurrentExam: (examId) => {
         const { exams, currentExam } = get();
@@ -140,12 +173,12 @@ const useInstructorStore = create(
       },
       resetCurrentExam: () => {
         set({ currentExam: null });
-        const storage = localStorage.getItem('instructor-storage');
+        const storage = localStorage.getItem("instructor-storage");
         if (storage) {
           const parsed = JSON.parse(storage);
           if (parsed?.state?.currentExam) {
             delete parsed.state.currentExam;
-            localStorage.setItem('instructor-storage', JSON.stringify(parsed));
+            localStorage.setItem("instructor-storage", JSON.stringify(parsed));
           }
         }
       },
@@ -162,11 +195,25 @@ const useInstructorStore = create(
         }
       },
       setMarks: (currentQuestion, marks) => {
-        set({ marks: { ...get().marks, [`q${currentQuestion}`]: { ...get().marks[`q${currentQuestion}`], marks: marks, checked: true } } });
+        set({
+          marks: {
+            ...get().marks,
+            [`q${currentQuestion}`]: {
+              ...get().marks[`q${currentQuestion}`],
+              marks: marks,
+              checked: true,
+            },
+          },
+        });
         return true;
       },
       setCheckedPdf: (questionNumber, pdfFile) => {
-        set({ checkedPdfs: { ...get().checkedPdfs, [`q${questionNumber}`]: pdfFile } });
+        set({
+          checkedPdfs: {
+            ...get().checkedPdfs,
+            [`q${questionNumber}`]: pdfFile,
+          },
+        });
       },
 
       finishExamReview: async () => {
@@ -188,17 +235,28 @@ const useInstructorStore = create(
             body: formData,
           });
           const { updatedMarks } = await res.json();
-          console.log("✅ Uploaded checked PDFs and obtained updated marks:", updatedMarks);
+          console.log(
+            "✅ Uploaded checked PDFs and obtained updated marks:",
+            updatedMarks
+          );
 
           // Now update student marks in DB
-          await fetchJSON(`${BASE_URL}/instructors/updateStudentMarks/${currentStudentId}/${currentExamId}`, {
-            method: "PUT",
-            body: JSON.stringify({
-              marksObtained: updatedMarks,
-              status: "checked",
-            }),
-            credentials: "include",
-          });
+          const currentSubjectType = get().currentSubjectType;
+          const query = currentSubjectType
+            ? `?subjectType=${currentSubjectType}`
+            : "";
+
+          await fetchJSON(
+            `${BASE_URL}/instructors/updateStudentMarks/${currentStudentId}/${currentExamId}${query}`,
+            {
+              method: "PUT",
+              body: JSON.stringify({
+                marksObtained: updatedMarks,
+                status: "checked",
+              }),
+              credentials: "include",
+            }
+          );
 
           get().reset();
           return true;
@@ -216,8 +274,6 @@ const useInstructorStore = create(
         }
         return success;
       },
-
-
 
       // Reset store (except persisted data)
       reset: () =>
@@ -237,7 +293,7 @@ const useInstructorStore = create(
         }),
     }),
     {
-      name: 'instructor-storage',
+      name: "instructor-storage",
       getStorage: () => localStorage,
       // ✅ Only persist selective data
       partialize: (state) => ({
@@ -250,6 +306,7 @@ const useInstructorStore = create(
         currentExamId: state.currentExamId,
         marks: state.marks,
         currentStudentId: state.currentStudentId,
+        currentSubjectType: state.currentSubjectType,
       }),
     }
   )

@@ -30,3 +30,39 @@ export const getAnswersByQuestion = async (questionId) => {
     "Student"
   );
 };
+
+export const getSubmission = async (studentId, examId) => {
+  const answer = await CafExamAnswer.findOne({
+    Student: studentId,
+    questionSet: examId,
+  })
+    .populate("Student", "name email")
+    .populate("questionSet");
+
+  if (!answer) {
+    throw new Error("Submission not found");
+  }
+  return answer;
+};
+
+export const markSubmission = async (studentId, examId, file, marks) => {
+  if (!file) {
+    throw new Error("Checked PDF is required");
+  }
+
+  const updatedAnswer = await CafExamAnswer.findOneAndUpdate(
+    { Student: studentId, questionSet: examId },
+    {
+      marksObtained: marks,
+      checkedPdfUrl: file.path,
+      status: "checked",
+      checkedAt: new Date(),
+    },
+    { new: true }
+  );
+
+  if (!updatedAnswer) {
+    throw new Error("Submission not found");
+  }
+  return updatedAnswer;
+};
