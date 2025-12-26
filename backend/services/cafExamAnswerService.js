@@ -46,6 +46,18 @@ export const getSubmission = async (studentId, examId) => {
   return answer;
 };
 
+export const getMySubmission = async (studentId, examId) => {
+  const answer = await CafExamAnswer.findOne({
+    Student: studentId,
+    questionSet: examId,
+  }).populate("questionSet");
+
+  if (!answer) {
+    throw new Error("Submission not found");
+  }
+  return answer;
+};
+
 export const markSubmission = async (studentId, examId, file, marks) => {
   if (!file) {
     throw new Error("Checked PDF is required");
@@ -75,8 +87,11 @@ export const markSubmission = async (studentId, examId, file, marks) => {
 };
 
 const deleteOldPdf = async (studentId, examId) => {
-  const oldAnswer = await CafExamAnswer.findOne({ Student: studentId, questionSet: examId });
-  
+  const oldAnswer = await CafExamAnswer.findOne({
+    Student: studentId,
+    questionSet: examId,
+  });
+
   if (!oldAnswer) return true; // Or handle error: no record to delete
 
   const filePath = oldAnswer.submittedPdfUrl;

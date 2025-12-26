@@ -7,6 +7,7 @@ import {
   Questions,
   Answer,
   CafExamQuestions,
+  CafExamAnswer,
 } from "../models/index.js";
 
 export const addSubject = async (
@@ -198,11 +199,34 @@ export const getResults = async (studentId) => {
     throw new Error("Invalid student ID");
   }
 
-  const results = await Answer.find({ Student: studentId, status: "checked" })
+  const cfapResults = await Answer.find({
+    Student: studentId,
+    status: "checked",
+  })
     .populate("questionSet", "_id name totalAttempt totalMarks totalQuestions")
-    .sort({ checkedAt: -1 });
+    .sort({ checkedAt: -1 })
+    .lean();
 
-  return results;
+  const cafResults = await CafExamAnswer.find({
+    Student: studentId,
+    status: "checked",
+  })
+    .populate("questionSet", "_id name totalAttempt totalMarks totalQuestions")
+    .sort({ checkedAt: -1 })
+    .lean();
+
+  const cfapWithTypes = cfapResults.map((r) => ({
+    ...r,
+    subjectType: "CFAP",
+  }));
+
+  const cafWithTypes = cafResults.map((r) => ({ ...r, subjectType: "CAF" }));
+
+  const allResults = [...cfapWithTypes, ...cafWithTypes].sort((a, b) => {
+    return new Date(b.checkedAt) - new Date(a.checkedAt);
+  });
+
+  return allResults;
 };
 
 export const getStudentAnswers = async (studentId, examId) => {

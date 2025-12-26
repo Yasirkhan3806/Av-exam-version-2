@@ -51,6 +51,22 @@ export const getSubmissionForInstructor = async (req, res) => {
   }
 };
 
+export const getMySubmission = async (req, res) => {
+  try {
+    const studentId = req.user.userId;
+    const { examId } = req.params;
+    const submission = await cafExamAnswerService.getMySubmission(
+      studentId,
+      examId
+    );
+    return res.status(200).json(submission);
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ error: err.message || "Internal Server Error" });
+  }
+};
+
 export const markSubmission = async (req, res) => {
   try {
     const { studentId, examId, marks } = req.body;

@@ -24,6 +24,12 @@ router.get(
   cafExamAnswerController.getSubmissionForInstructor
 );
 
+router.get(
+  "/my-submission/:examId",
+  verifyToken,
+  cafExamAnswerController.getMySubmission
+);
+
 router.post(
   "/mark-submission",
   verifyInstructorToken,
