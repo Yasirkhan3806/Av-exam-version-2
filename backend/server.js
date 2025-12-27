@@ -9,6 +9,7 @@ import questionRouter from "./routes/questionRoutes.js";
 import subjectRouter from "./routes/subjectRoutes.js";
 import instructorRoutes from "./routes/instructorRoutes.js";
 import cafExamAnswerRoutes from "./routes/cafExamAnswerRoutes.js";
+import prcExamRouter from "./routes/prcExamRoutes.js";
 
 const app = express();
 const PORT = 5000;
@@ -68,6 +69,7 @@ const PORT = 5000;
   app.use("/subjects", subjectRouter);
   app.use("/instructors", instructorRoutes);
   app.use("/caf-answers", cafExamAnswerRoutes);
+  app.use("/prc-exams", prcExamRouter);
 
   // Start server
   app.listen(PORT, () =>

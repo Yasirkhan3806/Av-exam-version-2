@@ -2,9 +2,22 @@ import { PDFDocument } from "pdf-lib";
 import fs from "fs/promises";
 import path from "path";
 import jwt from "jsonwebtoken";
-import { Questions, Answer, CafExamQuestions } from "../models/index.js";
+import {
+  Questions,
+  Answer,
+  CafExamQuestions,
+  PRCExam,
+} from "../models/index.js";
 import { JWT_SECRET } from "../utils/middleware.js";
 
+/**
+ * Splits a PDF into individual pages and saves them.
+ * @param {string} inputPath - Path to the input PDF file.
+ * @param {string} originalName - Original name of the PDF file.
+ * @param {string} name - Name of the exam/question set.
+ * @param {string} subjectId - ID of the subject.
+ * @returns {Promise<Object>} - Object mapping page numbers to file paths.
+ */
 export const splitPDF = async (inputPath, originalName, name, subjectId) => {
   try {
     const pdfBuffer = await fs.readFile(inputPath);
@@ -40,6 +53,12 @@ export const splitPDF = async (inputPath, originalName, name, subjectId) => {
   }
 };
 
+/**
+ * Adds new standard questions to the database.
+ * @param {Object} questionData - Data for the questions (name, desc, etc.).
+ * @param {Object} file - Uploaded PDF file object.
+ * @returns {Promise<Object>} - The saved question dataset.
+ */
 export const addQuestions = async (questionData, file) => {
   const {
     name,
@@ -82,6 +101,12 @@ export const addQuestions = async (questionData, file) => {
   return dataset;
 };
 
+/**
+ * Retrieves questions based on subject ID and type.
+ * @param {string} subjectId - The ID of the subject.
+ * @param {string} subjectType - The type of subject (CAF, PRC, etc.).
+ * @returns {Promise<Array>} - List of questions.
+ */
 export const getQuestionsBySubject = async (subjectId, subjectType) => {
   if (!subjectId) {
     throw new Error("subjectId is required");
@@ -93,25 +118,36 @@ export const getQuestionsBySubject = async (subjectId, subjectType) => {
   let questions = [];
   if (subjectType === "CAF") {
     questions = await CafExamQuestions.find({ subject: subjectId });
+  } else if (subjectType === "PRC") {
+    questions = await PRCExam.find({ subject: subjectId });
   } else {
     questions = await Questions.find({ subject: subjectId });
   }
   return questions;
 };
 
+/**
+ * Get a specific question by ID based on type (CAF or Standard).
+ * @param {string} id - The ID of the question/exam.
+ * @param {string} subjectType - The type of subject (CAF or empty for Standard).
+ * @returns {Promise<Object>} - The question object or formatted data.
+ */
 export const getQuestionById = async (id, subjectType) => {
   let question;
   if (subjectType === "CAF") {
+    // Determine which collection to query
     question = await CafExamQuestions.findById(id);
     if (!question) {
       throw new Error("Question not found");
     }
     return question;
   } else {
+    // Default to Standard Questions
     question = await Questions.findById(id);
     if (!question) {
       throw new Error("Question not found");
     }
+    // Return formatted object for frontend
     return {
       questionsObj: question.pagesData,
       time: question.totalAttempt,
@@ -121,9 +157,16 @@ export const getQuestionById = async (id, subjectType) => {
   }
 };
 
+/**
+ * Get full exam details by ID (searches both collections).
+ * @param {string} id - The ID of the exam.
+ * @returns {Promise<Object>} - The exam document.
+ */
 export const getFullQuestionById = async (id) => {
+  // Try Standard Questions first
   let exam = await Questions.findById(id);
   if (!exam) {
+    // Fallback to CAF Questions
     exam = await CafExamQuestions.findById(id);
   }
   if (!exam) {
@@ -132,14 +175,42 @@ export const getFullQuestionById = async (id) => {
   return exam;
 };
 
-export const deleteQuestion = async (id) => {
-  const question = await Questions.findByIdAndDelete(id);
-  if (!question) {
-    throw new Error("Question not found");
+/**
+ * Delete a question by ID and Type.
+ * @param {string} id - ID of question to delete.
+ * @param {string} subjectType - Type of subject
+ * @returns {Promise<Object>} - The deleted document.
+ */
+export const deleteQuestion = async (id, subjectType) => {
+  console.log(id, subjectType)
+  let question;
+  if (subjectType === "CAF") {
+    question = await CafExamQuestions.findByIdAndDelete(id);
+    if (!question) {
+      throw new Error("Question not found");
+    }
+    return question;
+  } else if (subjectType === "PRC") {
+    question = await PRCExam.findByIdAndDelete(id);
+    if (!question) {
+      throw new Error("Question not found");
+    }
+    return question;
+  } else {
+    question = await Questions.findByIdAndDelete(id);
+    if (!question) {
+      throw new Error("Question not found");
+    }
+    return question;
   }
-  return question;
 };
 
+/**
+ * Submit answers to a running exam session.
+ * @param {string} examId - ID of the answer document.
+ * @param {Object} answers - Student's answers.
+ * @returns {Promise<Object>} - Updated answer document.
+ */
 export const submitAnswers = async (examId, answers) => {
   if (!answers) {
     throw new Error("Answers are required");
@@ -158,11 +229,18 @@ export const submitAnswers = async (examId, answers) => {
   return updatedDoc;
 };
 
+/**
+ * Start a new exam session by creating an Answer document.
+ * @param {string} questionSet - ID of the question set/exam.
+ * @param {string} studentId - ID of the student.
+ * @returns {Promise<Object>} - Object containing answerDoc and JWT token.
+ */
 export const startExam = async (questionSet, studentId) => {
   if (!questionSet) {
     throw new Error("questionSet is required");
   }
 
+  // Create initial answer record
   const answerDoc = new Answer({
     answers: {},
     questionSet,
@@ -170,6 +248,7 @@ export const startExam = async (questionSet, studentId) => {
   });
   await answerDoc.save();
 
+  // Generate signed exam token
   const examPayload = {
     userId: studentId,
     ExamId: answerDoc._id,
@@ -180,6 +259,12 @@ export const startExam = async (questionSet, studentId) => {
   return { answerDoc, examToken };
 };
 
+/**
+ * Add CAF Questions (without splitting PDF).
+ * @param {Object} questionData - Metadata for the exam.
+ * @param {Object} file - Uploaded PDF file.
+ * @returns {Promise<Object>} - Saved CAF question document.
+ */
 export const addCafQuestions = async (questionData, file) => {
   const { name, description, numQuestions, subjectId, mockExam, totalMarks } =
     questionData;
@@ -192,6 +277,7 @@ export const addCafQuestions = async (questionData, file) => {
     throw new Error("No PDF file uploaded");
   }
 
+  // Save directly with file path
   const dataset = new CafExamQuestions({
     name,
     description,
@@ -206,6 +292,13 @@ export const addCafQuestions = async (questionData, file) => {
   return dataset;
 };
 
+/**
+ * Update a standard question exam (handling PDF re-splitting if needed).
+ * @param {string} examId - ID of exam to update.
+ * @param {Object} updateData - New metadata.
+ * @param {Object} file - New PDF file (optional).
+ * @returns {Promise<Object>} - Updated exam document.
+ */
 export const updateQuestion = async (examId, updateData, file) => {
   const exam = await Questions.findById(examId);
   if (!exam) throw new Error("Exam not found");
@@ -266,6 +359,7 @@ export const updateQuestion = async (examId, updateData, file) => {
       ) {
         await fs.rename(oldFolderPath, newFolderPath);
 
+        // Update internal path references in pagesData
         const newPagesData = {};
         for (const [key, oldPath] of Object.entries(exam.pagesData)) {
           newPagesData[key] = oldPath.replace(`/${exam.name}/`, `/${name}/`);
@@ -289,6 +383,13 @@ export const updateQuestion = async (examId, updateData, file) => {
   return exam;
 };
 
+/**
+ * Update CAF Question (replaces PDF if new one provided).
+ * @param {string} examId - ID of the exam.
+ * @param {Object} updateData - Metadata updates.
+ * @param {Object} file - New PDF file.
+ * @returns {Promise<Object>} - Updated CAF exam document.
+ */
 export const updateCafQuestion = async (examId, updateData, file) => {
   const exam = await CafExamQuestions.findById(examId);
   if (!exam) throw new Error("CAF Exam not found");
@@ -305,6 +406,7 @@ export const updateCafQuestion = async (examId, updateData, file) => {
     exam.pdfPath = file.path;
   }
 
+  // Update fields if provided
   if (name) exam.name = name;
   if (description !== undefined) exam.description = description;
   if (numQuestions) exam.totalQuestions = numQuestions;

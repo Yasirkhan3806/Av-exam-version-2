@@ -8,6 +8,7 @@ import {
   Answer,
   CafExamQuestions,
   CafExamAnswer,
+  PRCExam
 } from "../models/index.js";
 
 export const addSubject = async (
@@ -142,6 +143,8 @@ export const getExamsForSubject = async (subjectId, userId, subjectType) => {
   let collectionType;
   if (subjectType === "CAF") {
     collectionType = CafExamQuestions;
+  } else if (subjectType === "PRC") {
+    collectionType = PRCExam;
   } else {
     collectionType = Questions;
   }

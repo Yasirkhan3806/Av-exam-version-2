@@ -29,7 +29,10 @@ const ExamGrid = ({ subjectId, subjectType }) => {
     setSelectedExam(exam);
     if(currentSubjectType === 'CAF'){
       window.location.href = `/CAFExamPage/${examId}`;
-    }else{
+    }else if(currentSubjectType === 'PRC'){
+      window.location.href = `/PRCExamPage/${examId}`;
+    }
+    else{
     setIsPopupOpen(true);
     }
     

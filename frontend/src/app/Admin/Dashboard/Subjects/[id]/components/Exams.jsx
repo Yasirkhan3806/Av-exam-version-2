@@ -40,7 +40,7 @@ const Exams = ({ subjectId, subjectType }) => {
     ) {
       try {
         const response = await fetch(
-          `${BaseUrl}/questions/deleteQuestion/${examId}`,
+          `${BaseUrl}/questions/deleteQuestion/${subjectType}/${examId}`,
           {
             method: "DELETE",
             credentials: "include",
