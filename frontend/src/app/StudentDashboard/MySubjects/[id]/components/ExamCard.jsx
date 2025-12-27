@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { CheckCircle, Play, Clock, BookOpen, BarChart } from 'lucide-react';
 
-const ExamCard = ({ test, handleExamClick }) => {
+const ExamCard = ({ test, handleExamClick,subjectType,onReviewResults }) => {
 
     // Determine card color based on test status
     const getCardClass = () => {
@@ -75,7 +75,31 @@ const ExamCard = ({ test, handleExamClick }) => {
                     }`}>
                     {test.completed ? 'Completed' : 'Not Started'}
                 </span>
-                <button
+                {
+                    test.completed && subjectType === "PRC" ? (
+                        <button
+                            onClick={() => onReviewResults(test.id || test._id)}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${test.completed
+                                    ? 'bg-white text-green-700 border border-green-300 hover:bg-green-50 cursor-not-allowed'
+                                    : 'bg-white text-blue-700 border border-blue-300 hover:bg-blue-50'
+                                }`}
+                        >
+                            Show Result
+                        </button>
+                    ) : (
+                        <button
+                            onClick={() => handleExamClick(test.id || test._id,test)}
+                            disabled={test.completed}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${test.completed
+                                    ? 'bg-white text-green-700 border border-green-300 hover:bg-green-50 cursor-not-allowed'
+                                    : 'bg-white text-blue-700 border border-blue-300 hover:bg-blue-50'
+                                }`}
+                        >
+                            Start Test
+                        </button>
+                    )
+                }
+                {/* <button
                     onClick={() => handleExamClick(test.id || test._id,test)}
                     disabled={test.completed}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${test.completed
@@ -84,7 +108,7 @@ const ExamCard = ({ test, handleExamClick }) => {
                         }`}
                 >
                     Start Test
-                </button>
+                </button> */}
             </div>
         </div>
     );

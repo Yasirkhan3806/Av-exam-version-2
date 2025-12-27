@@ -2,6 +2,7 @@ import express from "express";
 import multer from "multer";
 import * as prcExamController from "../controllers/prcExamController.js";
 import fs from "fs";
+import { verifyToken } from "../utils/middleware.js";
 
 const router = express.Router();
 
@@ -16,5 +17,7 @@ const upload = multer({ dest: "uploads/" });
 router.post("/create", upload.single("file"), prcExamController.createPRCExam);
 router.get("/:id", prcExamController.getPRCExamById);
 router.post("/:id/submit", prcExamController.submitPRCExamResult);
+router.post("/submitDetailedResult", prcExamController.submitDetailedResult);
+router.get("/results/:id", verifyToken, prcExamController.getDetailedResult);
 
 export default router;

@@ -68,9 +68,24 @@ const usePrcExamStore = create((set, get) => ({
       return { timeLeft: state.timeLeft - 1 };
     });
   },
+  fetchUserInfo: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await fetch(`${API_URL}/auth/verifySession`, {
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Failed to fetch user info");
+      const data = await response.json();
+      console.log(data);
+      return data.user;
+    } catch (error) {
+      set({ error: error.message, isLoading: false });
+      return null;
+    }
+  },
 
   finishExam: async () => {
-    const { answers, exam } = get();
+    const { answers, exam, fetchUserInfo } = get();
 
     // Call backend to verify answers and get result
     // We assume backend is at :id/submit
@@ -86,6 +101,28 @@ const usePrcExamStore = create((set, get) => ({
       if (!response.ok) throw new Error("Failed to submit exam");
 
       const resultData = await response.json();
+      const userId = (await fetchUserInfo()).userId;
+
+      const finalResultToSave = {
+        Student: userId, // From your context
+        questionSet: exam._id, // From your context
+        total: resultData.total,
+        correct: resultData.correct,
+        wrong: resultData.wrong,
+        detailed: resultData.detailed, // This array already matches your schema structure
+      };
+
+      const detailedResult = await fetch(
+        `${API_URL}/prc-exams/submitDetailedResult`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({...finalResultToSave}),
+        }
+      );
+
+      if (!detailedResult.ok)
+        throw new Error("Failed to submit detailed result");
 
       set({
         isFinished: true,

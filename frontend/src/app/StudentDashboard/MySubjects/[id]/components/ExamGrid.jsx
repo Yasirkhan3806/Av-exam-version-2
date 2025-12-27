@@ -4,6 +4,7 @@ import React, { use, useEffect, useState } from "react";
 import ExamCard from "./ExamCard";
 import useSubjectStore from "../../../../../store/useSubjectStore";
 import ExamInstructionsPopup from "../components/BeforeExamPopUp";
+import PRCResultModal from "./PRCResultModal";
 
 const ExamGrid = ({ subjectId, subjectType }) => {
   const {
@@ -13,12 +14,14 @@ const ExamGrid = ({ subjectId, subjectType }) => {
     error,
     setCurrentSubject,
     setCurrentSubjectType,
-    currentSubjectType
+    currentSubjectType,
   } = useSubjectStore();
   const [selectedExam, setSelectedExam] = useState(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [mockExams, setMockExams] = useState([]);
   const [regularExams, setRegularExams] = useState([]);
+  const [showPRCResult, setShowPRCResult] = useState(false);
+  const [selectedPRCExamId, setSelectedPRCExamId] = useState(null);
 
   useEffect(() => {
     setCurrentSubject(subjectId);
@@ -27,15 +30,13 @@ const ExamGrid = ({ subjectId, subjectType }) => {
 
   const handleExamClick = (examId, exam) => {
     setSelectedExam(exam);
-    if(currentSubjectType === 'CAF'){
+    if (currentSubjectType === "CAF") {
       window.location.href = `/CAFExamPage/${examId}`;
-    }else if(currentSubjectType === 'PRC'){
+    } else if (currentSubjectType === "PRC") {
       window.location.href = `/PRCExamPage/${examId}`;
+    } else {
+      setIsPopupOpen(true);
     }
-    else{
-    setIsPopupOpen(true);
-    }
-    
   };
 
   const handleClosePopup = () => {
@@ -47,6 +48,16 @@ const ExamGrid = ({ subjectId, subjectType }) => {
     // Close popup and navigate to exam page
     setIsPopupOpen(false);
     window.location.href = `/ExamPage/${examId}`;
+  };
+
+  const handlePrcResult = (examId) => {
+    setSelectedPRCExamId(examId);
+    setShowPRCResult(true);
+  };
+
+  const handleClosePRCResult = () => {
+    setShowPRCResult(false);
+    setSelectedPRCExamId(null);
   };
 
   // Get cached exams or default to an empty array
@@ -87,6 +98,8 @@ const ExamGrid = ({ subjectId, subjectType }) => {
               key={test._id || test.id}
               test={test}
               handleExamClick={handleExamClick}
+              subjectType={subjectType}
+              onReviewResults={handlePrcResult}
             />
           ))}
         </div>
@@ -101,7 +114,9 @@ const ExamGrid = ({ subjectId, subjectType }) => {
             <ExamCard
               key={test._id || test.id}
               test={test}
-              onReviewResults={handleExamClick}
+              handleExamClick={handleExamClick}
+              subjectType={subjectType}
+              onReviewResults={handlePrcResult}
             />
           ))}
         </div>
@@ -112,6 +127,10 @@ const ExamGrid = ({ subjectId, subjectType }) => {
           onClose={handleClosePopup}
           onStartExam={handleStartExam}
         />
+      )}
+
+      {showPRCResult && selectedPRCExamId && (
+        <PRCResultModal examId={selectedPRCExamId} onClose={handleClosePRCResult} />
       )}
     </div>
   );

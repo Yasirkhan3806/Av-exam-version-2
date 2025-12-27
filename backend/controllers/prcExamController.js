@@ -50,3 +50,26 @@ export const submitPRCExamResult = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const submitDetailedResult = async (req, res) => {
+  try {
+    const result = req.body;
+    await prcExamService.saveDetailedResult(result);
+    res.status(200).json({ message: "Detailed result saved successfully" });
+  } catch (error) {
+    console.error("Error submitting detailed result:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getDetailedResult = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.userId;
+    const result = await prcExamService.getDetailedResult(id, userId);
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error fetching detailed result:", error);
+    res.status(500).json({ message: error.message });
+  }
+};

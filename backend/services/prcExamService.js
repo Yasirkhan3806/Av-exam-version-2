@@ -1,4 +1,4 @@
-import { PRCExam } from "../models/index.js";
+import { PRCExam, PRCAnswer } from "../models/index.js";
 import xlsx from "xlsx";
 import fs from "fs";
 
@@ -73,7 +73,7 @@ export const createExam = async (data, filePath) => {
       console.error("Error deleting file:", err);
     }
 
-    return prcExam; 
+    return prcExam;
   } catch (error) {
     // ensure file is deleted on error too
     if (fs.existsSync(filePath)) {
@@ -135,4 +135,20 @@ export const verifyExamAnswers = async (id, userAnswers) => {
     wrong: exam.mcqs.length - correctCount,
     detailed: detailedResult,
   };
+};
+
+export const saveDetailedResult = async (result) => {
+  const detailedResult = new PRCAnswer(result);
+  await detailedResult.save();
+};
+
+export const getDetailedResult = async (examId, userId) => {
+  const result = await PRCAnswer.findOne({
+    questionSet: examId,
+    Student: userId,
+  });
+  if (!result) {
+    throw new Error("Result not found");
+  }
+  return result;
 };

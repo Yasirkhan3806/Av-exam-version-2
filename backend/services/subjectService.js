@@ -8,7 +8,8 @@ import {
   Answer,
   CafExamQuestions,
   CafExamAnswer,
-  PRCExam
+  PRCExam,
+  PRCAnswer,
 } from "../models/index.js";
 
 export const addSubject = async (
@@ -135,23 +136,97 @@ export const getEnrolledSubjects = async (studentId) => {
   return student.subjectsEnrolled;
 };
 
+// export const getExamsForSubject = async (subjectId, userId, subjectType) => {
+//   if (!subjectId) {
+//     throw new Error("subjectId is required.");
+//   }
+//   console.log(subjectType);
+//   let collectionType;
+//   if (subjectType === "CAF") {
+//     collectionType = CafExamQuestions;
+//   } else if (subjectType === "PRC") {
+//     collectionType = PRCExam;
+//   } else {
+//     collectionType = Questions;
+//   }
+
+//   const answerCollection = subjectType === "CAF" ? "CafExamAnswers" : "Answers";
+
+//   const exams = await collectionType.aggregate([
+//     {
+//       $match: { subject: new mongoose.Types.ObjectId(subjectId) },
+//     },
+//     {
+//       $lookup: {
+//         from: answerCollection,
+//         let: { examId: "$_id" },
+//         pipeline: [
+//           {
+//             $match: {
+//               $expr: {
+//                 $and: [
+//                   { $eq: ["$questionSet", "$$examId"] },
+//                   { $eq: ["$Student", new mongoose.Types.ObjectId(userId)] },
+//                 ],
+//               },
+//             },
+//           },
+//           { $limit: 1 },
+//         ],
+//         as: "userAnswer",
+//       },
+//     },
+//     {
+//       $addFields: {
+//         completed: { $gt: [{ $size: "$userAnswer" }, 0] },
+//       },
+//     },
+//     {
+//       $project: {
+//         _id: 1,
+//         questionSetName: "$name",
+//         totalQuestions: 1,
+//         totalTime: "$totalAttempt",
+//         mockExam: 1,
+//         description: 1,
+//         totalMarks: 1,
+//         completed: 1,
+//       },
+//     },
+//   ]);
+
+//   return exams;
+// };
+
+const getCollectionConfig = (subjectType) => {
+  switch (subjectType) {
+    case "CAF":
+      return { 
+        Model: CafExamQuestions, 
+        answerCollection: "CafExamAnswers" 
+      };
+    case "PRC":
+      return { 
+        Model: PRCExam, 
+        answerCollection: PRCAnswer.collection.name // Changed to match your new schema name
+      };
+    default:
+      return { 
+        Model: Questions, 
+        answerCollection: "Answers" 
+      };
+  }
+};
+
 export const getExamsForSubject = async (subjectId, userId, subjectType) => {
-  if (!subjectId) {
-    throw new Error("subjectId is required.");
-  }
-  console.log(subjectType);
-  let collectionType;
-  if (subjectType === "CAF") {
-    collectionType = CafExamQuestions;
-  } else if (subjectType === "PRC") {
-    collectionType = PRCExam;
-  } else {
-    collectionType = Questions;
-  }
+  if (!subjectId) throw new Error("subjectId is required.");
 
-  const answerCollection = subjectType === "CAF" ? "CafExamAnswers" : "Answers";
+  // 1. Get the appropriate models/collections
+  const { Model, answerCollection } = getCollectionConfig(subjectType);
+  console.log(Model, answerCollection);
 
-  const exams = await collectionType.aggregate([
+  // 2. Execute Aggregation
+  const exams = await Model.aggregate([
     {
       $match: { subject: new mongoose.Types.ObjectId(subjectId) },
     },
