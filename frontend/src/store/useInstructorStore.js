@@ -269,6 +269,7 @@ const useInstructorStore = create(
 
       logout: async () => {
         const success = await logout();
+        console.log("Logout success:", success);
         if (success) {
           get().reset();
         }
@@ -283,6 +284,8 @@ const useInstructorStore = create(
           loading: false,
           error: null,
           subjects: [],
+          instructorId: null, // Clear instructorId
+          instructorInfo: null,
           exams: [],
           submissions: [],
           currentExam: null,

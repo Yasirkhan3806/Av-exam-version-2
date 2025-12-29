@@ -98,13 +98,13 @@ const Exams = ({ subjectId, subjectType }) => {
               className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 p-6 relative group"
             >
               <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <a
+                {/* <a
                   href={`/Admin/Dashboard/Subjects/${subjectId}/Exams/${exam._id}/edit?type=${subjectType}`}
                   className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
                   title="Edit exam"
                 >
                   <Pencil size={18} />
-                </a>
+                </a> */}
                 <button
                   onClick={() => handleDelete(exam._id)}
                   className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"

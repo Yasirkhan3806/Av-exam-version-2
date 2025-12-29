@@ -14,7 +14,9 @@ export default function EditSubjectForm({
     description: "",
     type: "",
     courses: "",
+    instructor: "", // Added instructor field
   });
+  const [instructors, setInstructors] = useState([]); // State for all instructors
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const BaseUrl = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
@@ -26,9 +28,31 @@ export default function EditSubjectForm({
         description: subject.description || "",
         type: subject.type || "",
         courses: subject.courses ? subject.courses.join(", ") : "",
+        instructor: subject.instructor?._id || "", // Initialize with current instructor's ID
       });
     }
   }, [subject, isOpen]);
+
+  // Fetch instructors when modal opens
+  useEffect(() => {
+    const fetchInstructors = async () => {
+      try {
+        const response = await fetch(`${BaseUrl}/instructors/getInstructors`, {
+          credentials: "include",
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setInstructors(data);
+        }
+      } catch (err) {
+        console.error("Error fetching instructors:", err);
+      }
+    };
+
+    if (isOpen) {
+      fetchInstructors();
+    }
+  }, [isOpen, BaseUrl]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -111,6 +135,27 @@ export default function EditSubjectForm({
               placeholder="e.g. Financial Accounting"
               className="w-full text-black p-3 border border-blue-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Instructor
+            </label>
+            <select
+              required
+              value={formData.instructor}
+              onChange={(e) =>
+                setFormData({ ...formData, instructor: e.target.value })
+              }
+              className="w-full text-black p-3 border border-blue-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            >
+              <option value="">Select Instructor</option>
+              {instructors.map((inst) => (
+                <option key={inst._id} value={inst._id}>
+                  {inst.name} ({inst.userName})
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>

@@ -51,7 +51,7 @@ router.put(
   verifyInstructorToken,
   instructorController.updateStudentMarks
 );
-router.post("/logout", verifyInstructorToken, instructorController.logout);
+router.post("/logout", instructorController.logout);
 
 router.get(
   "/getInstructors",

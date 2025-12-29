@@ -7,6 +7,8 @@ import {
   Answer,
   CafExamQuestions,
   PRCExam,
+  CafExamAnswer,
+  PRCAnswer
 } from "../models/index.js";
 import { JWT_SECRET } from "../utils/middleware.js";
 
@@ -182,27 +184,33 @@ export const getFullQuestionById = async (id) => {
  * @returns {Promise<Object>} - The deleted document.
  */
 export const deleteQuestion = async (id, subjectType) => {
-  console.log(id, subjectType)
-  let question;
-  if (subjectType === "CAF") {
-    question = await CafExamQuestions.findByIdAndDelete(id);
-    if (!question) {
-      throw new Error("Question not found");
-    }
-    return question;
-  } else if (subjectType === "PRC") {
-    question = await PRCExam.findByIdAndDelete(id);
-    if (!question) {
-      throw new Error("Question not found");
-    }
-    return question;
-  } else {
-    question = await Questions.findByIdAndDelete(id);
-    if (!question) {
-      throw new Error("Question not found");
-    }
-    return question;
+  // Map subject types to their respective models
+  const modelMap = {
+    CAF: { Q: CafExamQuestions, A: CafExamAnswer },
+    PRC: { Q: PRCExam, A: PRCAnswer },
+    DEFAULT: { Q: Questions, A: Answer }
+  };
+
+  const models = modelMap[subjectType] || modelMap.DEFAULT;
+
+  // 1. Find and delete the question to retrieve its 'questionSet' value
+  const question = await models.Q.findByIdAndDelete(id);
+
+  if (!question) {
+    throw new Error("Question not found");
   }
+
+  // 2. Delete ALL answers that match the questionSet from the deleted question
+  // This ensures no orphaned answers remain in the database
+  const deleteResult = await models.A.deleteMany({ 
+    questionSet: id 
+  });
+
+  return {
+    message: "Question and associated answers deleted",
+    deletedQuestion: question,
+    answersDeletedCount: deleteResult.deletedCount
+  };
 };
 
 /**
