@@ -2,6 +2,7 @@
 import React, { useEffect } from "react";
 import useInstructorStore from "../../../store/useInstructorStore";
 import StudentSubmissionsCard from "./StudentSubmissionsCard";
+import Link from "next/link";
 
 const StudentSubmissions = ({ questionId, examInfo }) => {
   const { fetchSubmissions, submissions } = useInstructorStore(
@@ -18,7 +19,7 @@ const StudentSubmissions = ({ questionId, examInfo }) => {
       <header className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <button className="flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200">
+            <Link href="/Instructor" className="flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-4 w-4 mr-1"
@@ -34,7 +35,7 @@ const StudentSubmissions = ({ questionId, examInfo }) => {
                 />
               </svg>
               Back to Exams
-            </button>
+            </Link>
             <div>
               <h1 className="text-lg font-semibold text-gray-800">
                 Student Submissions
