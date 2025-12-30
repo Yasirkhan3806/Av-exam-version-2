@@ -50,6 +50,41 @@ const ExamInstructionsPopup = ({ exam, onClose, onStartExam }) => {
 
           {/* Critical Instructions */}
           <div className="mb-8">
+            <div className="space-y-4 mb-8">
+              <div className="bg-purple-50 border-l-4 border-purple-500 p-6 rounded-r-lg">
+                <div className="flex items-start space-x-4">
+                  <div className="flex-shrink-0 mt-1">
+                    <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-purple-800 mb-1">Interface Note</h3>
+                    <p className="text-gray-700">
+                      The Excel ribbon in our CBE software is different from ICAP’s Excel.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-purple-50 border-l-4 border-purple-500 p-6 rounded-r-lg">
+                <div className="flex items-start space-x-4">
+                  <div className="flex-shrink-0 mt-1">
+                    <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-purple-800 mb-1">Work Persistence</h3>
+                    <p className="text-gray-700">
+                      Excel work will not be saved. Students must copy all workings into RTF file.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+
             <h2 className="text-2xl font-bold text-gray-800 mb-6">Important Rules</h2>
             
             <div className="space-y-6">
