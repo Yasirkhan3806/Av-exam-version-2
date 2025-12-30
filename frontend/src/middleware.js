@@ -17,7 +17,6 @@ export async function middleware(req) {
     return NextResponse.next();
   }
   if ( pathname.startsWith("/Instructor")){
-    console.log("instructor middleware called")
     return Instructormiddleware(req)
   }
 

@@ -1,4 +1,3 @@
-// Sidebar.jsx
 import { usePathname } from "next/navigation";
 import {
   BookOpen,
@@ -13,7 +12,7 @@ import Link from "next/link";
 import useSubjectStore from "../store/useSubjectStore";
 
 export default function Sidebar({ isOpen, toggleSidebar }) {
-  const pathname = usePathname(); // Get current route
+  const pathname = usePathname();
   const BASEURL = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
   const { userInfo } = useSubjectStore((state) => state);
   const sidebarItems = [
@@ -28,10 +27,9 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
 
   const handleLogout = async () => {
     try {
-      // ✅ 1. Call backend to destroy session
       const response = await fetch(`${BASEURL}/auth/logout`, {
         method: "POST",
-        credentials: "include", // 👈 Sends cookies (including connect.sid)
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
@@ -41,14 +39,10 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
         throw new Error(`Logout failed: ${response.statusText}`);
       }
 
-      // ✅ 2. Optional: Clear any client-side auth tokens (if you use them)
       localStorage.clear();
-
-      // ✅ 3. Redirect after successful logout
-      window.location.href = "/Login"; // or '/login' — make sure path matches your route
+      window.location.href = "/Login";
     } catch (error) {
       console.error("Logout error:", error);
-      // Optional: Show user a message
       alert("Logout failed. Please try again.");
     }
   };
@@ -75,19 +69,19 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
         )}
         <button
           onClick={toggleSidebar}
-          className="p-2 rounded-md hover:bg-gray-100 transition-colors"
+          className="p-2 rounded-md hover:bg-gray-100 transition-colors mx-auto"
         >
           {isOpen ? (
             <X className="w-5 h-5 text-gray-500" />
           ) : (
-            <Menu className="w-5 h-5 text-gray-500" />
+            <Menu className="w-6 h-6 text-gray-500" />
           )}
         </button>
       </div>
 
       <div className="p-4 flex-1">
-        <div className="flex items-center mb-6">
-          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold mr-3">
+        <div className={`flex items-center mb-6 ${!isOpen && "justify-center"}`}>
+          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold mr-0 md:mr-3">
             {userInfo?.userName
               ?.split(" ")
               .map((word) => word[0])
@@ -109,14 +103,16 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center px-3 py-2 rounded-lg transition-colors ${
+                className={`flex items-center ${
+                  isOpen ? "px-3" : "justify-center"
+                } py-2 rounded-lg transition-colors ${
                   isActive
                     ? "bg-indigo-600 text-white"
                     : "text-gray-700 hover:bg-gray-100"
                 }`}
               >
                 <item.icon
-                  className={`w-5 h-5 ${
+                  className={`${isOpen ? "w-5 h-5" : "w-6 h-6"} ${
                     isActive ? "text-white" : "text-gray-500"
                   }`}
                 />
@@ -127,13 +123,14 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
         </nav>
       </div>
 
-      {/* Logout Button at the bottom */}
       <div className="p-4 border-t border-gray-200">
         <button
           onClick={handleLogout}
-          className={`flex items-center w-full px-3 py-2 rounded-lg transition-colors text-gray-700 hover:bg-gray-100`}
+          className={`flex items-center ${
+            isOpen ? "px-3" : "justify-center"
+          } w-full py-2 rounded-lg transition-colors text-gray-700 hover:bg-gray-100`}
         >
-          <LogOut className="w-5 h-5 text-gray-500" />
+          <LogOut className={`${isOpen ? "w-5 h-5" : "w-6 h-6"} text-gray-500`} />
           {isOpen && <span className="ml-3">Logout</span>}
         </button>
       </div>
