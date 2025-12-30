@@ -2,14 +2,26 @@
 
 import { use, useEffect, useRef } from "react";
 import useExamStore from "../../../store/useExamStore";
+import useSubjectStore from "../../../store/useSubjectStore";
 
 export default function QuestionPanel({ examId }) {
-  const { fetchExam, questionName, currentQuestion, questionsObj, totalQuestions, loading, error,BASEURL } = useExamStore();
+  const {
+    fetchExam,
+    questionName,
+    currentQuestion,
+    questionsObj,
+    totalQuestions,
+    loading,
+    error,
+    BASEURL,
+  } = useExamStore();
+  const { currentSubjectType } = useSubjectStore();
+
   useEffect(() => {
     if (examId) {
-      fetchExam(examId);
+      fetchExam(examId, currentSubjectType);
     }
-  }, [examId, fetchExam]);
+  }, [examId, fetchExam, currentSubjectType]);
 
   if (loading) {
     return <div>Loading...</div>;
@@ -19,17 +31,17 @@ export default function QuestionPanel({ examId }) {
     return <div>Error: {error}</div>;
   }
 
-    return (
-      <>
+  return (
+    <>
       {/* PDF Viewer */}
       <div className="w-full h-full flex flex-col items-center justify-center">
         <iframe
-        src={`${BASEURL}/${questionsObj[`q${currentQuestion}`]}`}
-        className="w-full h-full border"
-        title="PDF Viewer"
-        style={{ minHeight: "80vh", width: "100%" }}
+          src={`${BASEURL}/${questionsObj[`q${currentQuestion}`]}`}
+          className="w-full h-full border"
+          title="PDF Viewer"
+          style={{ minHeight: "80vh", width: "100%" }}
         ></iframe>
       </div>
-      </>
-    );
-  }
+    </>
+  );
+}

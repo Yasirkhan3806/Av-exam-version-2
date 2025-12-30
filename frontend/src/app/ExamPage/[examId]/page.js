@@ -1,15 +1,11 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import QuestionPanel from "./QuestionWindow";
 import Editor from "./AnswerWindow";
 import PracticeSheet from "./PracticeSheet";
-import {
-  Panel,
-  PanelGroup,
-  PanelResizeHandle,
-} from "react-resizable-panels";
+import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import useExamStore from "../../../store/useExamStore";
 import Navbar from "./Navbar";
 
@@ -17,20 +13,50 @@ const ExamPage = () => {
   const params = useParams();
   const { examId } = params;
 
-
-  const { startExam, reset } = useExamStore();
-
-
-
+  const { startExam, reset, finishExam } = useExamStore();
+  const router = useRouter();
 
   useEffect(() => {
     startExam();
+
+    // Push a state to history so we can catch the back button
+    window.history.pushState(null, "", window.location.href);
+
+    const handlePopState = async (event) => {
+      const confirmLeave = window.confirm(
+        "Are you sure you want to leave? Your exam will be finished and submitted automatically."
+      );
+
+      if (confirmLeave) {
+        try {
+          await finishExam();
+          router.push("/StudentDashboard/MySubjects");
+        } catch (error) {
+          console.error("Error finishing exam on back button:", error);
+          router.push("/StudentDashboard/MySubjects");
+        }
+      } else {
+        // Re-push state to keep user on the same page
+        window.history.pushState(null, "", window.location.href);
+      }
+    };
+
+    const handleBeforeUnload = (event) => {
+      const message =
+        "Are you sure you want to leave? Your progress may be lost.";
+      event.returnValue = message;
+      return message;
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
     return () => {
+      window.removeEventListener("popstate", handlePopState);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
       reset();
-    }
+    };
   }, []);
-
-
 
   return (
     <div className="min-h-screen">

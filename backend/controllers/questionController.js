@@ -154,6 +154,9 @@ export const startExam = async (req, res) => {
     const { questionSet } = req.body;
     const studentId = req.user.userId;
 
+    console.log("questionSet", questionSet);
+    console.log("studentId", studentId);
+
     // Create answer doc and generate token
     const { answerDoc, examToken } = await questionService.startExam(
       questionSet,

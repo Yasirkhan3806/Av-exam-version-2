@@ -101,7 +101,8 @@ const useExamStore = create(
             throw new Error("Failed to fetch exam data");
           }
           const data = await response.json();
-          if (subjectType === "CFAP") {
+          console.log(data);
+          if (data && (subjectType === "CFAP" || data.docId)) {
             set({
               questionsObj: data.questionsObj,
               totalQuestions: Object.keys(data.questionsObj).length,

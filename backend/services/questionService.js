@@ -244,6 +244,7 @@ export const submitAnswers = async (examId, answers) => {
  * @returns {Promise<Object>} - Object containing answerDoc and JWT token.
  */
 export const startExam = async (questionSet, studentId) => {
+  
   if (!questionSet) {
     throw new Error("questionSet is required");
   }
