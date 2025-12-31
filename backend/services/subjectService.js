@@ -201,19 +201,19 @@ export const getEnrolledSubjects = async (studentId) => {
 const getCollectionConfig = (subjectType) => {
   switch (subjectType) {
     case "CAF":
-      return { 
-        Model: CafExamQuestions, 
-        answerCollection: "CafExamAnswers" 
+      return {
+        Model: CafExamQuestions,
+        answerCollection: "CafExamAnswers",
       };
     case "PRC":
-      return { 
-        Model: PRCExam, 
-        answerCollection: PRCAnswer.collection.name // Changed to match your new schema name
+      return {
+        Model: PRCExam,
+        answerCollection: PRCAnswer.collection.name, // Changed to match your new schema name
       };
     default:
-      return { 
-        Model: Questions, 
-        answerCollection: "Answers" 
+      return {
+        Model: Questions,
+        answerCollection: "Answers",
       };
   }
 };
@@ -407,23 +407,26 @@ export const deleteSubject = async (subjectId) => {
     throw new Error("Subject ID is required.");
   }
 
-  // 1. Find all exam IDs for this subject
-  const questions = await Questions.find({ subject: subjectId }).select("_id");
-  const cafQuestions = await CafExamQuestions.find({
-    subject: subjectId,
-  }).select("_id");
-  const allExamIds = [
-    ...questions.map((q) => q._id),
-    ...cafQuestions.map((q) => q._id),
-  ];
+  // 1. Find all exam IDs for this subject across all types
+  const standardExams = await Questions.find({ subject: subjectId }).select(
+    "_id"
+  );
+  const cafExams = await CafExamQuestions.find({ subject: subjectId }).select(
+    "_id"
+  );
+  const prcExams = await PRCExam.find({ subject: subjectId }).select("_id");
 
-  // 2. Delete all answers and their associated PDFs
-  if (allExamIds.length > 0) {
-    const answers = await Answer.find({ questionSet: { $in: allExamIds } });
+  const standardExamIds = standardExams.map((q) => q._id);
+  const cafExamIds = cafExams.map((q) => q._id);
+  const prcExamIds = prcExams.map((q) => q._id);
 
+  // 2. Delete Standard Exam Answers and their associated PDFs
+  if (standardExamIds.length > 0) {
+    const answers = await Answer.find({
+      questionSet: { $in: standardExamIds },
+    });
     for (const answer of answers) {
       if (answer.marksObtained) {
-        // marksObtained is an object/map where each question might have a pdfUrl
         Object.values(answer.marksObtained).forEach((data) => {
           if (data && data.pdfUrl) {
             const fullPath = path.resolve(data.pdfUrl);
@@ -438,17 +441,40 @@ export const deleteSubject = async (subjectId) => {
         });
       }
     }
-
-    await Answer.deleteMany({ questionSet: { $in: allExamIds } });
+    await Answer.deleteMany({ questionSet: { $in: standardExamIds } });
   }
 
-  // 3. Delete standard exams
+  // 3. Delete CAF Exam Answers and their associated PDFs
+  if (cafExamIds.length > 0) {
+    const cafAnswers = await CafExamAnswer.find({
+      questionSet: { $in: cafExamIds },
+    });
+    for (const answer of cafAnswers) {
+      if (answer.submittedPdfUrl) {
+        const fullPath = path.resolve(answer.submittedPdfUrl);
+        if (fs.existsSync(fullPath)) {
+          try {
+            fs.unlinkSync(fullPath);
+          } catch (err) {
+            console.error(`Failed to delete CAF answer PDF ${fullPath}:`, err);
+          }
+        }
+      }
+    }
+    await CafExamAnswer.deleteMany({ questionSet: { $in: cafExamIds } });
+  }
+
+  // 4. Delete PRC Exam Answers
+  if (prcExamIds.length > 0) {
+    await PRCAnswer.deleteMany({ questionSet: { $in: prcExamIds } });
+  }
+
+  // 5. Delete the exam documents themselves
   await Questions.deleteMany({ subject: subjectId });
-
-  // 4. Delete CAF exams
   await CafExamQuestions.deleteMany({ subject: subjectId });
+  await PRCExam.deleteMany({ subject: subjectId });
 
-  // 5. Delete PDF assets (Exam PDFs and split pages) from local storage
+  // 6. Delete PDF assets (Exam PDFs and split pages) from local storage
   const subjectDir = path.join("TestQuestions", subjectId.toString());
   if (fs.existsSync(subjectDir)) {
     try {
@@ -458,13 +484,13 @@ export const deleteSubject = async (subjectId) => {
     }
   }
 
-  // 6. Unenroll all students
+  // 7. Unenroll all students
   await TestUser.updateMany(
     { subjectsEnrolled: subjectId },
     { $pull: { subjectsEnrolled: subjectId } }
   );
 
-  // 7. Delete the subject itself
+  // 8. Delete the subject itself
   const result = await Subject.findByIdAndDelete(subjectId);
 
   if (!result) {
