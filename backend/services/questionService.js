@@ -8,7 +8,7 @@ import {
   CafExamQuestions,
   PRCExam,
   CafExamAnswer,
-  PRCAnswer
+  PRCAnswer,
 } from "../models/index.js";
 import { JWT_SECRET } from "../utils/middleware.js";
 
@@ -188,28 +188,80 @@ export const deleteQuestion = async (id, subjectType) => {
   const modelMap = {
     CAF: { Q: CafExamQuestions, A: CafExamAnswer },
     PRC: { Q: PRCExam, A: PRCAnswer },
-    DEFAULT: { Q: Questions, A: Answer }
+    DEFAULT: { Q: Questions, A: Answer },
   };
 
   const models = modelMap[subjectType] || modelMap.DEFAULT;
 
-  // 1. Find and delete the question to retrieve its 'questionSet' value
-  const question = await models.Q.findByIdAndDelete(id);
+  // 1. Find the question first to get its metadata for file cleanup
+  const question = await models.Q.findById(id);
 
   if (!question) {
     throw new Error("Question not found");
   }
 
-  // 2. Delete ALL answers that match the questionSet from the deleted question
-  // This ensures no orphaned answers remain in the database
-  const deleteResult = await models.A.deleteMany({ 
-    questionSet: id 
+  // 2. Perform File Cleanup BEFORE deleting from DB
+  try {
+    if (subjectType === "CAF") {
+      // Delete CAF exam PDF
+      if (question.pdfPath) {
+        const fullPath = path.resolve(question.pdfPath);
+        if (await fs.stat(fullPath).catch(() => null)) {
+          await fs.unlink(fullPath);
+        }
+      }
+
+      // Delete associated Answer PDFs
+      const cafAnswers = await CafExamAnswer.find({ questionSet: id });
+      for (const answer of cafAnswers) {
+        if (answer.submittedPdfUrl) {
+          const answerPath = path.resolve(answer.submittedPdfUrl);
+          if (await fs.stat(answerPath).catch(() => null)) {
+            await fs.unlink(answerPath);
+          }
+        }
+      }
+    } else if (subjectType !== "PRC") {
+      // Standard/Default: Delete the folder containing split pages
+      const folderPath = path.join(
+        "TestQuestions",
+        question.subject.toString(),
+        question.name
+      );
+      await fs.rm(folderPath, { recursive: true, force: true });
+
+      // Delete associated Answer PDFs from marksObtained
+      const answers = await Answer.find({ questionSet: id });
+      for (const answer of answers) {
+        if (answer.marksObtained) {
+          for (const data of Object.values(answer.marksObtained)) {
+            if (data && data.pdfUrl) {
+              const answerPath = path.resolve(data.pdfUrl);
+              if (await fs.stat(answerPath).catch(() => null)) {
+                await fs.unlink(answerPath);
+              }
+            }
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.error("Error during file cleanup for question deletion:", err);
+    // Continue with DB deletion even if file cleanup fails
+  }
+
+  // 3. Delete the question from DB
+  await models.Q.findByIdAndDelete(id);
+
+  // 4. Delete ALL answers that match the questionSet
+  const deleteResult = await models.A.deleteMany({
+    questionSet: id,
   });
 
   return {
-    message: "Question and associated answers deleted",
+    message: "Question, associated answers, and local files deleted",
     deletedQuestion: question,
-    answersDeletedCount: deleteResult.deletedCount
+    answersDeletedCount: deleteResult.deletedCount,
   };
 };
 
@@ -244,7 +296,6 @@ export const submitAnswers = async (examId, answers) => {
  * @returns {Promise<Object>} - Object containing answerDoc and JWT token.
  */
 export const startExam = async (questionSet, studentId) => {
-  
   if (!questionSet) {
     throw new Error("questionSet is required");
   }
