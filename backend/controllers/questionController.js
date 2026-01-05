@@ -7,7 +7,7 @@ import * as questionService from "../services/questionService.js";
  */
 export const addQuestions = async (req, res) => {
   try {
-    const dataset = await questionService.addQuestions(req.body, req.file);
+    const dataset = await questionService.addQuestions(req.body, req.files);
     return res.status(200).json({
       id: dataset._id,
       message: "Dataset saved successfully",
@@ -240,7 +240,7 @@ export const updateQuestion = async (req, res) => {
     const updatedExam = await questionService.updateQuestion(
       id,
       req.body,
-      req.file
+      req.files
     );
     return res.status(200).json({
       message: "Exam updated successfully",

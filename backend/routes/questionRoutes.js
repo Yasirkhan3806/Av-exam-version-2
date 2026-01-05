@@ -13,7 +13,7 @@ const router = express.Router();
 router.post(
   "/addQuestions",
   verifyToken,
-  upload.single("pdf"),
+  upload.any(),
   questionController.addQuestions
 );
 
@@ -106,7 +106,7 @@ router.post("/finishExam", verifyToken, questionController.finishExam);
 router.put(
   "/updateQuestion/:id",
   verifyToken,
-  upload.single("pdf"),
+  upload.any(),
   questionController.updateQuestion
 );
 

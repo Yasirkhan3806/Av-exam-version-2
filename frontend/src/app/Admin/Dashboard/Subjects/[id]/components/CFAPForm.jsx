@@ -11,6 +11,8 @@ export default function AddQuestionsPopup({ subjectId, isOpen, onClose }) {
   const [totalMarks, setTotalMarks] = useState(""); // New field for total marks
   const [pdfFile, setPdfFile] = useState(null);
   const [mockExam, setMockExam] = useState(false);
+  const [uploadMethod, setUploadMethod] = useState("auto"); // "auto" or "manual"
+  const [manualFiles, setManualFiles] = useState({}); // { q1: file, q2: file ... }
   const [log, setLog] = useState("");
   const BASEURL = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
 
@@ -22,6 +24,8 @@ export default function AddQuestionsPopup({ subjectId, isOpen, onClose }) {
     setNumQuestions("");
     setTotalMarks(""); // Reset total marks
     setPdfFile(null);
+    setManualFiles({});
+    setUploadMethod("auto");
     setMockExam(false);
     setLog("");
     onClose();
@@ -54,10 +58,19 @@ export default function AddQuestionsPopup({ subjectId, isOpen, onClose }) {
       !totalAttempt ||
       !numQuestions ||
       !totalMarks ||
-      !pdfFile ||
       !subjectId
     ) {
-      setLog("⚠️ Please provide all fields and upload a PDF first.");
+      setLog("⚠️ Please provide all fields first.");
+      return;
+    }
+
+    if (uploadMethod === "auto" && !pdfFile) {
+      setLog("⚠️ Please upload a PDF for auto-split.");
+      return;
+    }
+
+    if (uploadMethod === "manual" && Object.keys(manualFiles).length === 0) {
+      setLog("⚠️ Please upload at least one question PDF for manual mapping.");
       return;
     }
 
@@ -70,7 +83,15 @@ export default function AddQuestionsPopup({ subjectId, isOpen, onClose }) {
       formData.append("totalMarks", totalMarks); // Add total marks to form data
       formData.append("subjectId", subjectId);
       formData.append("mockExam", mockExam.toString());
-      formData.append("pdf", pdfFile);
+      formData.append("uploadMethod", uploadMethod);
+
+      if (uploadMethod === "auto") {
+        formData.append("pdf", pdfFile);
+      } else {
+        Object.entries(manualFiles).forEach(([key, file]) => {
+          formData.append(key, file);
+        });
+      }
 
       setLog("⏳ Uploading and saving to database...");
 
@@ -181,17 +202,86 @@ export default function AddQuestionsPopup({ subjectId, isOpen, onClose }) {
             </label>
           </div>
 
-          {/* File input */}
+          {/* Upload Method Selection */}
+          <div className="flex gap-4 p-1 bg-gray-100 rounded-xl">
+            <button
+              type="button"
+              onClick={() => setUploadMethod("auto")}
+              className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+                uploadMethod === "auto"
+                  ? "bg-white text-blue-600 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Auto-split PDF
+            </button>
+            <button
+              type="button"
+              onClick={() => setUploadMethod("manual")}
+              className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+                uploadMethod === "manual"
+                  ? "bg-white text-blue-600 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Manual Mapping
+            </button>
+          </div>
+
+          {/* File input(s) */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">
-              Exam PDF
-            </label>
-            <input
-              type="file"
-              accept="application/pdf"
-              onChange={handleFileUpload}
-              className="w-full text-blue-600 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-white file:bg-blue-600 hover:file:bg-blue-700 cursor-pointer"
-            />
+            {uploadMethod === "auto" ? (
+              <>
+                <label className="text-sm font-medium text-gray-700">
+                  Full Exam PDF (One page per question)
+                </label>
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  onChange={handleFileUpload}
+                  className="w-full text-blue-600 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-white file:bg-blue-600 hover:file:bg-blue-700 cursor-pointer text-sm"
+                />
+              </>
+            ) : (
+              <div className="space-y-3">
+                <label className="text-sm font-medium text-gray-700">
+                  Upload PDF for each Question
+                </label>
+                <div className="max-h-48 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                  {Array.from({ length: Number(numQuestions) || 0 }).map(
+                    (_, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg border border-gray-200"
+                      >
+                        <span className="text-xs font-bold text-gray-500 min-w-[30px]">
+                          Q{i + 1}
+                        </span>
+                        <input
+                          type="file"
+                          accept="application/pdf"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              setManualFiles((prev) => ({
+                                ...prev,
+                                [`q${i + 1}`]: file,
+                              }));
+                            }
+                          }}
+                          className="flex-1 text-xs text-gray-600 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-white file:bg-gray-400 hover:file:bg-gray-500 cursor-pointer"
+                        />
+                      </div>
+                    )
+                  )}
+                  {(Number(numQuestions) || 0) === 0 && (
+                    <div className="text-center py-4 text-gray-400 text-sm">
+                      Please enter "Number of questions" first
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Logs */}

@@ -61,7 +61,7 @@ export const splitPDF = async (inputPath, originalName, name, subjectId) => {
  * @param {Object} file - Uploaded PDF file object.
  * @returns {Promise<Object>} - The saved question dataset.
  */
-export const addQuestions = async (questionData, file) => {
+export const addQuestions = async (questionData, files) => {
   const {
     name,
     description,
@@ -70,29 +70,47 @@ export const addQuestions = async (questionData, file) => {
     subjectId,
     mockExam,
     totalMarks,
+    uploadMethod, // "auto" or "manual"
   } = questionData;
 
-  if (!name || !totalAttempt || !numQuestions || !file || !subjectId) {
+  if (!name || !totalAttempt || !numQuestions || !subjectId) {
     throw new Error("All fields are required");
   }
 
-  if (!file) {
-    throw new Error("No PDF file uploaded");
-  }
+  let pagesData = {};
+  let pdfName = "";
 
-  const pagesData = await splitPDF(
-    file.path,
-    file.originalname,
-    name,
-    subjectId
-  );
+  if (uploadMethod === "manual") {
+    if (!files || files.length === 0) {
+      throw new Error("No files uploaded for manual mapping");
+    }
+    // Expected files to have fieldnames like q1, q2, q3...
+    files.forEach((file) => {
+      const fieldName = file.fieldname; // e.g., "q1"
+      if (fieldName.startsWith("q")) {
+        pagesData[
+          fieldName
+        ] = `TestQuestions/${subjectId}/${name}/${file.filename}`;
+      }
+    });
+    pdfName = "Manual Upload";
+  } else {
+    // Default to auto-split
+    const file = files && files.find((f) => f.fieldname === "pdf");
+    if (!file) {
+      throw new Error("No PDF file uploaded for auto-split");
+    }
+
+    pagesData = await splitPDF(file.path, file.originalname, name, subjectId);
+    pdfName = file.originalname;
+  }
 
   const dataset = new Questions({
     name,
     description,
     totalAttempt,
     totalQuestions: numQuestions,
-    pdfName: file.originalname,
+    pdfName,
     pagesData,
     subject: subjectId,
     mockExam,
@@ -359,7 +377,7 @@ export const addCafQuestions = async (questionData, file) => {
  * @param {Object} file - New PDF file (optional).
  * @returns {Promise<Object>} - Updated exam document.
  */
-export const updateQuestion = async (examId, updateData, file) => {
+export const updateQuestion = async (examId, updateData, files) => {
   const exam = await Questions.findById(examId);
   if (!exam) throw new Error("Exam not found");
 
@@ -371,10 +389,11 @@ export const updateQuestion = async (examId, updateData, file) => {
     mockExam,
     totalMarks,
     subjectId,
+    uploadMethod,
   } = updateData;
 
   // 1. Handle PDF/Folder changes
-  if (file) {
+  if (files && files.length > 0) {
     // Delete old folder
     const oldFolderPath = path.join(
       "TestQuestions",
@@ -387,18 +406,36 @@ export const updateQuestion = async (examId, updateData, file) => {
       console.error("Error deleting old exam folder:", err);
     }
 
-    // Split new PDF
-    const pagesData = await splitPDF(
-      file.path,
-      file.originalname,
-      name,
-      subjectId
-    );
-    exam.pagesData = pagesData;
-    exam.pdfName = file.originalname;
-    exam.totalQuestions = Object.keys(pagesData).length;
+    if (uploadMethod === "manual") {
+      const pagesData = {};
+      files.forEach((file) => {
+        const fieldName = file.fieldname;
+        if (fieldName.startsWith("q")) {
+          pagesData[
+            fieldName
+          ] = `TestQuestions/${subjectId}/${name}/${file.filename}`;
+        }
+      });
+      exam.pagesData = pagesData;
+      exam.pdfName = "Manual Upload";
+      exam.totalQuestions = Object.keys(pagesData).length;
+    } else {
+      // Auto-split
+      const file = files.find((f) => f.fieldname === "pdf");
+      if (file) {
+        const pagesData = await splitPDF(
+          file.path,
+          file.originalname,
+          name,
+          subjectId
+        );
+        exam.pagesData = pagesData;
+        exam.pdfName = file.originalname;
+        exam.totalQuestions = Object.keys(pagesData).length;
+      }
+    }
   } else if (name && name !== exam.name) {
-    // Name changed, rename folder and update paths
+    // ... (rest of folder rename logic)
     const oldFolderPath = path.join(
       "TestQuestions",
       exam.subject.toString(),
@@ -435,7 +472,8 @@ export const updateQuestion = async (examId, updateData, file) => {
   if (name) exam.name = name;
   if (description !== undefined) exam.description = description;
   if (totalAttempt) exam.totalAttempt = totalAttempt;
-  if (numQuestions && !file) exam.totalQuestions = numQuestions;
+  if (numQuestions && !(files && files.length > 0))
+    exam.totalQuestions = numQuestions;
   if (mockExam !== undefined) exam.mockExam = mockExam;
   if (totalMarks) exam.totalMarks = totalMarks;
 
