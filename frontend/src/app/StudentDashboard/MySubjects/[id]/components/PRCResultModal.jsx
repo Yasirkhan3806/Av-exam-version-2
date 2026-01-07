@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { CheckCircle, XCircle, X } from "lucide-react";
 
 // Assuming API_URL is available
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API_URL = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
 
 const PRCResultModal = ({ examId, onClose }) => {
   const [result, setResult] = useState(null);

@@ -1,7 +1,8 @@
 import { create } from "zustand";
+import useSubjectStore from "./useSubjectStore";
 
 // Adjust API_URL based on your environment
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API_URL = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
 
 const usePrcExamStore = create((set, get) => ({
   exam: null,
@@ -117,12 +118,16 @@ const usePrcExamStore = create((set, get) => ({
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({...finalResultToSave}),
+          body: JSON.stringify({ ...finalResultToSave }),
         }
       );
 
       if (!detailedResult.ok)
         throw new Error("Failed to submit detailed result");
+
+      // Clear the subject cache to ensure progress is updated on the subject page
+      const subjectStore = useSubjectStore.getState();
+      subjectStore.clearSubjectCache();
 
       set({
         isFinished: true,

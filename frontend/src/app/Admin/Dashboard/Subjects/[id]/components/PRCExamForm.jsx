@@ -45,7 +45,7 @@ const PRCExamForm = ({ subjectId, isOpen, onClose }) => {
       // Sending simple post to backend, modify URL as needed
       const response = await fetch(
         `${
-          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+          process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000"
         }/prc-exams/create`,
         {
           method: "POST",
