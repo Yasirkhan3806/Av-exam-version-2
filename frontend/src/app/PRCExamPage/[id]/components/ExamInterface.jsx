@@ -108,7 +108,12 @@ const ExamInterface = () => {
             {currentQuestionIndex === questions.length - 1 ? (
               <button
                 onClick={finishExam}
-                className="bg-green-600 text-white px-8 py-2 rounded-lg hover:bg-green-700 font-semibold shadow-md transition-transform hover:scale-105"
+                disabled={!questions.every((q) => answers[q._id || q.id])}
+                className={`${
+                  questions.every((q) => answers[q._id || q.id])
+                    ? "bg-green-600 hover:bg-green-700 hover:scale-105 cursor-pointer"
+                    : "bg-gray-400 cursor-not-allowed opacity-50"
+                } text-white px-8 py-2 rounded-lg font-semibold shadow-md transition-transform`}
               >
                 Finish Exam
               </button>

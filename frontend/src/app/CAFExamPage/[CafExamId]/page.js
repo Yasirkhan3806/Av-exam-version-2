@@ -13,16 +13,16 @@ export default function CafExamPage({ params: paramsPromise }) {
   const currentSubjectType = useSubjectStore(
     (state) => state.currentSubjectType
   );
+  const currentSubject = useSubjectStore((state) => state.currentSubject);
+  const clearSubjectCache = useSubjectStore((state) => state.clearSubjectCache);
   const [pdfUrl, setPdfUrl] = useState("");
   const [examData, setExamData] = useState({});
 
-  console.log(currentSubjectType);
 
   useEffect(() => {
     const getExamData = async () => {
       if (CafExamId && currentSubjectType) {
         const response = await fetchExam(CafExamId, currentSubjectType);
-        console.log(response);
         setExamData(response);
       }
     };
@@ -41,7 +41,8 @@ export default function CafExamPage({ params: paramsPromise }) {
     try {
       const result = await submitCafAnswer(CafExamId, file);
       alert("Exam submitted successfully!");
-      windows.location.href = "/StudentDashboard/MySubjects";
+      clearSubjectCache(currentSubject);
+      window.location.href = "/StudentDashboard/MySubjects";
     } catch (error) {
       alert(`Submission failed: ${error.message}`);
     }
