@@ -1,5 +1,13 @@
 import bcrypt from "bcrypt";
-import { TestUser, User, Instructor } from "../models/index.js";
+import {
+  TestUser,
+  User,
+  Instructor,
+  CafExamAnswer,
+  PRCAnswer,
+  Answer,
+} from "../models/index.js";
+import fs from "fs";
 
 const PEPPER =
   "c8b378ecb0f4059059036dcc4abd1e76a30bdd72b1429d9c1a2242effbfa19d5";
@@ -78,7 +86,7 @@ export const updateStudent = async (id, updateData) => {
   const updatedStudent = await TestUser.findByIdAndUpdate(
     id,
     { $set: updateData },
-    { new: true, runValidators: true }
+    { new: true, runValidators: true },
   ).select("-password");
 
   if (!updatedStudent) {
@@ -89,7 +97,48 @@ export const updateStudent = async (id, updateData) => {
 };
 
 export const deleteStudent = async (id) => {
+  // 1. Delete CAF Exam Answers and Files
+  const cafAnswers = await CafExamAnswer.find({ Student: id });
+  for (const answer of cafAnswers) {
+    if (answer.submittedPdfUrl && fs.existsSync(answer.submittedPdfUrl)) {
+      try {
+        fs.unlinkSync(answer.submittedPdfUrl);
+      } catch (err) {
+        console.error(`Failed to delete file: ${answer.submittedPdfUrl}`, err);
+      }
+    }
+  }
+  await CafExamAnswer.deleteMany({ Student: id });
+
+  // 2. Delete PRC Exam Answers
+  // Note: PrcExamAnswer uses 'Student' referring to 'User' but effective usage seems to be consistent with student ID.
+  // Wait, looking at PrcExamAnswer definition:
+  // Student: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
+  // Yet TestUser is the student model. Assuming the ID passed is suitable for PrcExamAnswer.Student lookup.
+  await PRCAnswer.deleteMany({ Student: id });
+
+  // 3. Delete Answers (CFAP/Standard) and associated files
+  const answers = await Answer.find({ Student: id });
+  for (const answer of answers) {
+    if (answer.marksObtained) {
+      for (const data of Object.values(answer.marksObtained)) {
+        if (data && data.pdfUrl) {
+          if (fs.existsSync(data.pdfUrl)) {
+            try {
+              fs.unlinkSync(data.pdfUrl);
+            } catch (err) {
+              console.error(`Failed to delete file: ${data.pdfUrl}`, err);
+            }
+          }
+        }
+      }
+    }
+  }
+  await Answer.deleteMany({ Student: id });
+
+  // 4. Delete Student Record
   const result = await TestUser.findByIdAndDelete(id);
+
   if (!result) {
     throw new Error("Student not found");
   }
