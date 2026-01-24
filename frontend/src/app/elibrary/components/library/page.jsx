@@ -17,12 +17,13 @@ export default function LibraryRoom() {
 
   const room = searchParams.get("room") || "GeneralStudyArea";
   const name = searchParams.get("name") || "Student";
+  const BASE_URL = process.env.NEXT_PUBLIC_BASEURL;
 
   // Heartbeat logic
   React.useEffect(() => {
     const sendHeartbeat = async () => {
       try {
-        await fetch("http://localhost:5000/api/elibrary/rooms/heartbeat", {
+        await fetch(`${BASE_URL}/api/elibrary/rooms/heartbeat`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ roomName: room }),
@@ -41,7 +42,7 @@ export default function LibraryRoom() {
         // However, for simplicity and Auth cookies, we'll try a standard fetch first.
         // If the component unmounts, fetch might be cancelled.
         // We'll trust the TTL (60s) as a fallback if this fails.
-        await fetch("http://localhost:5000/api/elibrary/rooms/leave", {
+        await fetch(`${BASE_URL}/api/elibrary/rooms/leave`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ roomName: room }),

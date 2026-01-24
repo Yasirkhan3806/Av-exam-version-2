@@ -15,6 +15,7 @@ export default function ELibraryUsersPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const BASE_URL = process.env.NEXT_PUBLIC_BASEURL;
 
   useEffect(() => {
     fetchUsers();
@@ -22,13 +23,10 @@ export default function ELibraryUsersPage() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch(
-        "http://localhost:5000/api/elibrary/auth/all-users",
-        {
-          method: "GET",
-          credentials: "include", // Uses the admin token cookie
-        },
-      );
+      const response = await fetch(`${BASE_URL}/api/elibrary/auth/all-users`, {
+        method: "GET",
+        credentials: "include", // Uses the admin token cookie
+      });
       const data = await response.json();
       if (data.success) {
         setUsers(data.users);
@@ -51,7 +49,7 @@ export default function ELibraryUsersPage() {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/elibrary/auth/delete/${userId}`,
+        `${BASE_URL}/api/elibrary/auth/delete/${userId}`,
         {
           method: "DELETE",
           credentials: "include",
