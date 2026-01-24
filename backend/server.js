@@ -10,6 +10,9 @@ import subjectRouter from "./routes/subjectRoutes.js";
 import instructorRoutes from "./routes/instructorRoutes.js";
 import cafExamAnswerRoutes from "./routes/cafExamAnswerRoutes.js";
 import prcExamRouter from "./routes/prcExamRoutes.js";
+import eLibraryAuthRoutes from "./routes/eLibraryAuthRoutes.js";
+
+import eLibraryRoomRoutes from "./routes/eLibraryRoomRoutes.js";
 
 const app = express();
 const PORT = 5000;
@@ -32,11 +35,11 @@ const PORT = 5000;
 
     res.header(
       "Access-Control-Allow-Methods",
-      "GET,HEAD,OPTIONS,POST,PUT,DELETE"
+      "GET,HEAD,OPTIONS,POST,PUT,DELETE",
     );
     res.header(
       "Access-Control-Allow-Headers",
-      "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+      "Origin, X-Requested-With, Content-Type, Accept, Authorization",
     );
     res.header("Access-Control-Allow-Credentials", "true");
 
@@ -60,19 +63,21 @@ const PORT = 5000;
   app.use("/questions", questionRouter);
   app.use(
     "/TestQuestions",
-    express.static(path.join(process.cwd(), "TestQuestions"))
+    express.static(path.join(process.cwd(), "TestQuestions")),
   );
   app.use(
     "/Answer_pdfs",
-    express.static(path.join(process.cwd(), "Answer_pdfs"))
+    express.static(path.join(process.cwd(), "Answer_pdfs")),
   );
   app.use("/subjects", subjectRouter);
   app.use("/instructors", instructorRoutes);
   app.use("/caf-answers", cafExamAnswerRoutes);
   app.use("/prc-exams", prcExamRouter);
+  app.use("/api/elibrary/auth", eLibraryAuthRoutes);
+  app.use("/api/elibrary/rooms", eLibraryRoomRoutes);
 
   // Start server
   app.listen(PORT, () =>
-    console.log(`Server running at http://localhost:${PORT}/`)
+    console.log(`Server running at http://localhost:${PORT}/`),
   );
 })();

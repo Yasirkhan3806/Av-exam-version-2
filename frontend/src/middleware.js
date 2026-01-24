@@ -3,21 +3,22 @@ import * as jose from "jose"; // ✅ works in Next.js Edge Runtime
 import { Instructormiddleware } from "./app/Instructor/middleware";
 
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.NEXT_PUBLIC_JWT_SECRET || "fallback-secret"
+  process.env.NEXT_PUBLIC_JWT_SECRET || "fallback-secret",
 );
 
 export async function middleware(req) {
   const { pathname } = req.nextUrl;
 
-  // Don't apply auth check to login page, admin, or instructor routes
+  // Don't apply auth check to login page, admin, instructor, or elibrary routes
   if (
-    pathname.startsWith("/Login") || 
-    pathname.startsWith("/Admin") 
+    pathname.startsWith("/Login") ||
+    pathname.startsWith("/Admin") ||
+    pathname.startsWith("/elibrary")
   ) {
     return NextResponse.next();
   }
-  if ( pathname.startsWith("/Instructor")){
-    return Instructormiddleware(req)
+  if (pathname.startsWith("/Instructor")) {
+    return Instructormiddleware(req);
   }
 
   const token = req.cookies.get("token")?.value;
@@ -39,6 +40,8 @@ export async function middleware(req) {
 }
 
 export const config = {
-  // Match all paths except those starting with /Admin or /Instructor
-  matcher: ["/((?!Admin|_next/static|_next/image|favicon.ico).*)"],
+  // Match all paths except those starting with /Admin, /Instructor, or /elibrary
+  matcher: [
+    "/((?!Admin|Instructor|elibrary|_next/static|_next/image|favicon.ico).*)",
+  ],
 };

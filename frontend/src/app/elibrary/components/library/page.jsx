@@ -6,7 +6,7 @@ import dynamic from "next/dynamic";
 import { ArrowLeft } from "lucide-react";
 
 // Dynamic import for Jitsi component to avoid SSR issues
-const JitsiMeetComponent = dynamic(() => import("@/components/JitsiMeeting"), {
+const JitsiMeetComponent = dynamic(() => import("../JitsiMeeting"), {
   ssr: false,
   loading: () => <div className="text-white">Loading Jitsi Core...</div>,
 });
@@ -17,6 +17,50 @@ export default function LibraryRoom() {
 
   const room = searchParams.get("room") || "GeneralStudyArea";
   const name = searchParams.get("name") || "Student";
+
+  // Heartbeat logic
+  React.useEffect(() => {
+    const sendHeartbeat = async () => {
+      try {
+        await fetch("http://localhost:5000/api/elibrary/rooms/heartbeat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ roomName: room }),
+          credentials: "include",
+        });
+      } catch (error) {
+        console.error("Heartbeat error:", error);
+      }
+    };
+
+    const leaveRoom = async () => {
+      try {
+        // Use sendBeacon for more reliable exit logs on tab close, otherwise fetch
+        // Note: sendBeacon doesn't support custom headers or credentials easily in some older contexts,
+        // but modern browsers handle it.
+        // However, for simplicity and Auth cookies, we'll try a standard fetch first.
+        // If the component unmounts, fetch might be cancelled.
+        // We'll trust the TTL (60s) as a fallback if this fails.
+        await fetch("http://localhost:5000/api/elibrary/rooms/leave", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ roomName: room }),
+          credentials: "include",
+        });
+      } catch (error) {
+        console.error("Leave error:", error);
+      }
+    };
+
+    // Send initial heartbeat
+    sendHeartbeat();
+    const interval = setInterval(sendHeartbeat, 10000); // 10 seconds
+
+    return () => {
+      clearInterval(interval);
+      leaveRoom();
+    };
+  }, [room]);
 
   return (
     <div className="flex flex-col h-screen bg-gray-950 text-white">

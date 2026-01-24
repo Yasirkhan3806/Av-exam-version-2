@@ -60,6 +60,15 @@ export default async function AdminDashboardLayout({ children }) {
           >
             Settings
           </Link>
+          <div className="pt-4 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            E-Library
+          </div>
+          <Link
+            href="/Admin/Dashboard/ELibraryUsers"
+            className="block px-3 py-2 rounded-md hover:bg-gray-700"
+          >
+            Registered Users
+          </Link>
         </nav>
         {/* <div className="px-4 py-4 border-t border-gray-700">
           <button className="w-full px-3 py-2 bg-red-600 rounded-md hover:bg-red-500">

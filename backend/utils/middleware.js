@@ -11,7 +11,7 @@ export const generateTokenAndSetCookie = (user, res, tokenName = "token") => {
       userName: user.name,
     },
     JWT_SECRET,
-    { expiresIn: "3d" }
+    { expiresIn: "3d" },
   );
 
   res.cookie(tokenName, token, {
@@ -133,5 +133,55 @@ export const verifyInstructorToken = (req, res, next) => {
     return res
       .status(401)
       .json({ error: "Invalid or expired instructorToken" });
+  }
+};
+
+export const verifyELibraryToken = (req, res, next) => {
+  try {
+    let token;
+
+    if (req.cookies && req.cookies.eLibraryToken) {
+      token = req.cookies.eLibraryToken;
+    }
+
+    if (!token && req.headers.cookie) {
+      const cookieHeader = req.headers.cookie
+        .split(";")
+        .map((c) => c.trim())
+        .find((c) => c.startsWith("eLibraryToken="));
+      if (cookieHeader) {
+        token = cookieHeader.split("=")[1];
+      }
+    }
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: "Access denied. No eLibrary token provided.",
+      });
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.eLibraryUser = decoded;
+    next();
+  } catch (err) {
+    if (err.name === "TokenExpiredError") {
+      return res.status(401).json({
+        success: false,
+        message: "eLibrary token has expired. Please log in again.",
+      });
+    }
+
+    if (err.name === "JsonWebTokenError") {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid eLibrary token. Access denied.",
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error during token verification.",
+    });
   }
 };

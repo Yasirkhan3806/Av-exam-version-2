@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@jitsi/react-sdk": "^1.4.4",
     "@univerjs/core": "^0.10.8",
     "@univerjs/design": "^0.10.8",
     "@univerjs/docs": "^0.10.8",
