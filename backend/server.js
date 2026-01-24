@@ -26,6 +26,7 @@ const PORT = 5000;
     const allowedOrigins = [
       "http://localhost:3000",
       "https://academicvitality.org",
+      "https://www.academicvitality.org",
     ];
     const origin = req.headers.origin;
 
