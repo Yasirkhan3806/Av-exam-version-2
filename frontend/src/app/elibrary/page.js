@@ -12,6 +12,7 @@ function ELibraryContent() {
     useELibraryAuthStore();
   const [selectedRoom, setSelectedRoom] = useState("GeneralStudyArea");
   const [roomCounts, setRoomCounts] = useState({});
+  const BASE_URL = process.env.NEXT_PUBLIC_BASEURL;
 
   useEffect(() => {
     const fetchCounts = async () => {
@@ -25,7 +26,7 @@ function ELibraryContent() {
         // However, I don't see a visible "api" helper imported here. I'll use native fetch to localhost:5000 for now.
 
         const res = await fetch(
-          "http://localhost:5000/api/elibrary/rooms/counts",
+          `${BASE_URL}/api/elibrary/rooms/counts`,
           {
             headers: {
               // Include credentials to handle cookie auth if needed, but counts might be public?
