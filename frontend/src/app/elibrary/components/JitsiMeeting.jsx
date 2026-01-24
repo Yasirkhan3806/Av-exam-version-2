@@ -9,6 +9,7 @@ const JitsiMeetComponent = ({
   onLeave,
 }) => {
   const [loading, setLoading] = useState(true);
+  const domain = process.env.NEXT_PUBLIC_JITSI_DOMAIN;
 
   return (
     <div className="h-full w-full relative flex flex-col">
@@ -20,7 +21,7 @@ const JitsiMeetComponent = ({
 
       <div className="flex-1 relative">
         <JitsiMeeting
-          domain="meet.academicvitality.org"
+          domain={domain}
           roomName={roomName}
           configOverwrite={{
             startWithAudioMuted: true,
