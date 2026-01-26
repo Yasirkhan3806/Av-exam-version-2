@@ -213,7 +213,7 @@ export default function Login() {
             {/* Contact Support with WhatsApp */}
             <div className="flex items-center justify-between">
               <a
-                href="https://wa.me/+923369016582"
+                href="https://wa.me/+923119139135"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex-1 bg-gray-50 border border-gray-300 text-gray-700 text-sm font-medium py-2 px-4 rounded-lg hover:bg-gray-100 transition-colors duration-200 text-center"
