@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Turnstile from "react-turnstile";
 
 export default function ELibraryLogin() {
   const BASEURL = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
@@ -11,6 +12,7 @@ export default function ELibraryLogin() {
     password: "",
     keepSignedIn: false,
   });
+  const [turnstileToken, setTurnstileToken] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({
     type: "",
@@ -41,6 +43,14 @@ export default function ELibraryLogin() {
       return;
     }
 
+    if (!turnstileToken) {
+      setMessage({
+        type: "error",
+        text: "Please complete the CAPTCHA verification",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -50,6 +60,7 @@ export default function ELibraryLogin() {
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
+          turnstileToken,
         }),
         credentials: "include",
       });
@@ -142,6 +153,14 @@ export default function ELibraryLogin() {
                 disabled={isLoading}
                 className="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors disabled:opacity-50 disabled:bg-gray-50"
                 placeholder="Password"
+              />
+            </div>
+
+            {/* Turnstile Widget */}
+            <div className="flex justify-center my-4">
+              <Turnstile
+                sitekey={process.env.NEXT_PUBLIC_CLOUDFLARE_SITE_KEY}
+                onVerify={(token) => setTurnstileToken(token)}
               />
             </div>
 

@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import { ELibraryUser } from "../models/eLibraryUser.js";
+import { sendEmail } from "../utils/emailService.js";
 
 export const registerELibraryUser = async (
   firstName,
@@ -38,6 +39,21 @@ export const registerELibraryUser = async (
   });
 
   await newUser.save();
+ const emailSubject = "Welcome to Academic Vitality E-Library!";
+  const emailHtml = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #2563eb;">Welcome to Academic Vitality, ${firstName} ${lastName}!</h2>
+      <p>We are thrilled to have you join our E-Library platform.</p>
+      <p>Your account has been successfully created with the username: <strong>${userName}</strong></p>
+      <p>You can now log in and access all our resources, including 24/7 study rooms and exam materials.</p>
+      <br>
+      <p>Best Regards,</p>
+      <p><strong>The Academic Vitality Team</strong></p>
+    </div>
+  `;
+
+  // Send email asynchronously without blocking the response
+  sendEmail(email, emailSubject, emailHtml);
   return newUser;
 };
 

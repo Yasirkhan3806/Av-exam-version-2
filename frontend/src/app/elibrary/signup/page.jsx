@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Turnstile from "react-turnstile";
 
 export default function ELibrarySignup() {
   const BASEURL = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
@@ -16,6 +17,7 @@ export default function ELibrarySignup() {
     passwordConfirmation: "",
     agreeToTerms: false,
   });
+  const [turnstileToken, setTurnstileToken] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({
     type: "",
@@ -91,6 +93,14 @@ export default function ELibrarySignup() {
       return;
     }
 
+    if (!turnstileToken) {
+      setMessage({
+        type: "error",
+        text: "Please complete the CAPTCHA verification",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -104,6 +114,7 @@ export default function ELibrarySignup() {
           email: formData.email,
           contactNumber: formData.contactNumber,
           password: formData.password,
+          turnstileToken,
         }),
         credentials: "include",
       });
@@ -312,6 +323,14 @@ export default function ELibrarySignup() {
                   Terms and Conditions
                 </Link>
               </label>
+            </div>
+
+            {/* Turnstile Widget */}
+            <div className="flex justify-center my-4">
+              <Turnstile
+                sitekey={process.env.NEXT_PUBLIC_CLOUDFLARE_SITE_KEY}
+                onVerify={(token) => setTurnstileToken(token)}
+              />
             </div>
 
             {/* Submit Button */}

@@ -1,5 +1,6 @@
 import * as eLibraryAuthService from "../services/eLibraryAuthService.js";
 import { generateTokenAndSetCookie } from "../utils/middleware.js";
+import { verifyTurnstileToken } from "../utils/turnstile.js";
 
 export const healthCheck = (req, res) => {
   return res.status(200).json({ message: "eLibrary auth is working" });
@@ -7,8 +8,20 @@ export const healthCheck = (req, res) => {
 
 export const register = async (req, res) => {
   try {
-    const { firstName, lastName, userName, email, contactNumber, password } =
-      req.body;
+    const {
+      firstName,
+      lastName,
+      userName,
+      email,
+      contactNumber,
+      password,
+      turnstileToken,
+    } = req.body;
+
+    const isTokenValid = await verifyTurnstileToken(turnstileToken);
+    if (!isTokenValid) {
+      return res.status(400).json({ message: "Invalid CAPTCHA" });
+    }
 
     // Validate all required fields
     if (
@@ -73,7 +86,12 @@ export const register = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, turnstileToken } = req.body;
+
+    const isTokenValid = await verifyTurnstileToken(turnstileToken);
+    if (!isTokenValid) {
+      return res.status(400).json({ message: "Invalid CAPTCHA" });
+    }
 
     if (!email || !password) {
       return res

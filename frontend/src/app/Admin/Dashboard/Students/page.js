@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Trash2, User, Loader2, Pencil, Search, Mail } from "lucide-react";
+import { Trash2, User, Loader2, Pencil, Search, Mail, Send } from "lucide-react";
 import EditStudentForm from "./components/EditStudentForm";
 
 export default function StudentsPage() {
@@ -62,6 +62,28 @@ export default function StudentsPage() {
   const handleEdit = (student) => {
     setSelectedStudent(student);
     setIsEditModalOpen(true);
+  };
+
+  const sendEmail = async (name, userName, email) => {
+    try {
+      const res = await fetch(`${BASEURL}/auth/send-welcome-email`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, userName, email }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to send email");
+      }
+
+      alert("Email sent successfully");
+    } catch (error) {
+      console.error("Error sending email:", error);
+      alert("Failed to send email.");
+    }
   };
 
   const filteredStudents = students.filter(
@@ -150,6 +172,13 @@ export default function StudentsPage() {
                 <div className="mt-4 flex items-center gap-2 text-gray-600">
                   <Mail size={16} />
                   <p className="text-sm truncate">{s.email}</p>
+                  <button
+                    onClick={() => sendEmail(s.name, s.userName, s.email)}
+                    className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    title="Send Welcome Email"
+                  >
+                    <Send size={18} />
+                  </button>
                 </div>
 
                 <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-baseline">

@@ -34,6 +34,17 @@ export const register = async (req, res) => {
   }
 };
 
+export const sendWelcomeEmailController = async (req, res) => {
+  try {
+    const { email, name, userName } = req.body;
+    await authService.sendWelcomeEmail(email, name, userName);
+    return res.status(200).json({ message: "Welcome email sent successfully" });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ message: "Server error", error: e.message });
+  }
+};
+
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
