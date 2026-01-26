@@ -18,6 +18,7 @@ export default function ELibrarySignup() {
     agreeToTerms: false,
   });
   const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileKey, setTurnstileKey] = useState(0);
   const turnstileRef = useRef();
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({
@@ -137,6 +138,7 @@ export default function ELibrarySignup() {
       if (turnstileRef.current) {
         turnstileRef.current.reset();
       }
+      setTurnstileKey((prev) => prev + 1);
       setTurnstileToken("");
       setMessage({
         type: "error",
@@ -333,6 +335,7 @@ export default function ELibrarySignup() {
             {/* Turnstile Widget */}
             <div className="flex justify-center my-4">
               <Turnstile
+                key={turnstileKey}
                 ref={turnstileRef}
                 sitekey={process.env.NEXT_PUBLIC_CLOUDFLARE_SITE_KEY}
                 onVerify={(token) => setTurnstileToken(token)}
