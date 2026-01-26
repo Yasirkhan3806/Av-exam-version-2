@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Turnstile from "react-turnstile";
@@ -13,6 +13,7 @@ export default function ELibraryLogin() {
     keepSignedIn: false,
   });
   const [turnstileToken, setTurnstileToken] = useState("");
+  const turnstileRef = useRef();
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({
     type: "",
@@ -79,6 +80,10 @@ export default function ELibraryLogin() {
         throw new Error(result.message || "Login failed");
       }
     } catch (error) {
+      if (turnstileRef.current) {
+        turnstileRef.current.reset();
+      }
+      setTurnstileToken("");
       setMessage({
         type: "error",
         text: error.message || "Something went wrong. Please try again.",
@@ -159,6 +164,7 @@ export default function ELibraryLogin() {
             {/* Turnstile Widget */}
             <div className="flex justify-center my-4">
               <Turnstile
+                ref={turnstileRef}
                 sitekey={process.env.NEXT_PUBLIC_CLOUDFLARE_SITE_KEY}
                 onVerify={(token) => setTurnstileToken(token)}
               />
