@@ -135,7 +135,7 @@ export default function Login() {
             {/* Email/Username Field */}
             <div className="space-y-2">
               <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-                Email or Username
+                Email
               </label>
               <input
                 type="text"

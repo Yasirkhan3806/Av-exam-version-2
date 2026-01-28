@@ -127,7 +127,7 @@ export default function ELibraryLogin() {
                 htmlFor="email"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Username or Email Address
+               Email Address
               </label>
               <input
                 id="email"
@@ -138,7 +138,7 @@ export default function ELibraryLogin() {
                 onChange={handleChange}
                 disabled={isLoading}
                 className="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors disabled:opacity-50 disabled:bg-gray-50"
-                placeholder="Username or Email Address"
+                placeholder="Email Address"
               />
             </div>
 
