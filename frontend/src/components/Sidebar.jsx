@@ -80,7 +80,9 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
       </div>
 
       <div className="p-4 flex-1">
-        <div className={`flex items-center mb-6 ${!isOpen && "justify-center"}`}>
+        <div
+          className={`flex items-center mb-6 ${!isOpen && "justify-center"}`}
+        >
           <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold mr-0 md:mr-3">
             {userInfo?.userName
               ?.split(" ")
@@ -101,25 +103,48 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
 
             return (
               <Link
-                key={item.name}
-                href={item.href}
-                className={`flex items-center ${
-                  isOpen ? "px-3" : "justify-center"
-                } py-2 rounded-lg transition-colors ${
-                  isActive
-                    ? "bg-indigo-600 text-white"
-                    : "text-gray-700 hover:bg-gray-100"
-                }`}
-              >
-                <item.icon
-                  className={`${isOpen ? "w-5 h-5" : "w-6 h-6"} ${
-                    isActive ? "text-white" : "text-gray-500"
+                  key={item.name}
+                  href={item.href}
+                  className={`flex items-center ${
+                    isOpen ? "px-3" : "justify-center"
+                  } py-2 rounded-lg transition-colors ${
+                    isActive
+                      ? "bg-indigo-600 text-white"
+                      : "text-gray-700 hover:bg-gray-100"
                   }`}
-                />
-                {isOpen && <span className="ml-3">{item.name}</span>}
-              </Link>
+                >
+                  <item.icon
+                    className={`${isOpen ? "w-5 h-5" : "w-6 h-6"} ${
+                      isActive ? "text-white" : "text-gray-500"
+                    }`}
+                  />
+                  {isOpen && <span className="ml-3">{item.name}</span>}
+                </Link>
+           
             );
           })}
+          <button
+            onClick={() =>{ 
+              (window.location.href = "/StudentDashboard/PracticeRoom")
+              toggleSidebar()
+            }}
+            className={`flex items-center ${
+              isOpen ? "px-3" : "justify-center"
+            } py-2 rounded-lg transition-colors ${
+              pathname === "/StudentDashboard/PracticeRoom"
+                ? "bg-indigo-600 text-white"
+                : "text-gray-700 hover:bg-gray-100"
+            }`}
+          >
+            <ClipboardList
+              className={`${isOpen ? "w-5 h-5" : "w-6 h-6"} ${
+                pathname === "/StudentDashboard/PracticeRoom"
+                  ? "text-white"
+                  : "text-gray-500"
+              }`}
+            />
+            {isOpen && <span className="ml-3">Practice Room</span>}
+          </button>
         </nav>
       </div>
 
@@ -130,7 +155,9 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
             isOpen ? "px-3" : "justify-center"
           } w-full py-2 rounded-lg transition-colors text-gray-700 hover:bg-gray-100`}
         >
-          <LogOut className={`${isOpen ? "w-5 h-5" : "w-6 h-6"} text-gray-500`} />
+          <LogOut
+            className={`${isOpen ? "w-5 h-5" : "w-6 h-6"} text-gray-500`}
+          />
           {isOpen && <span className="ml-3">Logout</span>}
         </button>
       </div>
