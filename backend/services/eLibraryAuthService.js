@@ -46,6 +46,12 @@ export const registerELibraryUser = async (
       <p>We are thrilled to have you join our E-Library platform.</p>
       <p>Your account has been successfully created with the username: <strong>${userName}</strong></p>
       <p>You can now log in and access all our resources, including 24/7 study rooms and exam materials.</p>
+      <p>Here are your Credientials:</p>
+      <p>Username: <strong>${userName}</strong></p>
+      <p>Email: <strong>${email}</strong></p>
+      <p>Password: <strong>${password}</strong></p>
+      <br>
+      <strong>Please dont share this email with anyone</strong>
       <br>
       <p>Best Regards,</p>
       <p><strong>The Academic Vitality Team</strong></p>
