@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import usePrcExamStore from "@/store/prcExamStore";
 import { Clock, ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -10,6 +10,8 @@ const formatTime = (seconds) => {
 };
 
 const ExamInterface = () => {
+  const [validationError, setValidationError] = useState("");
+
   const {
     exam,
     questions,
@@ -34,9 +36,8 @@ const ExamInterface = () => {
             {exam.name}
           </h2>
           <div
-            className={`text-xl font-mono font-bold flex items-center gap-2 ${
-              timeLeft < 60 ? "text-red-600 animate-pulse" : "text-blue-600"
-            }`}
+            className={`text-xl font-mono font-bold flex items-center gap-2 ${timeLeft < 60 ? "text-red-600 animate-pulse" : "text-blue-600"
+              }`}
           >
             <Clock className="w-5 h-5" />
             {formatTime(timeLeft)}
@@ -66,26 +67,25 @@ const ExamInterface = () => {
             {currentQ.options.map((option) => (
               <button
                 key={option.label}
-                onClick={() =>
-                  submitAnswer(currentQ._id || currentQ.id, option.label)
-                }
+                onClick={() => {
+                  submitAnswer(currentQ._id || currentQ.id, option.label);
+                  setValidationError("");
+                }}
                 className={`w-full text-left p-4 rounded-lg border-2 transition-all flex items-center gap-3 group
-                            ${
-                              answers[currentQ._id || currentQ.id] ===
-                              option.label
-                                ? "border-blue-600 bg-blue-50 text-blue-700"
-                                : "border-gray-200 hover:border-blue-300 hover:bg-gray-50"
-                            }
+                            ${answers[currentQ._id || currentQ.id] ===
+                    option.label
+                    ? "border-blue-600 bg-blue-50 text-blue-700"
+                    : "border-gray-200 hover:border-blue-300 hover:bg-gray-50"
+                  }
                         `}
               >
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center border-2 font-semibold transition-colors
-                            ${
-                              answers[currentQ._id || currentQ.id] ===
-                              option.label
-                                ? "border-blue-600 bg-blue-600 text-white"
-                                : "border-gray-300 text-gray-500 group-hover:border-blue-400"
-                            }
+                            ${answers[currentQ._id || currentQ.id] ===
+                      option.label
+                      ? "border-blue-600 bg-blue-600 text-white"
+                      : "border-gray-300 text-gray-500 group-hover:border-blue-400"
+                    }
                         `}
                 >
                   {option.label}
@@ -98,7 +98,10 @@ const ExamInterface = () => {
           {/* Footer Navigation */}
           <div className="flex justify-between items-center mt-8 pt-6 border-t">
             <button
-              onClick={prevQuestion}
+              onClick={() => {
+                prevQuestion();
+                setValidationError("");
+              }}
               disabled={currentQuestionIndex === 0}
               className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -106,20 +109,43 @@ const ExamInterface = () => {
             </button>
 
             {currentQuestionIndex === questions.length - 1 ? (
-              <button
-                onClick={finishExam}
-                disabled={!questions.every((q) => answers[q._id || q.id])}
-                className={`${
-                  questions.every((q) => answers[q._id || q.id])
-                    ? "bg-green-600 hover:bg-green-700 hover:scale-105 cursor-pointer"
-                    : "bg-gray-400 cursor-not-allowed opacity-50"
-                } text-white px-8 py-2 rounded-lg font-semibold shadow-md transition-transform`}
-              >
-                Finish Exam
-              </button>
+              <div className="flex flex-col items-end gap-3">
+                {validationError && (
+                  <p className="text-red-600 font-medium text-sm animate-bounce">
+                    {validationError}
+                  </p>
+                )}
+                <button
+                  onClick={() => {
+                    const unattempted = questions
+                      .map((q, index) => ({
+                        id: q._id || q.id,
+                        number: index + 1,
+                      }))
+                      .filter((q) => !answers[q.id])
+                      .map((q) => q.number);
+
+                    if (unattempted.length > 0) {
+                      setValidationError(
+                        `The following questions haven't been attempted yet: ${unattempted.join(
+                          ", "
+                        )}. Please attempt them to finish the exam.`
+                      );
+                    } else {
+                      finishExam();
+                    }
+                  }}
+                  className="bg-green-600 hover:bg-green-700 hover:scale-105 cursor-pointer text-white px-8 py-2 rounded-lg font-semibold shadow-md transition-transform"
+                >
+                  Finish Exam
+                </button>
+              </div>
             ) : (
               <button
-                onClick={nextQuestion}
+                onClick={() => {
+                  nextQuestion();
+                  setValidationError("");
+                }}
                 className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium flex items-center gap-2 shadow-sm"
               >
                 Next <ChevronRight className="w-5 h-5" />

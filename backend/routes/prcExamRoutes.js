@@ -19,5 +19,6 @@ router.get("/:id", prcExamController.getPRCExamById);
 router.post("/:id/submit", prcExamController.submitPRCExamResult);
 router.post("/submitDetailedResult", prcExamController.submitDetailedResult);
 router.get("/results/:id", verifyToken, prcExamController.getDetailedResult);
+router.put("/:id", verifyToken, prcExamController.updatePRCExam);
 
 export default router;

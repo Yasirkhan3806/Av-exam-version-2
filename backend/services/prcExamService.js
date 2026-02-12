@@ -26,7 +26,7 @@ export const createExam = async (data, filePath) => {
         // Assume format: Question | Option 1 | Option 2 | Option 3 | ... | Correct Answer
         // Filter out empty rows or cells
         const validCells = row.filter(
-          (cell) => cell !== null && cell !== undefined && cell !== ""
+          (cell) => cell !== null && cell !== undefined && cell !== "",
         );
 
         if (validCells.length < 3) return null; // Need at least question, one option, answer (unlikely but safe)
@@ -151,4 +151,21 @@ export const getDetailedResult = async (examId, userId) => {
     throw new Error("Result not found");
   }
   return result;
+};
+
+export const updateExam = async (id, updateData) => {
+  const exam = await PRCExam.findById(id);
+  if (!exam) {
+    throw new Error("Exam not found");
+  }
+
+  const { name, description, totalTime, totalMarks } = updateData;
+
+  if (name) exam.name = name;
+  if (description !== undefined) exam.description = description;
+  if (totalTime) exam.totalAttempt = totalTime;
+  if (totalMarks) exam.totalMarks = totalMarks;
+
+  await exam.save();
+  return exam;
 };

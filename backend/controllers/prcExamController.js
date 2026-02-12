@@ -73,3 +73,18 @@ export const getDetailedResult = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const updatePRCExam = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+    const updatedExam = await prcExamService.updateExam(id, updateData);
+    res.status(200).json(updatedExam);
+  } catch (error) {
+    console.error("Error updating PRC Exam:", error);
+    if (error.message === "Exam not found") {
+      return res.status(404).json({ message: error.message });
+    }
+    res.status(500).json({ message: error.message });
+  }
+};

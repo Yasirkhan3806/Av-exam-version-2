@@ -1,10 +1,13 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { Trash2, FileText, Users, Clock, Pencil } from "lucide-react";
+import EditExamPopup from "./EditExamPopup";
 
 const Exams = ({ subjectId, subjectType }) => {
   const [exams, setExams] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [selectedExam, setSelectedExam] = useState(null);
   const BaseUrl = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
 
   useEffect(() => {
@@ -20,7 +23,7 @@ const Exams = ({ subjectId, subjectType }) => {
         {
           method: "GET",
           credentials: "include",
-        }
+        },
       );
       const data = await response.json();
       console.log("Fetched exams:", data);
@@ -35,7 +38,7 @@ const Exams = ({ subjectId, subjectType }) => {
   const handleDelete = async (examId) => {
     if (
       window.confirm(
-        "Are you sure you want to delete this exam? This action cannot be undone."
+        "Are you sure you want to delete this exam? This action cannot be undone.",
       )
     ) {
       try {
@@ -44,7 +47,7 @@ const Exams = ({ subjectId, subjectType }) => {
           {
             method: "DELETE",
             credentials: "include",
-          }
+          },
         );
 
         if (response.ok) {
@@ -56,6 +59,11 @@ const Exams = ({ subjectId, subjectType }) => {
         console.error("Error deleting exam:", error);
       }
     }
+  };
+
+  const handleEditClick = (exam) => {
+    setSelectedExam(exam);
+    setIsEditOpen(true);
   };
 
   if (loading) {
@@ -98,13 +106,13 @@ const Exams = ({ subjectId, subjectType }) => {
               className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 p-6 relative group"
             >
               <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                {/* <a
-                  href={`/Admin/Dashboard/Subjects/${subjectId}/Exams/${exam._id}/edit?type=${subjectType}`}
+                <button
+                  onClick={() => handleEditClick(exam)}
                   className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
                   title="Edit exam"
                 >
                   <Pencil size={18} />
-                </a> */}
+                </button>
                 <button
                   onClick={() => handleDelete(exam._id)}
                   className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
@@ -141,6 +149,16 @@ const Exams = ({ subjectId, subjectType }) => {
           ))}
         </div>
       )}
+      <EditExamPopup
+        isOpen={isEditOpen}
+        onClose={() => {
+          setIsEditOpen(false);
+          setSelectedExam(null);
+        }}
+        exam={selectedExam}
+        subjectType={subjectType}
+        onUpdate={fetchExams}
+      />
     </div>
   );
 };

@@ -28,21 +28,32 @@ export const registerUser = async (name, userName, email, password) => {
   });
   await newUser.save();
 
-
   return newUser;
 };
 
-export const sendWelcomeEmail = async (email, name, userName) => {
-  const emailSubject = "Welcome to Academic Vitality E-Library!";
+export const sendWelcomeEmail = async (email, name, password) => {
+  const emailSubject = "Welcome to Academic Vitality";
   const emailHtml = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #2563eb;">Welcome to Academic Vitality, ${name}!</h2>
-      <p>We are thrilled to have you join our E-Library platform.</p>
-      <p>Your account has been successfully created with the username: <strong>${userName}</strong></p>
-      <p>You can now log in and access all our resources, including 24/7 study rooms and exam materials.</p>
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
+      <p>Dear ${name},</p>
+      
+      <p>We're excited to have you onboard with Academic Vitality as your partner on the journey toward academic excellence and success.</p>
+      
+      <p>You can access your Learning Management System (LMS) using the details below:</p>
+      
+      <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+        <p style="margin: 5px 0;"><strong>Website Link:</strong> <a href="https://academicvitality.org/Login" style="color: #2563eb;">https://academicvitality.org/Login</a></p>
+        <p style="margin: 5px 0;"><strong>Email ID:</strong> ${email}</p>
+        <p style="margin: 5px 0;"><strong>Password:</strong> ${password}</p>
+      </div>
+      
+      <p>If you need any assistance or further information, feel free to contact us on WhatsApp at <strong>0311-9139135</strong>. Our team will be happy to support you.</p>
+      
+      <p>Welcome once again, and we look forward to being a part of your success story.</p>
+      
       <br>
-      <p>Best Regards,</p>
-      <p><strong>The Academic Vitality Team</strong></p>
+      <p>Warm regards,</p>
+      <p><strong>Team Academic Vitality</strong></p>
     </div>
   `;
 
