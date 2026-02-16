@@ -54,7 +54,8 @@ export const registerELibraryUser = async (
       <strong>Please dont share this email with anyone</strong>
       <br>
       <p>Best Regards,</p>
-      <p><strong>The Academic Vitality Team</strong></p>
+      <p><strong>Team Academic Vitality</strong></p>
+      <p>For any queries, please contact us on WhatsApp at <strong>+92 3119 139 135</strong></p>
     </div>
   `;
 

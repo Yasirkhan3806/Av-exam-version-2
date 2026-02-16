@@ -27,6 +27,7 @@ export const registerUser = async (name, userName, email, password) => {
     password: hashedPassword,
   });
   await newUser.save();
+  sendWelcomeEmail(email, name, password);
 
   return newUser;
 };
