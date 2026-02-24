@@ -22,6 +22,7 @@ const PracticeNavbar = () => {
   } = usePracticeStore();
 
   const [isOverviewDropdownOpen, setIsOverviewDropdownOpen] = useState(false);
+  const [isFinishing, setIsFinishing] = useState(false);
 
   const questionNumbers = Array.from(
     { length: totalQuestions },
@@ -179,18 +180,31 @@ const PracticeNavbar = () => {
         {/* Finish Exam Button */}
         <button
           onClick={async () => {
+            if (isFinishing) return;
             if (
               confirm(
                 "Are you sure you want to finish practice? A PDF of your answers will be downloaded.",
               )
             ) {
-              await downloadAnswersPDF();
-              await finishExam();
+              setIsFinishing(true);
+              try {
+                await downloadAnswersPDF();
+                // Allow the browser to process the download blob before unmounting the DOM
+                await new Promise(resolve => setTimeout(resolve, 1500));
+              } catch (e) {
+                console.error(e);
+              } finally {
+                await finishExam();
+              }
             }
           }}
-          className={`px-3 py-2 rounded-md text-blue-600 bg-gray-300 font-semibold hover:bg-gray-700 hover:text-white transition-colors whitespace-nowrap`}
+          disabled={isFinishing}
+          className={`px-3 py-2 rounded-md font-semibold transition-colors whitespace-nowrap ${isFinishing
+              ? "bg-gray-400 text-gray-700 cursor-not-allowed"
+              : "text-blue-600 bg-gray-300 hover:bg-gray-700 hover:text-white"
+            }`}
         >
-          Finish Practice
+          {isFinishing ? "Generating PDF..." : "Finish Practice"}
         </button>
       </div>
     </nav>
