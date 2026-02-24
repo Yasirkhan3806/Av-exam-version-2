@@ -96,6 +96,78 @@ const usePracticeStore = create((set, get) => ({
     window.location.href = "/StudentDashboard";
   },
 
+  downloadAnswersPDF: async () => {
+    const { questionName, totalQuestions, answers } = get();
+
+    // Generate HTML content from answers
+    const container = document.createElement("div");
+    container.style.padding = "20px";
+    container.style.fontFamily = "Arial, sans-serif";
+    container.classList.add("ql-snow"); // Parent quill class
+
+    // Create a style element for the injected css (to force numbering/bullets if html2pdf misses remote css)
+    const style = document.createElement("style");
+    style.innerHTML = `
+      .ql-editor { padding: 0; }
+      .ql-editor h1 { font-size: 2em; margin-bottom: 0.5em; }
+      .ql-editor h2 { font-size: 1.5em; margin-bottom: 0.5em; }
+      .ql-editor p { margin-bottom: 0.5em; }
+      .ql-editor ul, .ql-editor ol { padding-left: 1.5em; margin-bottom: 0.5em; }
+      .ql-editor li { margin-bottom: 0.2em; }
+      .ql-editor ol > li { list-style-type: decimal; }
+      .ql-editor ul > li { list-style-type: disc; }
+      .ql-editor pre.ql-syntax { background-color: #23241f; color: #f8f8f2; padding: 5px 10px; border-radius: 3px; }
+      .ql-editor blockquote { border-left: 4px solid #ccc; padding-left: 16px; font-style: italic; }
+      .ql-editor .ql-align-center { text-align: center; }
+      .ql-editor .ql-align-right { text-align: right; }
+      .ql-editor .ql-align-justify { text-align: justify; }
+    `;
+    container.appendChild(style);
+
+    const title = document.createElement("h2");
+    title.innerText = questionName || "Practice Exam Answers";
+    title.style.textAlign = "center";
+    title.style.marginBottom = "20px";
+    container.appendChild(title);
+
+    // Add answers sorted by question number
+    const numQuestions = totalQuestions || 1;
+    for (let i = 1; i <= numQuestions; i++) {
+      const answerHTML = answers[`q${i}`];
+      if (answerHTML && answerHTML.trim() !== "" && answerHTML !== "<p><br></p>") {
+        const qTitle = document.createElement("h3");
+        qTitle.innerText = `Question ${i}`;
+        qTitle.style.marginTop = "20px";
+        qTitle.style.borderBottom = "1px solid #ccc";
+        qTitle.style.paddingBottom = "5px";
+        container.appendChild(qTitle);
+
+        const qContent = document.createElement("div");
+        qContent.className = "ql-editor"; // Apply Quill editor styles
+        qContent.innerHTML = answerHTML;
+        qContent.style.marginTop = "10px";
+        container.appendChild(qContent);
+      }
+    }
+
+    // Only generate PDF if there are answers
+    if (container.children.length > 1) {
+      try {
+        const html2pdf = (await import("html2pdf.js")).default;
+        const opt = {
+          margin: 10,
+          filename: `${questionName ? questionName.replace(/[^a-z0-9]/gi, '_').toLowerCase() : 'practice'}_answers_${Date.now()}.pdf`,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2 },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        await html2pdf().set(opt).from(container).save();
+      } catch (error) {
+        console.error("Failed to generate PDF", error);
+      }
+    }
+  },
+
   TimesUp: async () => {
     // No-op for practice
   },

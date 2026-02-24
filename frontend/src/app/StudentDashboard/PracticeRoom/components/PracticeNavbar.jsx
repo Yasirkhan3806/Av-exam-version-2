@@ -17,6 +17,8 @@ const PracticeNavbar = () => {
     nextQuestion,
     prevQuestion,
     finishExam,
+    downloadAnswersPDF,
+    answers,
   } = usePracticeStore();
 
   const [isOverviewDropdownOpen, setIsOverviewDropdownOpen] = useState(false);
@@ -135,11 +137,10 @@ const PracticeNavbar = () => {
                       goToQuestion(number);
                       setIsOverviewDropdownOpen(false);
                     }}
-                    className={`w-8 h-8 rounded-full text-xs font-medium transition-all ${
-                      number === currentQuestion
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-500 text-white hover:bg-gray-600 cursor-pointer"
-                    }`}
+                    className={`w-8 h-8 rounded-full text-xs font-medium transition-all ${number === currentQuestion
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-500 text-white hover:bg-gray-600 cursor-pointer"
+                      }`}
                   >
                     {number}
                   </button>
@@ -180,9 +181,10 @@ const PracticeNavbar = () => {
           onClick={async () => {
             if (
               confirm(
-                "Are you sure you want to exit practice? Your work will not be saved.",
+                "Are you sure you want to finish practice? A PDF of your answers will be downloaded.",
               )
             ) {
+              await downloadAnswersPDF();
               await finishExam();
             }
           }}

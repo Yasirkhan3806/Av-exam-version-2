@@ -281,7 +281,7 @@ export const getResults = async (studentId) => {
     Student: studentId,
     status: "checked",
   })
-    .populate("questionSet", "_id name totalAttempt totalMarks totalQuestions")
+    .populate("questionSet", "_id name totalAttempt totalMarks totalQuestions subject")
     .sort({ checkedAt: -1 })
     .lean();
 
@@ -289,7 +289,7 @@ export const getResults = async (studentId) => {
     Student: studentId,
     status: "checked",
   })
-    .populate("questionSet", "_id name totalAttempt totalMarks totalQuestions")
+    .populate("questionSet", "_id name totalAttempt totalMarks totalQuestions subject")
     .sort({ checkedAt: -1 })
     .lean();
 

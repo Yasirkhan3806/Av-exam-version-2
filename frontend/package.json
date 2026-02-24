@@ -26,6 +26,7 @@
     "@univerjs/sheets-numfmt-ui": "^0.10.8",
     "@univerjs/sheets-ui": "^0.10.8",
     "@univerjs/ui": "^0.10.8",
+    "html2pdf.js": "^0.14.0",
     "jose": "^6.1.0",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.544.0",

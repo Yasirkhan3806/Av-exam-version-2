@@ -40,8 +40,8 @@ export async function middleware(req) {
 }
 
 export const config = {
-  // Match all paths except those starting with /Admin, /Instructor, or /elibrary
+  // Match all paths except those starting with /Admin or /elibrary
   matcher: [
-    "/((?!Admin|Instructor|elibrary|_next/static|_next/image|favicon.ico).*)",
+    "/((?!Admin|elibrary|_next/static|_next/image|favicon.ico).*)",
   ],
 };
