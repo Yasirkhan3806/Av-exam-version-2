@@ -203,7 +203,7 @@ const PracticeNavbar = () => {
               ? "bg-gray-400 text-gray-700 cursor-not-allowed"
               : "text-blue-600 bg-gray-300 hover:bg-gray-700 hover:text-white"
             }`}
-        >
+        > 
           {isFinishing ? "Generating PDF..." : "Finish Practice"}
         </button>
       </div>

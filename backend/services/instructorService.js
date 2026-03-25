@@ -335,12 +335,42 @@ export const getStudentAnswers = async (studentId, examId, subjectType) => {
   return answersDoc;
 };
 
+/**
+ * Processes uploaded files from the instructor's exam review.
+ * Handles both checked PDFs (fieldname: q1, q2, etc.) and
+ * suggested solution PDFs (fieldname: suggested_q1, suggested_q2, etc.).
+ * Replaces old PDFs on disk and updates the marksObtained map accordingly.
+ *
+ * @param {Array} files - Array of multer file objects
+ * @param {Object} marksObtained - The current marksObtained map from the Answer document
+ * @returns {Object} Updated marksObtained map with new file paths
+ */
 export const uploadCheckedPdfs = async (files, marksObtained) => {
   const updatedMarks = { ...marksObtained };
 
   files.forEach((file) => {
-    const questionKey = file.fieldname;
+    const fieldname = file.fieldname;
     const newPath = file.path;
+
+    // Handle suggested solution files (prefixed with 'suggested_')
+    if (fieldname.startsWith("suggested_")) {
+      const questionKey = fieldname.replace("suggested_", "");
+
+      // Delete old suggested solution file if it exists
+      const oldSuggestedPath = updatedMarks[questionKey]?.suggestedSolutionUrl;
+      if (oldSuggestedPath && fs.existsSync(oldSuggestedPath)) {
+        fs.unlinkSync(oldSuggestedPath);
+      }
+
+      updatedMarks[questionKey] = {
+        ...updatedMarks[questionKey],
+        suggestedSolutionUrl: newPath,
+      };
+      return;
+    }
+
+    // Handle checked PDF files (existing logic)
+    const questionKey = fieldname;
 
     const oldPath = updatedMarks[questionKey]?.pdfUrl;
     if (oldPath && fs.existsSync(oldPath)) {

@@ -21,6 +21,7 @@ export default function ReviewAnswer() {
   const [showAnswer, setShowAnswer] = useState(true); // Toggles visibility of the student's answer PDF
   const [currentCheckedPdf, setCurrentCheckedPdf] = useState(null); // Stores the PDF uploaded by the instructor (e.g., for marking)
   const [currentPdf, setCurrentPdf] = useState(null); // Stores the currently displayed checked PDF from the store
+  const [currentSuggestedSolution, setCurrentSuggestedSolution] = useState(null); // Stores the suggested solution PDF uploaded by the instructor
 
   // Access state and actions from the Zustand store for instructor data
   const {
@@ -35,7 +36,9 @@ export default function ReviewAnswer() {
     marks,
     finishExamReview,
     setCheckedPdf,
-    checkedPdfs
+    checkedPdfs,
+    setSuggestedSolution,
+    suggestedSolutions
   } = useInstructorStore((state) => state);
 
   /**
@@ -80,12 +83,14 @@ export default function ReviewAnswer() {
   };
 
   /**
-   * Handler for saving the current question's marks and uploaded checked PDF.
+   * Handler for saving the current question's marks, checked PDF, and suggested solution.
    * Then moves to the next question if available.
    */
   const handleSave = () => {
     setCheckedPdf(currentQuestion, currentCheckedPdf); // Save the uploaded checked PDF to the store
+    setSuggestedSolution(currentQuestion, currentSuggestedSolution); // Save the suggested solution PDF to the store
     setMarks(currentQuestion, currentMarks); // Save the marks to the store
+    setCurrentSuggestedSolution(null); // Reset local suggested solution state after saving
     // Move to the next question if not the last one
     if (currentQuestion < Object.keys(examQuestions).length) {
       nextQuestion();
@@ -93,11 +98,19 @@ export default function ReviewAnswer() {
   };
 
   /**
-   * Handler for when an instructor uploads a PDF (e.g., a marked script).
+   * Handler for when an instructor uploads a checked PDF (e.g., a marked script).
    * @param {File} pdfFile - The uploaded PDF file.
    */
   const handlePdfUpload = (pdfFile) => {
     setCurrentCheckedPdf(pdfFile);
+  };
+
+  /**
+   * Handler for when an instructor uploads a suggested solution PDF.
+   * @param {File} pdfFile - The uploaded suggested solution PDF.
+   */
+  const handleSuggestedSolutionUpload = (pdfFile) => {
+    setCurrentSuggestedSolution(pdfFile);
   };
 
   /**
@@ -144,6 +157,8 @@ export default function ReviewAnswer() {
           onSave={handleSave}
           onPdfUpload={handlePdfUpload}
           currentPdf={currentPdf} // PDF previously uploaded by instructor for this question
+          onSuggestedSolutionUpload={handleSuggestedSolutionUpload}
+          currentSuggestedSolution={currentSuggestedSolution} // Suggested solution PDF for this question
         />
       </main>
     </div>

@@ -145,6 +145,7 @@ const useInstructorStore = create(
       marks: {},
       currentStudentId: null,
       checkedPdfs: {},
+      suggestedSolutions: {},
       currentSubjectType: "",
 
       // Actions
@@ -216,14 +217,34 @@ const useInstructorStore = create(
         });
       },
 
+      /**
+       * Stores a suggested solution PDF file for a given question number.
+       * @param {number} questionNumber - The question number
+       * @param {File|null} pdfFile - The suggested solution PDF file
+       */
+      setSuggestedSolution: (questionNumber, pdfFile) => {
+        if (!pdfFile) return; // Don't store null values
+        set({
+          suggestedSolutions: {
+            ...get().suggestedSolutions,
+            [`q${questionNumber}`]: pdfFile,
+          },
+        });
+      },
+
       finishExamReview: async () => {
         try {
-          const { currentExamId, marks, currentStudentId, checkedPdfs } = get();
+          const { currentExamId, marks, currentStudentId, checkedPdfs, suggestedSolutions } = get();
 
-          // Prepare form data
+          // Prepare form data with checked PDFs
           const formData = new FormData();
           Object.entries(checkedPdfs).forEach(([key, file]) => {
             formData.append(key, file);
+          });
+
+          // Append suggested solution PDFs with 'suggested_' prefix
+          Object.entries(suggestedSolutions).forEach(([key, file]) => {
+            formData.append(`suggested_${key}`, file);
           });
 
           // Include the marksObtained object in request body
@@ -293,6 +314,7 @@ const useInstructorStore = create(
           studentAnswers: [],
           marks: {},
           currentStudentId: null,
+          suggestedSolutions: {},
         }),
     }),
     {

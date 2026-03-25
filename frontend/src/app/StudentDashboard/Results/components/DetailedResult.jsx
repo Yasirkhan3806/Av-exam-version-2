@@ -63,6 +63,7 @@ console.log('DetailedResult received result:', result);
               pdfUrl={marksData.pdfUrl || ""}
               marksObtained={Number(marksData.marks)}
               totalMarks={result.questionSet.questions?.find(q => q.id === questionId)?.marks || 1}
+              suggestedSolutionUrl={marksData.suggestedSolutionUrl || ""}
             />
           );
         })}
