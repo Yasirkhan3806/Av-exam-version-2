@@ -19,6 +19,7 @@ import { CheckCircle, XCircle, HelpCircle } from 'lucide-react';
  */
 const AnswerPanel = ({ question, studentAnswer, marksObtained, totalMarks, pdfUrl, suggestedSolutionUrl }) => {
   const BaseUrl = process.env.NEXT_PUBLIC_BASEURL || 'http://localhost:5000';
+  console.log(BaseUrl);
   const [activeTab, setActiveTab] = useState('answer'); // 'answer' or 'solution'
 
   const getMarksColor = () => {
