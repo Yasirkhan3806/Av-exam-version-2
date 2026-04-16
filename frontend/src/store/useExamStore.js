@@ -126,7 +126,12 @@ const useExamStore = create(
       },
 
       startExam: async () => {
-        const { BASEURL } = get();
+        const { BASEURL,startTime, endTime  } = get();
+
+        if (startTime && endTime) {
+          return;
+        }
+
         let attempts = 0;
         const maxAttempts = 50;
         const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -155,15 +160,13 @@ const useExamStore = create(
           return;
         }
 
-        const { totalTime, totalQuestions, startTime, endTime } = get();
+        const { totalTime, totalQuestions} = get();
 
         if (totalTime === 0 || totalQuestions === 0) {
           return;
         }
 
-        if (startTime && endTime) {
-          return;
-        }
+        
 
         const now = Date.now();
         const endTimeMs = now + totalTime * 60 * 1000;
