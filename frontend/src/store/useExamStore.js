@@ -27,6 +27,8 @@ const useExamStore = create(
       startTime: null,
       endTime: null,
       ExamId: null,
+      isOnline: true,
+      pauseStartTime: null,
 
       reset: () => {
         const subjectStore = useSubjectStore.getState();
@@ -46,6 +48,8 @@ const useExamStore = create(
           remainingTime: 0,
           startTime: null,
           endTime: null,
+          isOnline: true,
+          pauseStartTime: null,
         });
 
         if (window.localStorage) {
@@ -172,9 +176,12 @@ const useExamStore = create(
       },
 
       tick: () => {
-        const { endTime, totalTime } = get();
+        const { endTime, totalTime, isOnline } = get();
 
         if (!endTime || totalTime === 0) return;
+
+        // Don't tick if offline — timer is paused
+        if (!isOnline) return;
 
         const now = Date.now();
         let remainingTime = Math.floor((endTime - now) / 1000);
@@ -256,6 +263,37 @@ const useExamStore = create(
           set({ error: error.message, saving: false });
         }
       },
+      // --- Offline Pause Logic ---
+      setOnline: (status) => {
+        const { pauseStartTime, endTime, isOnline } = get();
+
+        if (!status && isOnline) {
+          // Going OFFLINE: record the pause start time
+          set({
+            isOnline: false,
+            pauseStartTime: Date.now(),
+          });
+        } else if (status && !isOnline) {
+          // Coming back ONLINE: extend endTime by the offline duration
+          if (pauseStartTime && endTime) {
+            const offlineDuration = Date.now() - pauseStartTime;
+            set({
+              isOnline: true,
+              pauseStartTime: null,
+              endTime: endTime + offlineDuration,
+            });
+          } else {
+            set({
+              isOnline: true,
+              pauseStartTime: null,
+            });
+          }
+
+          // Auto-sync answers to server after reconnecting
+          get().saveAnswers();
+        }
+      },
+
       TimesUp: async () => {
         await get().finishExam();
       },
@@ -314,7 +352,9 @@ const useExamStore = create(
       name: "exam-storage",
       partialize: (state) =>
         Object.fromEntries(
-          Object.entries(state).filter(([key]) => key !== "BASEURL")
+          Object.entries(state).filter(
+            ([key]) => key !== "BASEURL" && key !== "isOnline"
+          )
         ),
       onRehydrateStorage: () => (state) => {
         state?.setHydrated();
