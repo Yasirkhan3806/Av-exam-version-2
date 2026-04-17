@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { setFrontendCookie } from '../actions/authActions';
 
 export default function Login() {
   const [formData, setFormData] = useState({
@@ -74,6 +75,12 @@ export default function Login() {
       }
 
       console.log("✅ Login successful:", data);
+      
+      // ✅ Use Server Action to natively set the cookie on the frontend domain
+      if (data.token) {
+        await setFrontendCookie('token', data.token);
+      }
+
       setLoginStatus("You are successfully logged in! 🎉");
       window.location.href = `/StudentDashboard`;
 

@@ -54,14 +54,14 @@ export const login = async (req, res) => {
         .status(400)
         .json({ message: "Email and password are required" });
     }
-
-    const user = await authService.loginUser(email, password);
-    generateTokenAndSetCookie(user, res);
+     const user = await authService.loginUser(email, password);
+    const token = generateTokenAndSetCookie(user, res);
 
     return res.status(200).json({
       message: "✅ Logged in successfully",
       success: true,
       user: { id: user._id, name: user.name, email: user.email },
+      token,
     });
   } catch (e) {
     console.error(e);
@@ -81,14 +81,14 @@ export const adminLogin = async (req, res) => {
         .status(400)
         .json({ message: "Email and password are required" });
     }
-
     const user = await authService.adminLogin(username, password);
-    generateTokenAndSetCookie(user, res);
+    const token = generateTokenAndSetCookie(user, res);
 
     return res.status(200).json({
       message: "✅ Logged in successfully",
       success: true,
       user: { id: user._id, name: user.name, email: user.email },
+      token,
     });
   } catch (e) {
     console.error(e);
