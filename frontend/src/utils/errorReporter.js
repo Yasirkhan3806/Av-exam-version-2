@@ -38,7 +38,7 @@ export const reportError = async (error, errorInfo = null) => {
             stack: error?.stack || (errorInfo ? errorInfo.componentStack : 'No stack'),
         };
 
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+        const apiUrl = process.env.NEXT_PUBLIC_BASEURL || 'http://localhost:5000';
         await fetch(`${apiUrl}/api/logs/frontend`, {
             method: 'POST',
             headers: {
