@@ -13,6 +13,17 @@ import prcExamRouter from "./routes/prcExamRoutes.js";
 import eLibraryAuthRoutes from "./routes/eLibraryAuthRoutes.js";
 
 import eLibraryRoomRoutes from "./routes/eLibraryRoomRoutes.js";
+import logRoutes from "./routes/logs.js";
+import { backendLogger } from "./utils/logger.js";
+
+// Top level process handlers
+process.on('uncaughtException', (err) => {
+  backendLogger.error(`Uncaught Exception: ${err.message}`, { stack: err.stack });
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  backendLogger.error(`Unhandled Rejection: ${reason}`, { reason });
+});
 
 const app = express();
 const PORT = 5000;
@@ -76,6 +87,33 @@ const PORT = 5000;
   app.use("/prc-exams", prcExamRouter);
   app.use("/api/elibrary/auth", eLibraryAuthRoutes);
   app.use("/api/elibrary/rooms", eLibraryRoomRoutes);
+  app.use("/api/logs", logRoutes);
+
+  // TEMPORARY TEST ROUTE - You can delete this later
+  app.get("/api/test-error", (req, res, next) => {
+    // We intentionally pass an error to Express to simulate a crash
+    next(new Error("🔥 BOOM! This is a test backend crash. The logger works!"));
+  });
+
+  // Global Error Handler Middleware
+  app.use((err, req, res, next) => {
+    // Attempt to extract user info if attached via some auth middleware
+    const userId = req.user ? req.user.id || req.user._id : 'Unauthenticated';
+    const userName = req.user ? req.user.name || req.user.firstName : 'Unknown';
+    const userAgent = req.headers['user-agent'] || 'Unknown Device';
+
+    backendLogger.error(err.message || 'Internal Server Error', {
+        userId,
+        userName,
+        errorType: err.name || 'Error',
+        stack: err.stack,
+        endpoint: req.originalUrl,
+        method: req.method,
+        device: userAgent
+    });
+
+    res.status(500).json({ error: 'Internal Server Error' });
+  });
 
   // Start server
   app.listen(PORT, () =>
