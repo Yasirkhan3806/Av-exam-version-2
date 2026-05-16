@@ -1,12 +1,18 @@
 {
   "type": "module",
   "scripts": {
-    "start": "npx nodemon server.js"
+    "start": "npx nodemon server.js",
+    "dev": "npx nodemon server.js",
+    "test": "node --test tests/**/*.test.js",
+    "test:middleware": "node --test tests/middleware.test.js",
+    "test:rbac": "node --test tests/rbac.integration.test.js",
+    "test:services": "node --test tests/services/*.test.js"
   },
   "dependencies": {
     "axios": "^1.13.3",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
+    "compression": "^1.8.1",
     "connect-redis": "^9.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",

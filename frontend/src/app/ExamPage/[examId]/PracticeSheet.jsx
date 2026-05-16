@@ -48,38 +48,44 @@ export default function PracticeSheet() {
   useEffect(() => {
     if (!containerRef.current || univerRef.current) return
 
-    const univer = new Univer({
-      locale: LocaleType.EN_US,
-      locales: {
-        [LocaleType.EN_US]: mergeLocales(
-          DesignEnUS,
-          UIEnUS,
-          DocsUIEnUS,
-          SheetsEnUS,
-          SheetsUIEnUS,
-          SheetsFormulaUIEnUS,
-          SheetsNumfmtUIEnUS,
-        ),
-      },
-    })
+    // Delay initialization slightly to ensure dynamic CSS is loaded and layout is calculated
+    const initTimer = setTimeout(() => {
+      if (!containerRef.current || univerRef.current) return;
 
-    univerRef.current = univer
+      const univer = new Univer({
+        locale: LocaleType.EN_US,
+        locales: {
+          [LocaleType.EN_US]: mergeLocales(
+            DesignEnUS,
+            UIEnUS,
+            DocsUIEnUS,
+            SheetsEnUS,
+            SheetsUIEnUS,
+            SheetsFormulaUIEnUS,
+            SheetsNumfmtUIEnUS,
+          ),
+        },
+      })
 
-    // Register plugins
-    univer.registerPlugin(UniverRenderEnginePlugin)
-    univer.registerPlugin(UniverFormulaEnginePlugin)
-    univer.registerPlugin(UniverUIPlugin, { container: containerRef.current })
-    univer.registerPlugin(UniverDocsPlugin)
-    univer.registerPlugin(UniverDocsUIPlugin)
-    univer.registerPlugin(UniverSheetsPlugin)
-    univer.registerPlugin(UniverSheetsUIPlugin)
-    univer.registerPlugin(UniverSheetsFormulaUIPlugin)
-    univer.registerPlugin(UniverSheetsNumfmtUIPlugin)
+      univerRef.current = univer
 
-    setIsInitialized(true)
+      // Register plugins
+      univer.registerPlugin(UniverRenderEnginePlugin)
+      univer.registerPlugin(UniverFormulaEnginePlugin)
+      univer.registerPlugin(UniverUIPlugin, { container: containerRef.current })
+      univer.registerPlugin(UniverDocsPlugin)
+      univer.registerPlugin(UniverDocsUIPlugin)
+      univer.registerPlugin(UniverSheetsPlugin)
+      univer.registerPlugin(UniverSheetsUIPlugin)
+      univer.registerPlugin(UniverSheetsFormulaUIPlugin)
+      univer.registerPlugin(UniverSheetsNumfmtUIPlugin)
+
+      setIsInitialized(true)
+    }, 100);
 
     // On unmount → flush all workbook states & dispose
     return () => {
+      clearTimeout(initTimer);
       try {
         if (saveTimeoutRef.current) {
           clearTimeout(saveTimeoutRef.current)
@@ -266,9 +272,9 @@ export default function PracticeSheet() {
   }
 
   return (
-    <div className="editor-container h-full flex flex-col">
-      <div className="flex-1 flex flex-col">
-        <div ref={containerRef} className="h-full" style={{ minHeight: '400px' }}></div>
+    <div className="editor-container h-full w-full flex flex-col flex-1 relative" style={{ minHeight: 0 }}>
+      <div className="flex-1 flex flex-col w-full h-full relative" style={{ minHeight: 0 }}>
+        <div ref={containerRef} className="w-full h-full absolute inset-0"></div>
       </div>
     </div>
   )

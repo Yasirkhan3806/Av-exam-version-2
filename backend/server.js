@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import compression from "compression";
 import connectDB from "./config/database.js";
 import path from "path";
 
@@ -61,6 +62,8 @@ const PORT = 5000;
 
     next();
   });
+
+  app.use(compression());
 
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));

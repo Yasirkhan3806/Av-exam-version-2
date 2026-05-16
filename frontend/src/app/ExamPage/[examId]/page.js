@@ -4,7 +4,16 @@ import React, { useEffect } from "react";
 import { useParams } from "next/navigation";
 import QuestionPanel from "./QuestionWindow";
 import Editor from "./AnswerWindow";
-import PracticeSheet from "./PracticeSheet";
+import dynamic from 'next/dynamic';
+
+const PracticeSheet = dynamic(() => import('./PracticeSheet'), {
+  ssr: false,
+  loading: () => (
+    <div className="h-full flex items-center justify-center bg-gray-50 text-gray-400 font-medium rounded-lg border border-dashed border-gray-300">
+      <p>Loading Spreadsheet...</p>
+    </div>
+  )
+});
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import useExamStore from "../../../store/useExamStore";
 import Navbar from "./Navbar";

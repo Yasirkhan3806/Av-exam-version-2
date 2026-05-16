@@ -24,7 +24,14 @@ export default function QuestionPanel({ examId }) {
   }, [examId, fetchExam, currentSubjectType]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="w-full h-full p-4 flex flex-col gap-4 animate-pulse">
+        {/* PDF Toolbar Skeleton */}
+        <div className="h-12 bg-gray-200 rounded-lg w-full shadow-sm opacity-70"></div>
+        {/* PDF Content Skeleton */}
+        <div className="flex-1 bg-gray-200 rounded-lg w-full shadow-sm opacity-50"></div>
+      </div>
+    );
   }
 
   if (error) {
