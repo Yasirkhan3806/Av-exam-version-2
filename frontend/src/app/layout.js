@@ -1,4 +1,12 @@
 import "./globals.css";
+import { Montserrat } from "next/font/google";
+
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-montserrat",
+});
+
 import { BaseUrlProvider } from "../context/BASEURLContext";
 import ErrorBoundary from "../components/ErrorBoundary";
 import GlobalErrorListener from "../components/GlobalErrorListener";
@@ -10,7 +18,7 @@ export const metadata = {
 
 export default async function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${montserrat.variable}`}>
       <body>
         <GlobalErrorListener />
         <ErrorBoundary>

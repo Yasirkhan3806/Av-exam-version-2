@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Trash2, Book, Loader2 } from "lucide-react";
 
@@ -10,7 +10,7 @@ export default function SubjectsPage() {
   const [deletingId, setDeletingId] = useState(null);
   const BASEURL = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
 
-  const fetchSubjects = async () => {
+  const fetchSubjects = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch(`${BASEURL}/subjects/getAllSubjects`, {
@@ -24,11 +24,11 @@ export default function SubjectsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [BASEURL]);
 
   useEffect(() => {
     fetchSubjects();
-  }, []);
+  }, [fetchSubjects]);
 
   const handleDelete = async (e, id) => {
     e.preventDefault(); // Prevent navigation to details page

@@ -46,7 +46,7 @@ const SubjectDetailsPage = () => {
     if (id) {
       fetchSubject();
     }
-  }, [id]);
+  }, [id, BaseUrl]);
 
   const onEnroll = () => {
     window.location.reload();

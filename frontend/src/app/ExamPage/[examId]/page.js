@@ -125,7 +125,7 @@ const ExamPage = () => {
     return () => {
       reset();
     };
-  }, []);
+  }, [startExam, reset]);
 
   // --- Connectivity monitoring ---
   useEffect(() => {
@@ -142,7 +142,7 @@ const ExamPage = () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
-  }, []);
+  }, [setOnline]);
 
   // Handle back button separately
   useEffect(() => {
@@ -167,7 +167,7 @@ const ExamPage = () => {
     return () => {
       window.removeEventListener("popstate", handlePopState);
     };
-  }, []);
+  }, [finishExam, reset]);
 
   return (
     <div className="min-h-screen">

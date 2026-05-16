@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Trash2, User, Loader2, Pencil, Search } from "lucide-react";
 import EditInstructorForm from "./components/EditInstructorForm";
 
@@ -13,7 +13,7 @@ export default function InstructorsPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const BASEURL = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
 
-  const fetchInstructors = async () => {
+  const fetchInstructors = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch(`${BASEURL}/instructors/getInstructors`, {
@@ -28,11 +28,11 @@ export default function InstructorsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [BASEURL]);
 
   useEffect(() => {
     fetchInstructors();
-  }, []);
+  }, [fetchInstructors]);
 
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this instructor?")) {

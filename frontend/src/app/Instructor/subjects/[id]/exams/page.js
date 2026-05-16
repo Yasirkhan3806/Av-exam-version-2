@@ -13,7 +13,7 @@ const SubjectTests = () => {
 
   useEffect(()=>{
     setCurrentSubjectType(subjectType)
-  },[subjectId,subjectType])
+  },[subjectId,subjectType, setCurrentSubjectType])
 
   return (
     <>

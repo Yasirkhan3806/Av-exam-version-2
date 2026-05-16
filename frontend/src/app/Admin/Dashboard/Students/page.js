@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Trash2, User, Loader2, Pencil, Search, Mail } from "lucide-react";
 import EditStudentForm from "./components/EditStudentForm";
 
@@ -13,7 +13,7 @@ export default function StudentsPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const BASEURL = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
 
-  const fetchStudents = async () => {
+  const fetchStudents = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch(`${BASEURL}/auth/get-students`, {
@@ -28,11 +28,11 @@ export default function StudentsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [BASEURL]);
 
   useEffect(() => {
     fetchStudents();
-  }, []);
+  }, [fetchStudents]);
 
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this student?")) {

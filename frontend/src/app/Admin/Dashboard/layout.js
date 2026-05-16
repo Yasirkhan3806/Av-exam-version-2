@@ -84,6 +84,7 @@ export default async function AdminDashboardLayout({ children }) {
           <h1 className="text-xl font-semibold">Dashboard</h1>
           <div className="flex items-center gap-4">
             <span className="text-gray-700">Admin</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="https://ui-avatars.com/api/?name=Admin"
               alt="Admin Avatar"

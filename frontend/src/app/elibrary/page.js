@@ -50,7 +50,7 @@ function ELibraryContent() {
     const interval = setInterval(fetchCounts, 5000); // Update every 5 seconds
 
     return () => clearInterval(interval);
-  }, []);
+  }, [BASE_URL]);
 
   const rooms = [
     {
