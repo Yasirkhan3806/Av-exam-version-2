@@ -126,7 +126,7 @@ const useExamStore = create(
       },
 
       startExam: async () => {
-        const { BASEURL,startTime, endTime  } = get();
+        const { BASEURL, startTime, endTime } = get();
 
         if (startTime && endTime) {
           return;
@@ -160,13 +160,13 @@ const useExamStore = create(
           return;
         }
 
-        const { totalTime, totalQuestions} = get();
+        const { totalTime, totalQuestions } = get();
 
         if (totalTime === 0 || totalQuestions === 0) {
           return;
         }
 
-        
+
 
         const now = Date.now();
         const endTimeMs = now + totalTime * 60 * 1000;
@@ -240,32 +240,39 @@ const useExamStore = create(
         set({ saving: saving });
       },
 
-      saveAnswers: async () => {
+      saveAnswers: async (retryCount = 0) => {
+        const MAX_RETRIES = 3;
+        const RETRY_DELAYS = [1000, 3000, 8000];
+
         set({ saving: true, error: null });
         try {
-          // Only send answers to backend, NOT workbook states (rough work)
-          const response = await fetch(
-            `${get().BASEURL}/questions/submitAnswers`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              credentials: "include",
-              body: JSON.stringify({
-                answers: get().answers,
-                questionSet: get().ExamId,
-              }),
-            }
-          );
-          if (!response.ok) {
-            throw new Error("Failed to save answers");
-          }
-          set({ saving: false });
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 10000);
+
+          const response = await fetch(`${get().BASEURL}/questions/submitAnswers`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            signal: controller.signal,
+            body: JSON.stringify({
+              answers: get().answers,
+              questionSet: get().ExamId,
+            }),
+          });
+          clearTimeout(timeout);
+
+          if (!response.ok) throw new Error("Failed to save answers");
+          set({ saving: false, lastSaveTime: Date.now() });
         } catch (error) {
-          set({ error: error.message, saving: false });
+          if (retryCount < MAX_RETRIES) {
+            await new Promise(r => setTimeout(r, RETRY_DELAYS[retryCount]));
+            return get().saveAnswers(retryCount + 1);
+          }
+          // After all retries fail, queue for later
+          set({ error: error.message, saving: false, hasPendingSave: true });
         }
       },
+
       // --- Offline Pause Logic ---
       setOnline: (status) => {
         const { pauseStartTime, endTime, isOnline } = get();
