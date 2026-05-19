@@ -342,3 +342,30 @@ export const deleteInstructor = async (req, res) => {
       .json({ message: "Error deleting instructor", error: err.message });
   }
 };
+
+export const deleteSubmission = async (req, res) => {
+  try {
+    const { studentId, examId } = req.params;
+    const { subjectType } = req.query;
+
+    await instructorService.deleteSubmission(studentId, examId, subjectType);
+
+    return res.status(200).json({
+      success: true,
+      message: "✅ Submission deleted successfully",
+    });
+  } catch (error) {
+    console.error("❌ Error deleting submission:", error);
+    if (error.message === "Invalid student ID or exam ID") {
+      return res.status(400).json({ message: error.message });
+    }
+    if (error.message === "Submission not found") {
+      return res.status(404).json({ message: error.message });
+    }
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};

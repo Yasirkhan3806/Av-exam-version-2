@@ -53,6 +53,12 @@ router.put(
 );
 router.post("/logout", instructorController.logout);
 
+router.delete(
+  "/deleteSubmission/:studentId/:examId",
+  verifyInstructorToken,
+  instructorController.deleteSubmission
+);
+
 router.get(
   "/getInstructors",
   verifyToken,

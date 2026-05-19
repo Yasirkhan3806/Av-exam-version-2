@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import useSubjectStore from "./useSubjectStore";
+import { safeFetch } from "../utils/safeFetch";
 
 const useExamStore = create(
   persist(
@@ -18,6 +19,7 @@ const useExamStore = create(
       loading: false,
       error: null,
       saving: false,
+      uploadProgress: 0,
       BASEURL:
         process.env.NEXT_PUBLIC_MODE == "production"
           ? "https://academicvitality.org/api"
@@ -44,6 +46,7 @@ const useExamStore = create(
           loading: false,
           error: null,
           saving: false,
+          uploadProgress: 0,
           totalTime: 0,
           remainingTime: 0,
           startTime: null,
@@ -95,11 +98,12 @@ const useExamStore = create(
         set({ loading: true, error: null });
         const { BASEURL } = get();
         try {
-          const response = await fetch(
+          const response = await safeFetch(
             `${BASEURL}/questions/getQuestionById/${subjectType}/${examId}`,
             {
               credentials: "include",
-            }
+            },
+            15000 // 15 second timeout
           );
           if (!response.ok) {
             throw new Error("Failed to fetch exam data");
@@ -132,33 +136,35 @@ const useExamStore = create(
           return;
         }
 
-        let attempts = 0;
-        const maxAttempts = 50;
-        const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-        while (attempts < maxAttempts) {
-          const { totalTime, totalQuestions } = get();
-          if (totalTime > 0 && totalQuestions > 0) {
-            break;
-          }
-          attempts++;
-          await delay(100);
-        }
-
-        const res = await fetch(`${BASEURL}/questions/startExam`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({ questionSet: get().ExamId }),
+        const waitForData = () => new Promise((resolve, reject) => {
+          const check = setInterval(() => {
+            const { totalTime, totalQuestions } = get();
+            if (totalTime > 0 && totalQuestions > 0) {
+              clearInterval(check);
+              resolve();
+            }
+          }, 200);
+          setTimeout(() => { clearInterval(check); reject(new Error('Exam data load timeout')); }, 30000);
         });
 
-        if (res.status !== 200) {
-          console.error(`Failed to start exam. Status: ${res.status}`);
-          set({ error: `Failed to start exam. Status: ${res.status}` });
-          return;
-        }
+        try {
+          set({ loading: true });
+          await waitForData();
+
+          const res = await safeFetch(`${BASEURL}/questions/startExam`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify({ questionSet: get().ExamId }),
+          }, 15000);
+
+          if (res.status !== 200) {
+            console.error(`Failed to start exam. Status: ${res.status}`);
+            set({ error: `Failed to start exam. Status: ${res.status}`, loading: false });
+            return;
+          }
 
         const { totalTime, totalQuestions } = get();
 
@@ -171,11 +177,15 @@ const useExamStore = create(
         const now = Date.now();
         const endTimeMs = now + totalTime * 60 * 1000;
 
-        set({
-          startTime: now,
-          endTime: endTimeMs,
-          remainingTime: totalTime * 60,
-        });
+          set({
+            startTime: now,
+            endTime: endTimeMs,
+            remainingTime: totalTime * 60,
+            loading: false
+          });
+        } catch (error) {
+          set({ error: 'Failed to start exam. Please refresh and try again.', loading: false });
+        }
       },
 
       tick: () => {
@@ -263,6 +273,7 @@ const useExamStore = create(
 
           if (!response.ok) throw new Error("Failed to save answers");
           set({ saving: false, lastSaveTime: Date.now() });
+          return true;
         } catch (error) {
           if (retryCount < MAX_RETRIES) {
             await new Promise(r => setTimeout(r, RETRY_DELAYS[retryCount]));
@@ -270,6 +281,7 @@ const useExamStore = create(
           }
           // After all retries fail, queue for later
           set({ error: error.message, saving: false, hasPendingSave: true });
+          return false;
         }
       },
 
@@ -310,52 +322,94 @@ const useExamStore = create(
 
       finishExam: async () => {
         const { saveAnswers, reset, BASEURL } = get();
-        set({ saving: true });
-        await saveAnswers();
-        const res = await fetch(`${BASEURL}/questions/finishExam`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-        });
-        if (res.status !== 200) {
-          console.error(`Failed to finish exam. Status: ${res.status}`);
-          set({
-            error: `Failed to finish exam. Status: ${res.status}`,
-            saving: false,
-          });
-          return;
+        set({ saving: true, error: null });
+        
+        try {
+          // 1. Try to save answers first.
+          const saveSuccess = await saveAnswers();
+          
+          if (!saveSuccess) {
+            // If answers failed to save, abort the finish process so the user can retry.
+            throw new Error("Failed to save final answers to the server.");
+          }
+          
+          // 2. If saveAnswers succeeded, we MUST reset local state immediately 
+          // so the user isn't trapped in a dead exam on refresh, regardless of 
+          // what happens to the next API call.
+          reset();
+          
+          // 3. Fire the finishExam API call
+          const res = await safeFetch(`${BASEURL}/questions/finishExam`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+          }, 15000);
+          
+          if (!res.ok) {
+            console.error(`Failed to finish exam. Status: ${res.status}`);
+          }
+        } catch (error) {
+          console.error("Critical failure during exam submission:", error);
+          set({ error: "Failed to submit exam answers. Please check your connection and try again." });
+        } finally {
+          set({ saving: false });
         }
-        reset();
-        set({ saving: false });
       },
       submitCafAnswer: async (cafExamId, file) => {
-        set({ saving: true, error: null });
+        set({ saving: true, uploadProgress: 0, error: null });
         const { BASEURL } = get();
-        try {
+        
+        return new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', `${BASEURL}/caf-answers/submitAnswer`);
+          xhr.withCredentials = true;
+          
+          xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable) {
+              set({ uploadProgress: Math.round((e.loaded / e.total) * 100) });
+            }
+          };
+          
+          xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              try {
+                const result = JSON.parse(xhr.responseText);
+                set({ saving: false, uploadProgress: 0 });
+                resolve(result);
+              } catch (e) {
+                set({ error: "Failed to parse response", saving: false, uploadProgress: 0 });
+                reject(e);
+              }
+            } else {
+              let errorMsg = "Failed to submit CAF answer";
+              try {
+                const errorData = JSON.parse(xhr.responseText);
+                errorMsg = errorData.error || errorMsg;
+              } catch (e) {}
+              set({ error: errorMsg, saving: false, uploadProgress: 0 });
+              reject(new Error(errorMsg));
+            }
+          };
+          
+          xhr.onerror = () => {
+            set({ error: "Network error during upload. Please try again.", saving: false, uploadProgress: 0 });
+            reject(new Error("Network error during upload"));
+          };
+          
+          xhr.ontimeout = () => {
+            set({ error: "Upload timed out. Please try again.", saving: false, uploadProgress: 0 });
+            reject(new Error("Upload timed out"));
+          };
+          
+          xhr.timeout = 120000; // 2 min timeout for large files
+          
           const formData = new FormData();
           formData.append("questionId", cafExamId);
           formData.append("pdf", file);
-
-          const response = await fetch(`${BASEURL}/caf-answers/submitAnswer`, {
-            method: "POST",
-            credentials: "include",
-            body: formData,
-          });
-
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || "Failed to submit CAF answer");
-          }
-
-          const result = await response.json();
-          set({ saving: false });
-          return result;
-        } catch (error) {
-          set({ error: error.message, saving: false });
-          throw error;
-        }
+          xhr.send(formData);
+        });
       },
     }),
     {

@@ -461,3 +461,28 @@ export const deleteInstructor = async (id) => {
   }
   return result;
 };
+
+export const deleteSubmission = async (studentId, examId, subjectType) => {
+  if (
+    !mongoose.Types.ObjectId.isValid(studentId) ||
+    !mongoose.Types.ObjectId.isValid(examId)
+  ) {
+    throw new Error("Invalid student ID or exam ID");
+  }
+
+  let AnswerModel = Answer;
+  if (subjectType === "CAF") {
+    AnswerModel = CafExamAnswer;
+  }
+
+  const result = await AnswerModel.findOneAndDelete({
+    Student: studentId,
+    questionSet: examId,
+  });
+
+  if (!result) {
+    throw new Error("Submission not found");
+  }
+
+  return result;
+};

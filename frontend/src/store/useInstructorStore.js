@@ -1,15 +1,16 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { safeFetch } from "../utils/safeFetch";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
 
 // === Centralized Fetch Helper ===
 async function fetchJSON(url, options = {}) {
-  const res = await fetch(url, {
+  const res = await safeFetch(url, {
     headers: { "Content-Type": "application/json" },
     credentials: "include",
     ...options,
-  });
+  }, 15000); // 15-second default timeout
   if (!res.ok) throw new Error(`Request failed: ${res.status}`);
   return res.json();
 }
@@ -72,6 +73,28 @@ const fetchSubmissions = async (set, get, questionId) => {
   } catch (error) {
     console.error("Failed to fetch submissions:", error);
     throw error;
+  }
+};
+
+const deleteSubmission = async (set, get, studentId, examId) => {
+  try {
+    const currentSubjectType = get().currentSubjectType;
+    const query = currentSubjectType
+      ? `?subjectType=${currentSubjectType}`
+      : "";
+    await fetchJSON(
+      `${BASE_URL}/instructors/deleteSubmission/${studentId}/${examId}${query}`,
+      { method: "DELETE" }
+    );
+    // Remove the submission from the local state to update the UI instantly
+    const updatedSubmissions = get().submissions.filter(
+      (sub) => sub.id !== studentId
+    );
+    set({ submissions: updatedSubmissions });
+    return true;
+  } catch (error) {
+    console.error("Failed to delete submission:", error);
+    return false;
   }
 };
 
@@ -160,6 +183,7 @@ const useInstructorStore = create(
       setCurrentSubjectType: (subjectType) =>
         set({ currentSubjectType: subjectType }),
       fetchSubmissions: (questionId) => fetchSubmissions(set, get, questionId),
+      deleteSubmission: (studentId, examId) => deleteSubmission(set, get, studentId, examId),
       fetchExamById: (examId) => fetchExamById(set, get, examId),
       fetchAnswersByQuestionId: (studentId, examId) =>
         fetchAnswersByQuestionId(set, get, studentId, examId),
@@ -251,10 +275,14 @@ const useInstructorStore = create(
           formData.append("data", JSON.stringify({ marksObtained: marks }));
 
           // Upload all PDFs and replace old ones
-          const res = await fetch(`${BASE_URL}/instructors/uploadCheckedPdfs`, {
+          const res = await safeFetch(`${BASE_URL}/instructors/uploadCheckedPdfs`, {
             method: "POST",
             body: formData,
-          });
+          }, 60000); // 60 second timeout since instructors might upload multiple marked PDFs
+          
+          if (!res.ok) {
+             throw new Error(`Upload failed: ${res.status}`);
+          }
           const { updatedMarks } = await res.json();
           console.log(
             "✅ Uploaded checked PDFs and obtained updated marks:",

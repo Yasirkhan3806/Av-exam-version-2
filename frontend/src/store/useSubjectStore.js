@@ -1,15 +1,16 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { safeFetch } from '../utils/safeFetch';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASEURL || 'http://localhost:5000';
 
 // === Centralized Fetch Helper ===
 async function fetchJSON(url, options = {}) {
-  const res = await fetch(url, {
+  const res = await safeFetch(url, {
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
     ...options,
-  });
+  }, 15000);
   if (!res.ok) throw new Error(`Request failed: ${res.status}`);
   return res.json();
 }

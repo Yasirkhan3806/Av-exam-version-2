@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export default function AnswerPanel({ onSubmit, isLoading }) {
+export default function AnswerPanel({ onSubmit, isLoading, uploadProgress = 0 }) {
   const [selectedFile, setSelectedFile] = useState(null);
 
   const handleFileChange = (e) => {
@@ -66,16 +66,33 @@ export default function AnswerPanel({ onSubmit, isLoading }) {
           </label>
         </div>
 
+        {isLoading && (
+          <div className="w-full mt-2 mb-2">
+            <div className="flex justify-between text-sm text-gray-600 mb-1 font-medium">
+              <span>Uploading file...</span>
+              <span>{uploadProgress}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2.5 shadow-inner overflow-hidden">
+              <div
+                className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-out"
+                style={{ width: `${uploadProgress}%` }}
+              ></div>
+            </div>
+          </div>
+        )}
+
         <button
           onClick={handleSubmit}
-          className={`w-full py-3 px-6 rounded-lg font-semibold text-white transition-all transform active:scale-95 ${
+          className={`w-full py-3 px-6 rounded-lg font-semibold text-white transition-all transform active:scale-95 mt-2 ${
             selectedFile && !isLoading
-              ? "bg-blue-600 hover:bg-blue-700 shadow-md"
+              ? "bg-blue-600 hover:bg-blue-700 shadow-md hover:-translate-y-0.5"
               : "bg-gray-400 cursor-not-allowed"
           }`}
           disabled={!selectedFile || isLoading}
         >
-          {isLoading ? "Submitting..." : "Submit Answer"}
+          {isLoading 
+            ? (uploadProgress === 100 ? "Processing on Server..." : `Submitting...`) 
+            : "Submit Answer"}
         </button>
       </div>
     </div>

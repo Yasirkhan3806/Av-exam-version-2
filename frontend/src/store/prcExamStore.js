@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import useSubjectStore from "./useSubjectStore";
+import { safeFetch } from "../utils/safeFetch";
 
 // Adjust API_URL based on your environment
 const API_URL = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
@@ -20,7 +21,7 @@ const usePrcExamStore = create((set, get) => ({
   fetchExam: async (id) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await fetch(`${API_URL}/prc-exams/${id}`);
+      const response = await safeFetch(`${API_URL}/prc-exams/${id}`, {}, 15000);
       if (!response.ok) throw new Error("Failed to fetch exam");
       const data = await response.json();
 
@@ -72,9 +73,9 @@ const usePrcExamStore = create((set, get) => ({
   fetchUserInfo: async () => {
     set({ isLoading: true, error: null });
     try {
-      const response = await fetch(`${API_URL}/auth/verifySession`, {
+      const response = await safeFetch(`${API_URL}/auth/verifySession`, {
         credentials: "include",
-      });
+      }, 10000);
       if (!response.ok) throw new Error("Failed to fetch user info");
       const data = await response.json();
       console.log(data);
@@ -93,11 +94,11 @@ const usePrcExamStore = create((set, get) => ({
     set({ isLoading: true });
 
     try {
-      const response = await fetch(`${API_URL}/prc-exams/${exam._id}/submit`, {
+      const response = await safeFetch(`${API_URL}/prc-exams/${exam._id}/submit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ answers }),
-      });
+      }, 15000);
 
       if (!response.ok) throw new Error("Failed to submit exam");
 
@@ -113,13 +114,14 @@ const usePrcExamStore = create((set, get) => ({
         detailed: resultData.detailed, // This array already matches your schema structure
       };
 
-      const detailedResult = await fetch(
+      const detailedResult = await safeFetch(
         `${API_URL}/prc-exams/submitDetailedResult`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ...finalResultToSave }),
-        }
+        },
+        15000
       );
 
       if (!detailedResult.ok)
