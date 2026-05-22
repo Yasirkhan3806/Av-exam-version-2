@@ -16,17 +16,12 @@ const ReviewCafAnswer = () => {
   const [error, setError] = useState(null);
   const [marks, setMarks] = useState("");
   const [checkedPdf, setCheckedPdf] = useState(null);
+  const [suggestedSolutionPdf, setSuggestedSolutionPdf] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchSubmission = async () => {
       try {
-        // We fetch directly here or via store. Fetching here for simplicity as per plan.
-        // Assuming fetchJSON helper or similar. Using fetch for now.
-        // We need headers with credentials if using cookies.
-        // Or better, let's use a helper from store or just fetch.
-        // Since this is a new page, I'll implement fetch here.
-
         const res = await fetch(
           `${BASE_URL}/caf-answers/submission/${studentId}/${currentExamId}`,
           {
@@ -58,6 +53,12 @@ const ReviewCafAnswer = () => {
     }
   };
 
+  const handleSuggestedSolutionChange = (e) => {
+    if (e.target.files[0]) {
+      setSuggestedSolutionPdf(e.target.files[0]);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
@@ -68,6 +69,9 @@ const ReviewCafAnswer = () => {
       formData.append("marks", marks);
       if (checkedPdf) {
         formData.append("checkedPdf", checkedPdf);
+      }
+      if (suggestedSolutionPdf) {
+        formData.append("suggestedSolution", suggestedSolutionPdf);
       }
 
       const res = await fetch(`${BASE_URL}/caf-answers/mark-submission`, {
@@ -102,6 +106,9 @@ const ReviewCafAnswer = () => {
     : "";
   const checkedPdfUrl = submission.checkedPdfUrl
     ? `${BASE_URL}/${submission.checkedPdfUrl.replace(/\\/g, "/")}`
+    : "";
+  const existingSuggestedSolutionUrl = submission.suggestedSolutionUrl
+    ? `${BASE_URL}/${submission.suggestedSolutionUrl.replace(/\\/g, "/")}`
     : "";
 
   return (
@@ -152,13 +159,6 @@ const ReviewCafAnswer = () => {
               <span className="text-green-600">Checked Version Available</span>
             )}
           </div>
-          {/* If we have a checked PDF, showing it might be better, or show the student's original. 
-                         Plan: Show student's original by default, maybe toggle?
-                         Actually, usually we annotate the student PDF. 
-                         Here, the user requested "upload a checked pdf". 
-                         So we view the student pdf, download it maybe? 
-                         I'll just show the student PDF for viewing.
-                      */}
           {answerPdfUrl ? (
             <iframe
               src={answerPdfUrl}
@@ -195,10 +195,32 @@ const ReviewCafAnswer = () => {
             <input
               type="file"
               accept="application/pdf"
-              required={!submission.checkedPdfUrl} // Required only if not already checked? Or always allow re-upload.
+              required={!submission.checkedPdfUrl}
               onChange={handleFileChange}
               className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none"
             />
+          </div>
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Suggested Solution{" "}
+              <span className="text-gray-400 font-normal">(Optional)</span>
+            </label>
+            <input
+              type="file"
+              accept="application/pdf"
+              onChange={handleSuggestedSolutionChange}
+              className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none"
+            />
+            {existingSuggestedSolutionUrl && !suggestedSolutionPdf && (
+              <p className="text-xs text-green-600 mt-1">
+                ✅ Suggested solution already attached
+              </p>
+            )}
+            {suggestedSolutionPdf && (
+              <p className="text-xs text-blue-600 mt-1">
+                📄 {suggestedSolutionPdf.name} ({(suggestedSolutionPdf.size / 1024).toFixed(1)} KB)
+              </p>
+            )}
           </div>
           <button
             type="submit"

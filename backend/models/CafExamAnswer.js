@@ -20,6 +20,10 @@ const cafExamAnswerSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    suggestedSolutionUrl: {
+      type: String,
+      default: "",
+    },
     status: {
       type: String,
       enum: ["submitted", "checked", "draft"],

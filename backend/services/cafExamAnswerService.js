@@ -58,7 +58,7 @@ export const getMySubmission = async (studentId, examId) => {
   return answer;
 };
 
-export const markSubmission = async (studentId, examId, file, marks) => {
+export const markSubmission = async (studentId, examId, file, marks, suggestedSolutionFile) => {
   if (!file) {
     throw new Error("Checked PDF is required");
   }
@@ -66,14 +66,34 @@ export const markSubmission = async (studentId, examId, file, marks) => {
   const deleted = await deleteOldPdf(studentId, examId);
 
   if (deleted) {
+    // Build the update object
+    const updateData = {
+      marksObtained: marks,
+      submittedPdfUrl: file.path,
+      status: "checked",
+      checkedAt: new Date(),
+    };
+
+    // Handle suggested solution file if provided
+    if (suggestedSolutionFile) {
+      // Delete old suggested solution file from disk if it exists
+      const oldAnswer = await CafExamAnswer.findOne({
+        Student: studentId,
+        questionSet: examId,
+      });
+      if (oldAnswer?.suggestedSolutionUrl && fs.existsSync(oldAnswer.suggestedSolutionUrl)) {
+        try {
+          fs.unlinkSync(oldAnswer.suggestedSolutionUrl);
+        } catch (err) {
+          console.error("Old suggested solution file deletion failed", err);
+        }
+      }
+      updateData.suggestedSolutionUrl = suggestedSolutionFile.path;
+    }
+
     const updatedAnswer = await CafExamAnswer.findOneAndUpdate(
       { Student: studentId, questionSet: examId },
-      {
-        marksObtained: marks,
-        submittedPdfUrl: file.path,
-        status: "checked",
-        checkedAt: new Date(),
-      },
+      updateData,
       { new: true }
     );
 

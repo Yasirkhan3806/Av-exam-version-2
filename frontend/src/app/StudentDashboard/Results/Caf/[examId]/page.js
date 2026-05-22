@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { FileText } from "lucide-react";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
 
@@ -12,6 +13,7 @@ const CafResult = () => {
   const [submission, setSubmission] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState("answer"); // 'answer' or 'solution'
 
   useEffect(() => {
     const fetchSubmission = async () => {
@@ -56,15 +58,12 @@ const CafResult = () => {
   const checkedPdfUrl = submission.checkedPdfUrl
     ? `${BASE_URL}/${submission.checkedPdfUrl.replace(/\\/g, "/")}`
     : "";
-  // Priority: Checked PDF > Submitted PDF (though submitted PDF is always replaced by checked one in logic often,
-  // but schema has both fields? Actually logic deletes old submitted pdf and puts checked pdf in submittedPdfUrl?
-  // Wait, the logic in service switched.
-  // Let's check service logic:
-  // updateStudentMarks (instructorService) -> replaceFile logic.
-  // markSubmission (cafExamAnswerService) -> checkedPdfUrl = file.path.
-  // So we should have checkedPdfUrl.
+  const suggestedSolutionUrl = submission.suggestedSolutionUrl
+    ? `${BASE_URL}/${submission.suggestedSolutionUrl.replace(/\\/g, "/")}`
+    : "";
 
   const displayAnswerUrl = checkedPdfUrl || submittedPdfUrl;
+  const hasSuggestedSolution = suggestedSolutionUrl && suggestedSolutionUrl.trim() !== "";
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
@@ -126,26 +125,61 @@ const CafResult = () => {
           )}
         </div>
 
-        {/* Right: Answer/Checked PDF */}
+        {/* Right: Answer/Checked PDF + Suggested Solution */}
         <div className="w-1/2 bg-white flex flex-col relative">
+          {/* Tab Header */}
           <div className="bg-gray-100 px-4 py-2 border-b font-medium text-gray-700 flex justify-between items-center text-sm">
-            <span>Your Answer Sheet</span>
-            {checkedPdfUrl && (
+            <div className="flex gap-1">
+              <button
+                onClick={() => setActiveTab("answer")}
+                className={`py-1.5 px-3 rounded-md text-sm font-medium transition-all ${
+                  activeTab === "answer"
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                Your Answer Sheet
+              </button>
+              {hasSuggestedSolution && (
+                <button
+                  onClick={() => setActiveTab("solution")}
+                  className={`py-1.5 px-3 rounded-md text-sm font-medium transition-all flex items-center gap-1.5 ${
+                    activeTab === "solution"
+                      ? "bg-white text-green-700 shadow-sm"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  Suggested Solution
+                </button>
+              )}
+            </div>
+            {checkedPdfUrl && activeTab === "answer" && (
               <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
                 Checked Version
               </span>
             )}
           </div>
-          {displayAnswerUrl ? (
-            <iframe
-              src={displayAnswerUrl}
-              className="w-full h-full"
-              title="Answer PDF"
-            ></iframe>
+
+          {/* PDF Viewer */}
+          {activeTab === "answer" ? (
+            displayAnswerUrl ? (
+              <iframe
+                src={displayAnswerUrl}
+                className="w-full h-full"
+                title="Answer PDF"
+              ></iframe>
+            ) : (
+              <div className="flex items-center justify-center h-full text-gray-400">
+                No Answer PDF Available
+              </div>
+            )
           ) : (
-            <div className="flex items-center justify-center h-full text-gray-400">
-              No Answer PDF Available
-            </div>
+            <iframe
+              src={suggestedSolutionUrl}
+              className="w-full h-full"
+              title="Suggested Solution PDF"
+            ></iframe>
           )}
         </div>
       </div>

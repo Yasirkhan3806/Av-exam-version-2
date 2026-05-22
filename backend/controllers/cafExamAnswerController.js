@@ -70,11 +70,14 @@ export const getMySubmission = async (req, res) => {
 export const markSubmission = async (req, res) => {
   try {
     const { studentId, examId, marks } = req.body;
+    const checkedPdfFile = req.files?.checkedPdf?.[0];
+    const suggestedSolutionFile = req.files?.suggestedSolution?.[0];
     const result = await cafExamAnswerService.markSubmission(
       studentId,
       examId,
-      req.file,
-      marks
+      checkedPdfFile,
+      marks,
+      suggestedSolutionFile
     );
     return res
       .status(200)

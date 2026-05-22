@@ -33,7 +33,10 @@ router.get(
 router.post(
   "/mark-submission",
   verifyInstructorToken,
-  answerUpload.single("checkedPdf"),
+  answerUpload.fields([
+    { name: "checkedPdf", maxCount: 1 },
+    { name: "suggestedSolution", maxCount: 1 },
+  ]),
   cafExamAnswerController.markSubmission
 );
 
