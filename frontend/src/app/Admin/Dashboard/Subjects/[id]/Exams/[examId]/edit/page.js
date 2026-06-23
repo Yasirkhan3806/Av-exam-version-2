@@ -68,10 +68,17 @@ export default function EditExamPage() {
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    if (file && file.type === "application/pdf") {
+    if (file) {
+      if (file.type !== "application/pdf") {
+        setError("Please select a valid PDF file.");
+        return;
+      }
+      if (file.size > 50 * 1024 * 1024) {
+        setError("File size must be less than 50MB.");
+        return;
+      }
+      setError("");
       setFormData((prev) => ({ ...prev, pdfFile: file }));
-    } else if (file) {
-      setError("Please select a valid PDF file.");
     }
   };
 
@@ -256,7 +263,7 @@ export default function EditExamPage() {
                       Click to select new PDF
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
-                      Keep current PDF by leaving this empty
+                      Keep current PDF by leaving this empty (Max 50MB)
                     </p>
                   </div>
                   <input

@@ -2,7 +2,32 @@
 
 import { useState } from "react";
 
-export default function AnswerPanel({ onSubmit, isLoading, uploadProgress = 0 }) {
+const formatBytes = (bytes, decimals = 2) => {
+  if (bytes === 0) return "0 Bytes";
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ["Bytes", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
+};
+
+const formatSpeed = (bytesPerSecond) => {
+  if (!bytesPerSecond || bytesPerSecond <= 0) return "0 B/s";
+  return `${formatBytes(bytesPerSecond, 1)}/s`;
+};
+
+const formatTime = (seconds) => {
+  if (seconds === undefined || seconds === null) return "";
+  if (seconds <= 0) return "0s";
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  if (m > 0) {
+    return `${m}m ${s}s`;
+  }
+  return `${s}s`;
+};
+
+export default function AnswerPanel({ onSubmit, isLoading, uploadProgress = 0, uploadDetails = null }) {
   const [selectedFile, setSelectedFile] = useState(null);
 
   const handleFileChange = (e) => {
@@ -54,7 +79,7 @@ export default function AnswerPanel({ onSubmit, isLoading, uploadProgress = 0 })
                   ? selectedFile.name
                   : "Click to upload or drag and drop"}
               </p>
-              <p className="text-xs text-gray-400">PDF, JPG, PNG (MAX. 10MB)</p>
+              <p className="text-xs text-gray-400">PDF, JPG, PNG (MAX. 20MB)</p>
             </div>
             <input
               id="answer-upload"
@@ -67,7 +92,7 @@ export default function AnswerPanel({ onSubmit, isLoading, uploadProgress = 0 })
         </div>
 
         {isLoading && (
-          <div className="w-full mt-2 mb-2">
+          <div className="w-full mt-2 mb-2 space-y-2">
             <div className="flex justify-between text-sm text-gray-600 mb-1 font-medium">
               <span>Uploading file...</span>
               <span>{uploadProgress}%</span>
@@ -78,6 +103,24 @@ export default function AnswerPanel({ onSubmit, isLoading, uploadProgress = 0 })
                 style={{ width: `${uploadProgress}%` }}
               ></div>
             </div>
+            {uploadDetails && (
+              <div className="flex flex-col gap-1.5 text-xs text-gray-500 mt-2 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                <div className="flex justify-between">
+                  <span>Size:</span>
+                  <span className="font-medium text-gray-700">
+                    {formatBytes(uploadDetails.loaded)} / {formatBytes(uploadDetails.total)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Speed:</span>
+                  <span className="font-medium text-gray-700">{formatSpeed(uploadDetails.speed)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Time Remaining:</span>
+                  <span className="font-medium text-gray-700">{formatTime(uploadDetails.remainingTime)}</span>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

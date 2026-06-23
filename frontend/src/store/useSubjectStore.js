@@ -52,18 +52,24 @@ async function fetchSubjects(set, get) {
   }
 }
 
-// === Fetch exams for a subject (with caching) ===
-async function fetchExamsForSubject(set, get, subjectId,subjectType) {
+// === Fetch exams for a subject (with caching & cache-bypass support) ===
+async function fetchExamsForSubject(set, get, subjectId, subjectType, force = false) {
   if (!subjectId) return console.error('fetchExamsForSubject called without subjectId');
 
+  // Check if cache exists and we are not forcing a refresh
   const existing = get().examsBySubject?.[subjectId];
-  if (existing) {
+  if (existing && !force) {
     console.log(`Using cached exams for subject ${subjectId}`);
     return existing;
   }
 
   set({ loading: true, error: null });
   try {
+    // If subjectType is undefined, warn about the fallback, but proceed to fetch
+    if (!subjectType) {
+      console.warn(`fetchExamsForSubject: subjectType is undefined for subject ${subjectId}. Backend might fallback to standard Questions.`);
+    }
+
     const data = await fetchJSON(`${BASE_URL}/subjects/getExamsForSubject/${subjectType}/${subjectId}`);
     set((state) => ({
       examsBySubject: { ...state.examsBySubject, [subjectId]: data },
@@ -76,6 +82,7 @@ async function fetchExamsForSubject(set, get, subjectId,subjectType) {
     return [];
   }
 }
+
 
 async function fetchStudentResults(set, get) {
   set({ loading: true, error: null });
@@ -165,7 +172,7 @@ const useSubjectStore = create(
       // === Async actions ===
       fetchUserInfo: () => fetchUserInfo(set),
       fetchSubjects: () => fetchSubjects(set, get),
-      fetchExamsForSubject: (subjectId,subjectType) => fetchExamsForSubject(set, get, subjectId,subjectType),
+      fetchExamsForSubject: (subjectId, subjectType, force = false) => fetchExamsForSubject(set, get, subjectId, subjectType, force),
       fetchStudentResults: () => fetchStudentResults(set, get),
       fetchStudentAnswers: (examId) => fetchStudentAnswers(set, get, examId),
       updateOverallProgress: (progress) => set({ overallProgress: [progress, ...get().overallProgress] }),
@@ -217,6 +224,19 @@ const useSubjectStore = create(
         }
 
         console.log(`🧹 Cleared cached data for subject ${subjectId}`);
+      },
+      clearAllSubjectCache: () => {
+        set({ examsBySubject: {} });
+        try {
+          const persisted = JSON.parse(localStorage.getItem('subject-storage'));
+          if (persisted?.state) {
+            persisted.state.examsBySubject = {};
+            localStorage.setItem('subject-storage', JSON.stringify(persisted));
+            console.log('✅ Cleared all exams cache in localStorage');
+          }
+        } catch (err) {
+          console.warn('❌ Failed to clear exams cache in localStorage:', err);
+        }
       },
     }),
     {

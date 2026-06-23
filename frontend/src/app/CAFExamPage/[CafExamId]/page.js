@@ -9,7 +9,7 @@ import useSubjectStore from "../../../store/useSubjectStore";
 export default function CafExamPage({ params: paramsPromise }) {
   const params = use(paramsPromise);
   const { CafExamId } = params;
-  const { fetchExam, BASEURL, submitCafAnswer, saving, uploadProgress } = useExamStore();
+  const { fetchExam, BASEURL, submitCafAnswer, saving, uploadProgress, uploadDetails } = useExamStore();
   const currentSubjectType = useSubjectStore(
     (state) => state.currentSubjectType
   );
@@ -54,7 +54,7 @@ export default function CafExamPage({ params: paramsPromise }) {
         <QuestionPanel pdfUrl={pdfUrl} />
       </div>
       <div className="w-full md:w-1/3 min-w-[350px] bg-white">
-        <AnswerPanel onSubmit={handleSubmit} isLoading={saving} uploadProgress={uploadProgress} />
+        <AnswerPanel onSubmit={handleSubmit} isLoading={saving} uploadProgress={uploadProgress} uploadDetails={uploadDetails} />
       </div>
     </div>
   );

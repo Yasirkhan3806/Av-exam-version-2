@@ -49,11 +49,10 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
 
   return (
     <aside
-      className={`${
-        isOpen
+      className={`${isOpen
           ? "w-64 fixed md:relative lg:relative top-0 left-0 z-1000"
           : "w-16 sticky top-0 left-0"
-      } bg-white shadow-lg transition-all duration-300 ease-in-out h-[100vh] flex flex-col`}
+        } bg-white shadow-lg transition-all duration-300 ease-in-out h-[100vh] flex flex-col`}
     >
       <div className="p-4 border-b border-gray-200 flex items-center justify-between">
         {isOpen && (
@@ -103,45 +102,39 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
 
             return (
               <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`flex items-center ${
-                    isOpen ? "px-3" : "justify-center"
-                  } py-2 rounded-lg transition-colors ${
-                    isActive
-                      ? "bg-indigo-600 text-white"
-                      : "text-gray-700 hover:bg-gray-100"
+                key={item.name}
+                href={item.href}
+                className={`flex items-center ${isOpen ? "px-3" : "justify-center"
+                  } py-2 rounded-lg transition-colors ${isActive
+                    ? "bg-indigo-600 text-white"
+                    : "text-gray-700 hover:bg-gray-100"
                   }`}
-                >
-                  <item.icon
-                    className={`${isOpen ? "w-5 h-5" : "w-6 h-6"} ${
-                      isActive ? "text-white" : "text-gray-500"
+              >
+                <item.icon
+                  className={`${isOpen ? "w-5 h-5" : "w-6 h-6"} ${isActive ? "text-white" : "text-gray-500"
                     }`}
-                  />
-                  {isOpen && <span className="ml-3">{item.name}</span>}
-                </Link>
-           
+                />
+                {isOpen && <span className="ml-3">{item.name}</span>}
+              </Link>
+
             );
           })}
           <button
-            onClick={() =>{ 
+            onClick={() => {
               (window.location.href = "/StudentDashboard/PracticeRoom")
               toggleSidebar()
             }}
-            className={`flex items-center ${
-              isOpen ? "px-3" : "justify-center"
-            } py-2 rounded-lg transition-colors ${
-              pathname === "/StudentDashboard/PracticeRoom"
+            className={`flex items-center ${isOpen ? "px-3" : "justify-center"
+              } py-2 rounded-lg transition-colors ${pathname === "/StudentDashboard/PracticeRoom"
                 ? "bg-indigo-600 text-white"
                 : "text-gray-700 hover:bg-gray-100"
-            }`}
+              }`}
           >
             <ClipboardList
-              className={`${isOpen ? "w-5 h-5" : "w-6 h-6"} ${
-                pathname === "/StudentDashboard/PracticeRoom"
+              className={`${isOpen ? "w-5 h-5" : "w-6 h-6"} ${pathname === "/StudentDashboard/PracticeRoom"
                   ? "text-white"
                   : "text-gray-500"
-              }`}
+                }`}
             />
             {isOpen && <span className="ml-3">Practice Room</span>}
           </button>
@@ -151,9 +144,8 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
       <div className="p-4 border-t border-gray-200">
         <button
           onClick={handleLogout}
-          className={`flex items-center ${
-            isOpen ? "px-3" : "justify-center"
-          } w-full py-2 rounded-lg transition-colors text-gray-700 hover:bg-gray-100`}
+          className={`flex items-center ${isOpen ? "px-3" : "justify-center"
+            } w-full py-2 rounded-lg transition-colors text-gray-700 hover:bg-gray-100`}
         >
           <LogOut
             className={`${isOpen ? "w-5 h-5" : "w-6 h-6"} text-gray-500`}

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { use, useEffect, useState } from "react";
+import { RefreshCw } from "lucide-react";
 import ExamCard from "./ExamCard";
 import useSubjectStore from "../../../../../store/useSubjectStore";
 import ExamInstructionsPopup from "../components/BeforeExamPopUp";
@@ -71,18 +72,29 @@ const ExamGrid = ({ subjectId, subjectType }) => {
     setRegularExams(regularExams);
   }, [exams]);
 
-  // Fetch exams for this subject if not cached
+  // Fetch exams for this subject if not cached (passing subjectType properly)
   useEffect(() => {
     if (!subjectId) return;
     if (!examsBySubject?.[subjectId]) {
-      fetchExamsForSubject(subjectId);
+      fetchExamsForSubject(subjectId, subjectType);
     }
-  }, [subjectId, examsBySubject, fetchExamsForSubject]);
+  }, [subjectId, subjectType, examsBySubject, fetchExamsForSubject]);
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Your Tests</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Your Tests</h1>
+          <button
+            onClick={() => fetchExamsForSubject(subjectId, subjectType, true)}
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed group"
+            title="Refresh exams list"
+          >
+            <RefreshCw className={`w-4.5 h-4.5 text-gray-500 group-hover:text-gray-700 ${loading ? "animate-spin text-indigo-500" : ""}`} />
+            {loading ? "Refreshing..." : "Refresh"}
+          </button>
+        </div>
 
         {loading && (
           <p className="text-gray-600 mb-4 animate-pulse">Loading exams...</p>

@@ -76,10 +76,14 @@ const PORT = 5000;
   // Routes
   app.use("/auth", authRouter);
   app.use("/questions", questionRouter);
-  app.use(
-    "/TestQuestions",
-    express.static(path.join(process.cwd(), "TestQuestions")),
-  );
+ app.use(
+  "/TestQuestions",
+  express.static(path.join(process.cwd(), "TestQuestions"), {
+    maxAge: '1d', // Cache static questions for 1 day
+    immutable: true
+  })
+);
+
   app.use(
     "/Answer_pdfs",
     express.static(path.join(process.cwd(), "Answer_pdfs")),
@@ -111,7 +115,7 @@ const PORT = 5000;
         errorType: err.name || 'Error',
         stack: err.stack,
         endpoint: req.originalUrl,
-        method: req.method,
+        method: req.method, 
         device: userAgent
     });
 

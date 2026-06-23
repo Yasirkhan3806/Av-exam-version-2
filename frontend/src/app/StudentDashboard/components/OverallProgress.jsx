@@ -29,7 +29,7 @@ const OverallProgress = () => {
     avgGrade: "B+",
   });
 
-  // Mock data update - in a real app, this would come from an API or store
+
   useEffect(() => {
     const totalProgress = overallProgress.reduce((acc, curr) => acc + curr, 0);
     const avgProgress = totalProgress / overallProgress.length;

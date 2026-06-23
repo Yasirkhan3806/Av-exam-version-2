@@ -32,9 +32,9 @@ const CAFExamForm = ({ subjectId, isOpen, onClose }) => {
         setError("Please select a PDF file");
         return;
       }
-      if (file.size > 10 * 1024 * 1024) {
-        // 10MB limit
-        setError("File size must be less than 10MB");
+      if (file.size > 50 * 1024 * 1024) {
+        // 50MB limit
+        setError("File size must be less than 50MB");
         return;
       }
       setError("");
@@ -234,7 +234,7 @@ const CAFExamForm = ({ subjectId, isOpen, onClose }) => {
                     Click to upload PDF
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
-                    Max file size: 10MB
+                    Max file size: 50MB
                   </p>
                 </div>
                 <input

@@ -20,6 +20,7 @@ const useExamStore = create(
       error: null,
       saving: false,
       uploadProgress: 0,
+      uploadDetails: null,
       BASEURL:
         process.env.NEXT_PUBLIC_MODE == "production"
           ? "https://academicvitality.org/api"
@@ -47,6 +48,7 @@ const useExamStore = create(
           error: null,
           saving: false,
           uploadProgress: 0,
+          uploadDetails: null,
           totalTime: 0,
           remainingTime: 0,
           startTime: null,
@@ -358,7 +360,7 @@ const useExamStore = create(
         }
       },
       submitCafAnswer: async (cafExamId, file) => {
-        set({ saving: true, uploadProgress: 0, error: null });
+        set({ saving: true, uploadProgress: 0, uploadDetails: null, error: null });
         const { BASEURL } = get();
         
         return new Promise((resolve, reject) => {
@@ -366,9 +368,28 @@ const useExamStore = create(
           xhr.open('POST', `${BASEURL}/caf-answers/submitAnswer`);
           xhr.withCredentials = true;
           
+          const uploadStartTime = Date.now();
           xhr.upload.onprogress = (e) => {
             if (e.lengthComputable) {
-              set({ uploadProgress: Math.round((e.loaded / e.total) * 100) });
+              const loaded = e.loaded;
+              const total = e.total;
+              const progress = Math.round((loaded / total) * 100);
+
+              const currentTime = Date.now();
+              const duration = (currentTime - uploadStartTime) / 1000; // duration in seconds
+              
+              let speed = 0; // Bytes per second
+              let remainingTime = 0; // estimated remaining seconds
+              if (duration > 0) {
+                speed = loaded / duration;
+                const remainingBytes = total - loaded;
+                remainingTime = speed > 0 ? Math.round(remainingBytes / speed) : 0;
+              }
+
+              set({ 
+                uploadProgress: progress,
+                uploadDetails: { loaded, total, speed, remainingTime }
+              });
             }
           };
           
@@ -376,10 +397,10 @@ const useExamStore = create(
             if (xhr.status >= 200 && xhr.status < 300) {
               try {
                 const result = JSON.parse(xhr.responseText);
-                set({ saving: false, uploadProgress: 0 });
+                set({ saving: false, uploadProgress: 0, uploadDetails: null });
                 resolve(result);
               } catch (e) {
-                set({ error: "Failed to parse response", saving: false, uploadProgress: 0 });
+                set({ error: "Failed to parse response", saving: false, uploadProgress: 0, uploadDetails: null });
                 reject(e);
               }
             } else {
@@ -388,22 +409,22 @@ const useExamStore = create(
                 const errorData = JSON.parse(xhr.responseText);
                 errorMsg = errorData.error || errorMsg;
               } catch (e) {}
-              set({ error: errorMsg, saving: false, uploadProgress: 0 });
+              set({ error: errorMsg, saving: false, uploadProgress: 0, uploadDetails: null });
               reject(new Error(errorMsg));
             }
           };
           
           xhr.onerror = () => {
-            set({ error: "Network error during upload. Please try again.", saving: false, uploadProgress: 0 });
+            set({ error: "Network error during upload. Please try again.", saving: false, uploadProgress: 0, uploadDetails: null });
             reject(new Error("Network error during upload"));
           };
           
           xhr.ontimeout = () => {
-            set({ error: "Upload timed out. Please try again.", saving: false, uploadProgress: 0 });
+            set({ error: "Upload timed out. Please try again.", saving: false, uploadProgress: 0, uploadDetails: null });
             reject(new Error("Upload timed out"));
           };
           
-          xhr.timeout = 120000; // 2 min timeout for large files
+          xhr.timeout = 300000; // 2 min timeout for large files
           
           const formData = new FormData();
           formData.append("questionId", cafExamId);
@@ -417,7 +438,11 @@ const useExamStore = create(
       partialize: (state) =>
         Object.fromEntries(
           Object.entries(state).filter(
-            ([key]) => key !== "BASEURL" && key !== "isOnline"
+            ([key]) =>
+              key !== "BASEURL" &&
+              key !== "isOnline" &&
+              key !== "uploadProgress" &&
+              key !== "uploadDetails"
           )
         ),
       onRehydrateStorage: () => (state) => {
