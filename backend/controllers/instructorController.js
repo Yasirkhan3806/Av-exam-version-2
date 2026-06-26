@@ -29,13 +29,19 @@ export const registerInstructor = async (req, res) => {
 
 export const instructorLogin = async (req, res) => {
   try {
+    console.log("Backend: instructorLogin controller hit");
     const { username, password } = req.body;
+    console.log("Backend: attempting login for username:", username);
+
     const instructor = await instructorService.loginInstructor(
       username,
       password
     );
 
+    console.log("Backend: instructor service returned success for:", instructor?.userName);
+
     generateTokenAndSetCookie(instructor, res, "instructorToken");
+    console.log("Backend: Cookie generated and set on response");
 
     return res.status(200).json({
       message: "✅ Instructor logged in successfully",
@@ -48,7 +54,7 @@ export const instructorLogin = async (req, res) => {
       },
     });
   } catch (e) {
-    console.error(e);
+    console.error("Backend: instructorLogin error:", e);
     if (
       e.message === "Username and password are required" ||
       e.message === "Invalid username or password"
