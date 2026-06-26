@@ -40,8 +40,8 @@ export const instructorLogin = async (req, res) => {
 
     console.log("Backend: instructor service returned success for:", instructor?.userName);
 
-    generateTokenAndSetCookie(instructor, res, "instructorToken");
-    console.log("Backend: Cookie generated and set on response");
+    const token = generateTokenAndSetCookie(instructor, res, "instructorToken");
+    console.log("Backend: Cookie generated and set on response", token);
 
     return res.status(200).json({
       message: "✅ Instructor logged in successfully",

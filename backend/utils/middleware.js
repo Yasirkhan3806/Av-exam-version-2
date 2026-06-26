@@ -104,6 +104,7 @@ export const verifyInstructorToken = (req, res, next) => {
 
     if (req.cookies && req.cookies.instructorToken) {
       token = req.cookies.instructorToken;
+      console.log(token)
     }
 
     if (!token && req.headers.cookie) {
