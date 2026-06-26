@@ -30,9 +30,6 @@ const LoginPage = () => {
       console.log(data)
 
       if (data.success) {
-        if (data.token) {
-          await setFrontendCookie('instructorToken', data.token);
-        }
         router.push('/Instructor');
       } else {
         setError(data.message || 'Invalid username or password');

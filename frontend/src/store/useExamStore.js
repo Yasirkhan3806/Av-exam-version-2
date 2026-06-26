@@ -22,7 +22,7 @@ const useExamStore = create(
       uploadProgress: 0,
       uploadDetails: null,
       BASEURL:
-        process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000",
+       process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000",
       totalTime: 0,
       remainingTime: 0,
       startTime: null,

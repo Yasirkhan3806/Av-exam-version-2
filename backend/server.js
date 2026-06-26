@@ -39,7 +39,7 @@ const PORT = 5000;
       "http://localhost:3000",
       "https://academicvitality.org",
       "https://www.academicvitality.org",
-      "https://testcbe.academicvitality.org",
+       "https://testcbe.academicvitality.org",
       "https://www.testcbe.academicvitality.org",
     ];
     const origin = req.headers.origin;

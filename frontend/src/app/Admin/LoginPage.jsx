@@ -58,9 +58,6 @@ export default function AdminLogin() {
 
       const result = await response.json();
       if (result.success) {
-        if (result.token) {
-          await setFrontendCookie("token", result.token);
-        }
         setMessage({
           type: "success",
           text: "Login successful! Redirecting...",
