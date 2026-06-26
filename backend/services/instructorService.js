@@ -229,8 +229,9 @@ export const getExamById = async (examId) => {
 };
 
 export const generatePDF = async (html, fileName) => {
+  let browser;
   try {
-    const browser = await puppeteer.launch({
+    browser = await puppeteer.launch({
       headless: true,
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
     });
@@ -275,11 +276,14 @@ export const generatePDF = async (html, fileName) => {
     const pdfPath = path.join(pdfDir, `${fileName}.pdf`);
     fs.writeFileSync(pdfPath, pdfBuffer);
 
-    await browser.close();
     return path.join("Answer_pdfs", `${fileName}.pdf`);
   } catch (error) {
     console.error("PDF generation error:", error);
     throw error;
+  } finally {
+    if (browser) {
+      await browser.close();
+    }
   }
 };
 

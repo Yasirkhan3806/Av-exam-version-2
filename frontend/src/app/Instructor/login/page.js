@@ -18,21 +18,24 @@ const LoginPage = () => {
 
     try {
       const response = await fetch(`${baseUrl}/instructors/instructor-login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include', // Include cookies
-      body: JSON.stringify({ username, password }),
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Include cookies
+        body: JSON.stringify({ username, password }),
       });
 
       const data = await response.json();
       console.log(data)
 
       if (data.success) {
-      router.push('/Instructor');
+        if (data.token) {
+          await setFrontendCookie('instructorToken', data.token);
+        }
+        router.push('/Instructor');
       } else {
-      setError(data.message || 'Invalid username or password');
+        setError(data.message || 'Invalid username or password');
       }
     } catch (err) {
       setError('Network error. Please try again.');
@@ -96,14 +99,13 @@ const LoginPage = () => {
                 />
               </div>
 
-          
+
 
               <button
                 type="submit"
                 disabled={isLoading}
-                className={`w-full flex justify-center items-center px-4 py-3 rounded-lg text-white font-medium ${
-                  isLoading ? 'bg-emerald-400' : 'bg-emerald-600 hover:bg-emerald-700'
-                } transition duration-200`}
+                className={`w-full flex justify-center items-center px-4 py-3 rounded-lg text-white font-medium ${isLoading ? 'bg-emerald-400' : 'bg-emerald-600 hover:bg-emerald-700'
+                  } transition duration-200`}
               >
                 {isLoading ? (
                   <>
