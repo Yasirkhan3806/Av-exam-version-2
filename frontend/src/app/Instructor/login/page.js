@@ -16,8 +16,13 @@ const LoginPage = () => {
     setError('');
     setIsLoading(true);
 
+    const loginUrl = `${baseUrl}/instructors/instructor-login`;
+    console.log("=== INSTRUCTOR LOGIN DEBUG ===");
+    console.log("Target login URL:", loginUrl);
+    console.log("Sending payload for username:", username);
+
     try {
-      const response = await fetch(`${baseUrl}/instructors/instructor-login`, {
+      const response = await fetch(loginUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -26,18 +31,28 @@ const LoginPage = () => {
         body: JSON.stringify({ username, password }),
       });
 
+      console.log("Response HTTP status:", response.status, response.statusText);
+
       const data = await response.json();
-      console.log(data)
+      console.log("Received data payload:", data);
 
       if (data.success) {
+        console.log("Login successful! Token exists in payload:", !!data.token);
+        if (data.token) {
+          await setFrontendCookie('instructorToken', data.token);
+          console.log("Successfully set frontend cookie: instructorToken");
+        }
         router.push('/Instructor');
       } else {
+        console.warn("Backend rejected login:", data.message);
         setError(data.message || 'Invalid username or password');
       }
     } catch (err) {
+      console.error("Critical error during instructor login fetch:", err);
       setError('Network error. Please try again.');
     } finally {
       setIsLoading(false);
+      console.log("===============================");
     }
   };
 
