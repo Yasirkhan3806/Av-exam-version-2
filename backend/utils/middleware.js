@@ -19,6 +19,7 @@ export const generateTokenAndSetCookie = (user, res, tokenName = "token") => {
     secure: true, // MUST be true when sameSite is 'none'
     sameSite: "none", // Allows cross-origin cookies
     maxAge: 3 * 24 * 60 * 60 * 1000,
+    domain: process.env.COOKIE_DOMAIN || ".testcbe.academicvitality.org", // Share cookie across subdomains (api.testcbe... ↔ testcbe...)
   });
 
   return token;
