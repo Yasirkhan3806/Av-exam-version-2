@@ -28,6 +28,7 @@ export const registerInstructor = async (req, res) => {
 };
 
 export const instructorLogin = async (req, res) => {
+  console.log(`[Instructor Login Attempt] Username: "${req.body?.username}"`);
   try {
     const { username, password } = req.body;
     const instructor = await instructorService.loginInstructor(
@@ -35,8 +36,9 @@ export const instructorLogin = async (req, res) => {
       password
     );
 
-    generateTokenAndSetCookie(instructor, res, "instructorToken");
+    const token = generateTokenAndSetCookie(instructor, res, "instructorToken");
 
+    console.log(`[Instructor Login Success] Username: "${username}"`);
     return res.status(200).json({
       message: "✅ Instructor logged in successfully",
       success: true,
@@ -46,9 +48,10 @@ export const instructorLogin = async (req, res) => {
         userName: instructor.userName,
         courses: instructor.courses,
       },
+      token,
     });
   } catch (e) {
-    console.error(e);
+    console.error(`[Instructor Login Failed] Username: "${req.body?.username}". Error:`, e.message);
     if (
       e.message === "Username and password are required" ||
       e.message === "Invalid username or password"
