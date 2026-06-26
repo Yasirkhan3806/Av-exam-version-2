@@ -110,10 +110,11 @@ export default function AdminLogin() {
           {/* Message Display */}
           {message.text && (
             <div
-              className={`mb-6 p-4 rounded-lg text-sm font-medium transition-all duration-300 ${message.type === "success"
+              className={`mb-6 p-4 rounded-lg text-sm font-medium transition-all duration-300 ${
+                message.type === "success"
                   ? "bg-green-500/20 text-green-200 border border-green-500/30"
                   : "bg-red-500/20 text-red-200 border border-red-500/30"
-                }`}
+              }`}
             >
               <div className="flex items-center">
                 {message.type === "success" ? (
@@ -285,7 +286,7 @@ export default function AdminLogin() {
         </div>
 
         {/* eLibrary Link */}
-
+       
 
         {/* Footer */}
         <p className="text-center text-sm text-slate-400 mt-6">

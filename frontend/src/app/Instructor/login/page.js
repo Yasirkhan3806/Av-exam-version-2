@@ -13,15 +13,10 @@ const LoginPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Frontend: handleSubmit triggered");
-    console.log("Frontend: username length:", username.length);
-    console.log("Frontend: baseUrl being used:", baseUrl);
-    
     setError('');
     setIsLoading(true);
 
     try {
-      console.log("Frontend: Attempting fetch to:", `${baseUrl}/instructors/instructor-login`);
       const response = await fetch(`${baseUrl}/instructors/instructor-login`, {
       method: 'POST',
       headers: {
@@ -31,24 +26,17 @@ const LoginPage = () => {
       body: JSON.stringify({ username, password }),
       });
 
-      console.log("Frontend: Fetch returned. Response status:", response.status);
-      console.log("Frontend: Response headers:", [...response.headers.entries()]);
-
       const data = await response.json();
-      console.log("Frontend: Parsed JSON data:", data);
+      console.log(data)
 
       if (data.success) {
-      console.log("Frontend: Login success, redirecting to /Instructor");
       router.push('/Instructor');
       } else {
-      console.log("Frontend: Login failed, setting error:", data.message || 'Invalid username or password');
       setError(data.message || 'Invalid username or password');
       }
     } catch (err) {
-      console.error("Frontend: Catch block error:", err);
-      setError('Network error. Please try again. ' + String(err.message));
+      setError('Network error. Please try again.');
     } finally {
-      console.log("Frontend: finally block, setting isLoading to false");
       setIsLoading(false);
     }
   };

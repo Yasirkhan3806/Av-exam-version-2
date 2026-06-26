@@ -50,8 +50,8 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
   return (
     <aside
       className={`${isOpen
-        ? "w-64 fixed md:relative lg:relative top-0 left-0 z-1000"
-        : "w-16 sticky top-0 left-0"
+          ? "w-64 fixed md:relative lg:relative top-0 left-0 z-1000"
+          : "w-16 sticky top-0 left-0"
         } bg-white shadow-lg transition-all duration-300 ease-in-out h-[100vh] flex flex-col`}
     >
       <div className="p-4 border-b border-gray-200 flex items-center justify-between">
@@ -132,8 +132,8 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
           >
             <ClipboardList
               className={`${isOpen ? "w-5 h-5" : "w-6 h-6"} ${pathname === "/StudentDashboard/PracticeRoom"
-                ? "text-white"
-                : "text-gray-500"
+                  ? "text-white"
+                  : "text-gray-500"
                 }`}
             />
             {isOpen && <span className="ml-3">Practice Room</span>}

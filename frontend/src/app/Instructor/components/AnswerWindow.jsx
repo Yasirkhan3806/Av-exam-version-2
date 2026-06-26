@@ -6,7 +6,7 @@ import { FileCheck, Eye, EyeOff } from 'lucide-react';
 
 const AnswerPanel = ({ answer, showAnswer, onToggleAnswer }) => {
 
-  const BaseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:5000';
+  const BaseUrl = process.env.NEXT_PUBLIC_BASEURL || 'http://localhost:5000';
   return (
     <div className="flex flex-col h-full bg-white border border-gray-200 rounded-lg overflow-hidden">
       <div className="p-6 border-b border-gray-200">

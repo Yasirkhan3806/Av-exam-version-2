@@ -1,7 +1,6 @@
 'use client';
 import { useState } from 'react';
 import { CheckCircle, XCircle, HelpCircle } from 'lucide-react';
-
 /**
  * AnswerPanel Component
  * 
