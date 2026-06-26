@@ -16,43 +16,28 @@ const LoginPage = () => {
     setError('');
     setIsLoading(true);
 
-    const loginUrl = `${baseUrl}/instructors/instructor-login`;
-    console.log("=== INSTRUCTOR LOGIN DEBUG ===");
-    console.log("Target login URL:", loginUrl);
-    console.log("Sending payload for username:", username);
-
     try {
-      const response = await fetch(loginUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', // Include cookies
-        body: JSON.stringify({ username, password }),
+      const response = await fetch(`${baseUrl}/instructors/instructor-login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include', // Include cookies
+      body: JSON.stringify({ username, password }),
       });
 
-      console.log("Response HTTP status:", response.status, response.statusText);
-
       const data = await response.json();
-      console.log("Received data payload:", data);
+      console.log(data)
 
       if (data.success) {
-        console.log("Login successful! Token exists in payload:", !!data.token);
-        if (data.token) {
-          await setFrontendCookie('instructorToken', data.token);
-          console.log("Successfully set frontend cookie: instructorToken");
-        }
-        router.push('/Instructor');
+      router.push('/Instructor');
       } else {
-        console.warn("Backend rejected login:", data.message);
-        setError(data.message || 'Invalid username or password');
+      setError(data.message || 'Invalid username or password');
       }
     } catch (err) {
-      console.error("Critical error during instructor login fetch:", err);
       setError('Network error. Please try again.');
     } finally {
       setIsLoading(false);
-      console.log("===============================");
     }
   };
 
@@ -111,13 +96,14 @@ const LoginPage = () => {
                 />
               </div>
 
-
+          
 
               <button
                 type="submit"
                 disabled={isLoading}
-                className={`w-full flex justify-center items-center px-4 py-3 rounded-lg text-white font-medium ${isLoading ? 'bg-emerald-400' : 'bg-emerald-600 hover:bg-emerald-700'
-                  } transition duration-200`}
+                className={`w-full flex justify-center items-center px-4 py-3 rounded-lg text-white font-medium ${
+                  isLoading ? 'bg-emerald-400' : 'bg-emerald-600 hover:bg-emerald-700'
+                } transition duration-200`}
               >
                 {isLoading ? (
                   <>
