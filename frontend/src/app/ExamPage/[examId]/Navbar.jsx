@@ -80,7 +80,8 @@ const Navbar = () => {
          <div className="flex items-center bg-gray-700 text-white rounded-full px-3 py-2">
           <button
             onClick={prevQuestion}
-            className="text-white hover:text-white transition-colors cursor-pointer"
+            disabled={saving}
+            className={`text-white transition-colors ${saving ? 'opacity-50 cursor-not-allowed' : 'hover:text-white cursor-pointer'}`}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -91,7 +92,8 @@ const Navbar = () => {
           </span>
           <button
             onClick={nextQuestion}
-            className="text-white hover:text-white transition-colors cursor-pointer"
+            disabled={saving}
+            className={`text-white transition-colors ${saving ? 'opacity-50 cursor-not-allowed' : 'hover:text-white cursor-pointer'}`}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

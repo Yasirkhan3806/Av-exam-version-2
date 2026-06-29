@@ -211,16 +211,16 @@ const useExamStore = create(
       },
 
       nextQuestion: () => {
-        const { currentQuestion, totalQuestions, saveAnswers } = get();
-        if (currentQuestion < totalQuestions) {
+        const { currentQuestion, totalQuestions, saveAnswers, saving } = get();
+        if (currentQuestion < totalQuestions && !saving) {
           saveAnswers();
           set({ currentQuestion: currentQuestion + 1 });
         }
       },
 
       prevQuestion: () => {
-        const { currentQuestion, saveAnswers } = get();
-        if (currentQuestion > 1) {
+        const { currentQuestion, saveAnswers, saving } = get();
+        if (currentQuestion > 1 && !saving) {
           saveAnswers();
           set({ currentQuestion: currentQuestion - 1 });
         }
