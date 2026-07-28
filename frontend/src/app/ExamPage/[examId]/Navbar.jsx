@@ -5,7 +5,7 @@ import useExamStore from '../../../store/useExamStore';
 
 
 const Navbar = () => {
-  const { currentQuestion, totalQuestions, questionName, totalTime, remainingTime, endTime, tick, getFormattedTime, goToQuestion, saving, nextQuestion, prevQuestion, finishExam, TimesUp, isOnline } = useExamStore();
+  const { currentQuestion, totalQuestions, questionName, totalTime, remainingTime, endTime, tick, getFormattedTime, goToQuestion, saving, nextQuestion, prevQuestion, finishExam, TimesUp, isOnline, isTransitioning } = useExamStore();
   const [isOverviewDropdownOpen, setIsOverviewDropdownOpen] = useState(false);
 
   const questionNumbers = Array.from({ length: totalQuestions }, (_, i) => i + 1);
@@ -44,8 +44,8 @@ const Navbar = () => {
   // Update time every second
   React.useEffect(() => {
     const timer = setInterval(() => {
-      // Skip ticking and auto-logout while offline — exam is paused
-      if (!isOnline) return;
+      // Skip ticking and auto-logout while offline or transitioning — exam is paused
+      if (!isOnline || isTransitioning) return;
 
       if (endTime && remainingTime <= 0 && totalTime > 0) {
         clearInterval(timer);
@@ -56,7 +56,7 @@ const Navbar = () => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [remainingTime, totalTime, endTime, isOnline]);
+  }, [remainingTime, totalTime, endTime, isOnline, isTransitioning]);
 
   const toggleDropdown = () => {
     setIsOverviewDropdownOpen(!isOverviewDropdownOpen);

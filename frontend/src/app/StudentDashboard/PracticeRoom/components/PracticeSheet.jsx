@@ -25,6 +25,7 @@ import SheetsEnUS from "@univerjs/sheets/locale/en-US";
 import { UniverUIPlugin } from "@univerjs/ui";
 import UIEnUS from "@univerjs/ui/locale/en-US";
 import usePracticeStore from "../../../../store/usePracticeStore";
+import { applyUniverFixes } from "../../../../utils/univerSheetFixes";
 
 import "@univerjs/design/lib/index.css";
 import "@univerjs/ui/lib/index.css";
@@ -37,6 +38,7 @@ export default function PracticeSheet() {
   const containerRef = useRef(null);
   const univerRef = useRef(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const fixesCleanupRef = useRef(null);
 
   const currentQuestion = usePracticeStore((state) => state.currentQuestion);
   const saveWorkbookState = usePracticeStore(
@@ -47,38 +49,59 @@ export default function PracticeSheet() {
   useEffect(() => {
     if (!containerRef.current || univerRef.current) return;
 
-    const univer = new Univer({
-      locale: LocaleType.EN_US,
-      locales: {
-        [LocaleType.EN_US]: mergeLocales(
-          DesignEnUS,
-          UIEnUS,
-          DocsUIEnUS,
-          SheetsEnUS,
-          SheetsUIEnUS,
-          SheetsFormulaUIEnUS,
-          SheetsNumfmtUIEnUS,
-        ),
-      },
-    });
+    // Delay initialization slightly to ensure CSS is loaded and layout is calculated
+    const initTimer = setTimeout(() => {
+      if (!containerRef.current || univerRef.current) return;
 
-    univerRef.current = univer;
+      const univer = new Univer({
+        locale: LocaleType.EN_US,
+        locales: {
+          [LocaleType.EN_US]: mergeLocales(
+            DesignEnUS,
+            UIEnUS,
+            DocsUIEnUS,
+            SheetsEnUS,
+            SheetsUIEnUS,
+            SheetsFormulaUIEnUS,
+            SheetsNumfmtUIEnUS,
+          ),
+        },
+      });
 
-    univer.registerPlugin(UniverRenderEnginePlugin);
-    univer.registerPlugin(UniverFormulaEnginePlugin);
-    univer.registerPlugin(UniverUIPlugin, { container: containerRef.current });
-    univer.registerPlugin(UniverDocsPlugin);
-    univer.registerPlugin(UniverDocsUIPlugin);
-    univer.registerPlugin(UniverSheetsPlugin);
-    univer.registerPlugin(UniverSheetsUIPlugin);
-    univer.registerPlugin(UniverSheetsFormulaUIPlugin);
-    univer.registerPlugin(UniverSheetsNumfmtUIPlugin);
+      univerRef.current = univer;
 
-    setIsInitialized(true);
+      univer.registerPlugin(UniverRenderEnginePlugin);
+      univer.registerPlugin(UniverFormulaEnginePlugin, {});
+      univer.registerPlugin(UniverUIPlugin, { container: containerRef.current });
+      univer.registerPlugin(UniverDocsPlugin, { hasScroll: false });
+      univer.registerPlugin(UniverDocsUIPlugin, {});
+      univer.registerPlugin(UniverSheetsPlugin, {});
+      univer.registerPlugin(UniverSheetsUIPlugin, {});
+      univer.registerPlugin(UniverSheetsFormulaUIPlugin, {});
+      univer.registerPlugin(UniverSheetsNumfmtUIPlugin, {});
+
+      // Apply all three spreadsheet fixes (percentage format, formula overlay, paste values)
+      try {
+        const commandService = univer.__getInjector().get(ICommandService);
+        fixesCleanupRef.current = applyUniverFixes(univer, commandService, containerRef.current);
+      } catch (err) {
+        console.warn("Failed to apply Univer fixes:", err);
+      }
+
+      setIsInitialized(true);
+    }, 100);
 
     return () => {
+      clearTimeout(initTimer);
       try {
-        univer.dispose();
+        // Clean up spreadsheet fixes
+        if (fixesCleanupRef.current) {
+          fixesCleanupRef.current();
+          fixesCleanupRef.current = null;
+        }
+        if (univerRef.current) {
+          univerRef.current.dispose();
+        }
       } catch (e) {
         console.error("Error disposing univer:", e);
       }
@@ -168,13 +191,9 @@ export default function PracticeSheet() {
   };
 
   return (
-    <div className="editor-container h-full flex flex-col">
-      <div className="flex-1 flex flex-col">
-        <div
-          ref={containerRef}
-          className="h-full"
-          style={{ minHeight: "400px" }}
-        ></div>
+    <div className="editor-container h-full w-full flex flex-col flex-1 relative" style={{ minHeight: 0 }}>
+      <div className="flex-1 flex flex-col w-full h-full relative" style={{ minHeight: 0 }}>
+        <div ref={containerRef} className="w-full h-full absolute inset-0"></div>
       </div>
     </div>
   );

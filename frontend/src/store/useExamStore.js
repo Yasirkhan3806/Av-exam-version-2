@@ -29,6 +29,8 @@ const useExamStore = create(
       ExamId: null,
       isOnline: true,
       pauseStartTime: null,
+      isTransitioning: false,
+      transitionPauseStart: null,
 
       reset: () => {
         const subjectStore = useSubjectStore.getState();
@@ -52,6 +54,8 @@ const useExamStore = create(
           endTime: null,
           isOnline: true,
           pauseStartTime: null,
+          isTransitioning: false,
+          transitionPauseStart: null,
         });
 
         if (window.localStorage) {
@@ -188,12 +192,15 @@ const useExamStore = create(
       },
 
       tick: () => {
-        const { endTime, totalTime, isOnline } = get();
+        const { endTime, totalTime, isOnline, isTransitioning } = get();
 
         if (!endTime || totalTime === 0) return;
 
         // Don't tick if offline — timer is paused
         if (!isOnline) return;
+
+        // Don't tick during question transition — timer is paused
+        if (isTransitioning) return;
 
         const now = Date.now();
         let remainingTime = Math.floor((endTime - now) / 1000);
@@ -211,25 +218,28 @@ const useExamStore = create(
       },
 
       nextQuestion: () => {
-        const { currentQuestion, totalQuestions, saveAnswers, saving } = get();
+        const { currentQuestion, totalQuestions, saveAnswers, saving, setTransitioning } = get();
         if (currentQuestion < totalQuestions && !saving) {
           saveAnswers();
+          setTransitioning(true);
           set({ currentQuestion: currentQuestion + 1 });
         }
       },
 
       prevQuestion: () => {
-        const { currentQuestion, saveAnswers, saving } = get();
+        const { currentQuestion, saveAnswers, saving, setTransitioning } = get();
         if (currentQuestion > 1 && !saving) {
           saveAnswers();
+          setTransitioning(true);
           set({ currentQuestion: currentQuestion - 1 });
         }
       },
 
       goToQuestion: (index) => {
-        const { totalQuestions, saving, saveAnswers } = get();
-        if (index >= 1 && index <= totalQuestions && !saving) {
+        const { totalQuestions, saving, saveAnswers, currentQuestion, setTransitioning } = get();
+        if (index >= 1 && index <= totalQuestions && index !== currentQuestion && !saving) {
           saveAnswers();
+          setTransitioning(true);
           set({ currentQuestion: index });
         }
       },
@@ -312,6 +322,42 @@ const useExamStore = create(
 
           // Auto-sync answers to server after reconnecting
           get().saveAnswers();
+        }
+      },
+
+      // --- Question Transition Pause Logic ---
+      setTransitioning: (status) => {
+        const { transitionPauseStart, endTime, isTransitioning, remainingTime } = get();
+
+        if (status && !isTransitioning) {
+          // Starting transition: pause the timer and freeze remainingTime
+          set({
+            isTransitioning: true,
+            transitionPauseStart: Date.now(),
+            // Freeze remainingTime at the current value so it doesn't drift
+            remainingTime: remainingTime,
+          });
+        } else if (!status && isTransitioning) {
+          // Transition complete: extend endTime by the paused duration
+          if (transitionPauseStart && endTime) {
+            const pausedDuration = Date.now() - transitionPauseStart;
+            const newEndTime = endTime + pausedDuration;
+            // Immediately recalculate remainingTime from the extended endTime
+            const now = Date.now();
+            let newRemaining = Math.floor((newEndTime - now) / 1000);
+            if (newRemaining < 0) newRemaining = 0;
+            set({
+              isTransitioning: false,
+              transitionPauseStart: null,
+              endTime: newEndTime,
+              remainingTime: newRemaining,
+            });
+          } else {
+            set({
+              isTransitioning: false,
+              transitionPauseStart: null,
+            });
+          }
         }
       },
 
@@ -438,6 +484,8 @@ const useExamStore = create(
             ([key]) =>
               key !== "BASEURL" &&
               key !== "isOnline" &&
+              key !== "isTransitioning" &&
+              key !== "transitionPauseStart" &&
               key !== "uploadProgress" &&
               key !== "uploadDetails"
           )

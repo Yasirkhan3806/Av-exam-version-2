@@ -25,6 +25,7 @@ import SheetsEnUS from '@univerjs/sheets/locale/en-US'
 import { UniverUIPlugin } from '@univerjs/ui'
 import UIEnUS from '@univerjs/ui/locale/en-US'
 import useExamStore from '../../../store/useExamStore'
+import { applyUniverFixes } from '../../../utils/univerSheetFixes'
 
 import '@univerjs/design/lib/index.css'
 import '@univerjs/ui/lib/index.css'
@@ -39,6 +40,7 @@ export default function PracticeSheet() {
   const [isInitialized, setIsInitialized] = useState(false)
   const saveTimeoutRef = useRef(null)
   const cleanupFnsRef = useRef([])
+  const fixesCleanupRef = useRef(null)
 
   const currentQuestion = useExamStore(state => state.currentQuestion)
   const saveWorkbookState = useExamStore(state => state.saveWorkbookState)
@@ -80,6 +82,16 @@ export default function PracticeSheet() {
       univer.registerPlugin(UniverSheetsFormulaUIPlugin)
       univer.registerPlugin(UniverSheetsNumfmtUIPlugin)
 
+      // Apply all three spreadsheet fixes (percentage format, formula overlay, paste values)
+      try {
+        const commandService = univer.__getInjector().get(ICommandService)
+        // console.log('Univer Instance Methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(univer)))
+
+        fixesCleanupRef.current = applyUniverFixes(univer, commandService, containerRef.current)
+      } catch (err) {
+        console.warn('Failed to apply Univer fixes:', err)
+      }
+
       setIsInitialized(true)
     }, 100);
 
@@ -87,6 +99,12 @@ export default function PracticeSheet() {
     return () => {
       clearTimeout(initTimer);
       try {
+        // Clean up spreadsheet fixes
+        if (fixesCleanupRef.current) {
+          fixesCleanupRef.current()
+          fixesCleanupRef.current = null
+        }
+
         if (saveTimeoutRef.current) {
           clearTimeout(saveTimeoutRef.current)
         }
@@ -198,13 +216,13 @@ export default function PracticeSheet() {
   const setupAutoSave = (univer, workbook, workbookId) => {
     const commandService = univer.__getInjector().get(ICommandService)
     let isEditing = false
-    
+
     const saveCurrentState = () => {
       try {
         const worksheet = workbook.getActiveSheet()
         if (worksheet) {
           const cellData = worksheet.getConfig().cellData || {}
-          
+
           saveWorkbookState(workbookId, {
             cellData: JSON.parse(JSON.stringify(cellData)),
             timestamp: Date.now()
@@ -224,9 +242,9 @@ export default function PracticeSheet() {
       }
 
       // Save immediately after these critical commands
-      if (command.id === 'sheet.command.set-range-values' || 
-          command.id === 'sheet.mutation.set-range-values') {
-        
+      if (command.id === 'sheet.command.set-range-values' ||
+        command.id === 'sheet.mutation.set-range-values') {
+
         // Clear existing timeout
         if (saveTimeoutRef.current) {
           clearTimeout(saveTimeoutRef.current)
@@ -239,13 +257,13 @@ export default function PracticeSheet() {
       }
 
       // Also save when cell edit is closed (user leaves the cell)
-      if (command.id === 'sheet.operation.set-cell-edit-visible' && 
-          command.params?.visible === false) {
-        
+      if (command.id === 'sheet.operation.set-cell-edit-visible' &&
+        command.params?.visible === false) {
+
         if (saveTimeoutRef.current) {
           clearTimeout(saveTimeoutRef.current)
         }
-        
+
         // Immediate save when editing ends
         saveTimeoutRef.current = setTimeout(() => {
           saveCurrentState()
@@ -259,7 +277,7 @@ export default function PracticeSheet() {
         saveCurrentState()
       }
     }
-    
+
     document.addEventListener('visibilitychange', handleVisibilityChange)
 
     // Return cleanup function

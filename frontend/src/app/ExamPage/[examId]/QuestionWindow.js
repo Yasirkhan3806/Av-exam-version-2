@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import useExamStore from "../../../store/useExamStore";
 import useSubjectStore from "../../../store/useSubjectStore";
 
@@ -14,14 +14,42 @@ export default function QuestionPanel({ examId }) {
     loading,
     error,
     BASEURL,
+    setTransitioning,
+    isTransitioning,
   } = useExamStore();
   const { currentSubjectType } = useSubjectStore();
+
+  const safetyTimeoutRef = useRef(null);
 
   useEffect(() => {
     if (examId) {
       fetchExam(examId, currentSubjectType);
     }
   }, [examId, fetchExam, currentSubjectType]);
+
+  // Safety timeout: if iframe never fires onLoad within 30s, resume the timer anyway
+  useEffect(() => {
+    if (isTransitioning) {
+      clearTimeout(safetyTimeoutRef.current);
+      safetyTimeoutRef.current = setTimeout(() => {
+        const { isTransitioning } = useExamStore.getState();
+        if (isTransitioning) {
+          setTransitioning(false);
+        }
+      }, 30000);
+    }
+
+    return () => clearTimeout(safetyTimeoutRef.current);
+  }, [isTransitioning, setTransitioning]);
+
+  // Called when the iframe finishes loading the new question PDF
+  const handleIframeLoad = useCallback(() => {
+    clearTimeout(safetyTimeoutRef.current);
+    const { isTransitioning } = useExamStore.getState();
+    if (isTransitioning) {
+      setTransitioning(false);
+    }
+  }, [setTransitioning]);
 
   if (loading) {
     return (
@@ -47,6 +75,7 @@ export default function QuestionPanel({ examId }) {
           className="w-full h-full border"
           title="PDF Viewer"
           style={{ minHeight: "80vh", width: "100%" }}
+          onLoad={handleIframeLoad}
         ></iframe>
       </div>
     </>

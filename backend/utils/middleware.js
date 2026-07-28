@@ -22,6 +22,16 @@ export const generateTokenAndSetCookie = (user, res, tokenName = "token") => {
     domain: process.env.COOKIE_DOMAIN || ".testcbe.academicvitality.org", // Share cookie across subdomains (api.testcbe... ↔ testcbe...)
   });
 
+  //for development use this code 
+  // res.cookie(tokenName, token, {
+  //   httpOnly: true,
+  //   secure: process.env.NODE_ENV === "production", 
+  //   sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // or "strict"
+  //   maxAge: 3 * 24 * 60 * 60 * 1000,
+  //   domain: process.env.COOKIE_DOMAIN,
+  // });
+
+
   return token;
 };
 
