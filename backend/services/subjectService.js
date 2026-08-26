@@ -36,7 +36,17 @@ export const addSubject = async (
     type,
   });
 
-  await newSubject.save();
+  try {
+    await newSubject.save();
+  } catch (err) {
+    // Concurrent request won the race — the unique index on
+    // {name, instructor} rejects this one. Same domain error as the findOne
+    // check above would have given if it had run a moment later.
+    if (err.code === 11000) {
+      throw new Error("Subject already exists for this instructor.");
+    }
+    throw err;
+  }
   return newSubject;
 };
 
@@ -204,16 +214,29 @@ const getCollectionConfig = (subjectType) => {
       return {
         Model: CafExamQuestions,
         answerCollection: "CafExamAnswers",
+        // CAF answers have a real draft -> submitted -> checked lifecycle
+        // (models/CafExamAnswer.js), so "completed" must check status —
+        // an in-progress draft shouldn't count as completed.
+        usesStatusLifecycle: true,
       };
     case "PRC":
       return {
         Model: PRCExam,
         answerCollection: PRCAnswer.collection.name, // Changed to match your new schema name
+        // PrcExamAnswer has no status field or lifecycle at all — it's
+        // auto-graded and written once, atomically, on submit. Existence of
+        // a doc *is* completion for PRC. (A status-based check here always
+        // evaluates false, since the field is never set — see
+        // backend/models/PrcExamAnswer.js.)
+        usesStatusLifecycle: false,
       };
     default:
       return {
         Model: Questions,
         answerCollection: "Answers",
+        // Regular exam answers also have a draft -> submitted -> checked
+        // lifecycle (models/Answer.js).
+        usesStatusLifecycle: true,
       };
   }
 };
@@ -222,8 +245,11 @@ export const getExamsForSubject = async (subjectId, userId, subjectType) => {
   if (!subjectId) throw new Error("subjectId is required.");
 
   // 1. Get the appropriate models/collections
-  const { Model, answerCollection } = getCollectionConfig(subjectType);
-  console.log(Model, answerCollection);
+  const { Model, answerCollection, usesStatusLifecycle } = getCollectionConfig(subjectType);
+
+  const completedExpr = usesStatusLifecycle
+    ? { $in: [{ $arrayElemAt: ["$userAnswer.status", 0] }, ["submitted", "checked"]] }
+    : { $gt: [{ $size: "$userAnswer" }, 0] };
 
   // 2. Execute Aggregation
   const exams = await Model.aggregate([
@@ -252,9 +278,7 @@ export const getExamsForSubject = async (subjectId, userId, subjectType) => {
     },
     {
       $addFields: {
-        completed: {
-          $in: [{ $arrayElemAt: ["$userAnswer.status", 0] }, ["submitted", "checked"]]
-        },
+        completed: completedExpr,
       },
     },
     {

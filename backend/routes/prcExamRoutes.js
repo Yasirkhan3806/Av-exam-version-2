@@ -2,7 +2,7 @@ import express from "express";
 import multer from "multer";
 import * as prcExamController from "../controllers/prcExamController.js";
 import fs from "fs";
-import { verifyToken } from "../utils/middleware.js";
+import { verifyToken, requireRole } from "../utils/middleware.js";
 
 const router = express.Router();
 
@@ -14,11 +14,11 @@ if (!fs.existsSync(uploadDir)) {
 
 const upload = multer({ dest: "uploads/" });
 
-router.post("/create", upload.single("file"), prcExamController.createPRCExam);
-router.get("/:id", prcExamController.getPRCExamById);
-router.post("/:id/submit", prcExamController.submitPRCExamResult);
-router.post("/submitDetailedResult", prcExamController.submitDetailedResult);
-router.get("/results/:id", verifyToken, prcExamController.getDetailedResult);
-router.put("/:id", verifyToken, prcExamController.updatePRCExam);
+router.post("/create", verifyToken, requireRole("admin"), upload.single("file"), prcExamController.createPRCExam);
+router.get("/:id", verifyToken, requireRole("student"), prcExamController.getPRCExamById);
+router.post("/:id/submit", verifyToken, requireRole("student"), prcExamController.submitPRCExamResult);
+router.post("/submitDetailedResult", verifyToken, requireRole("student"), prcExamController.submitDetailedResult);
+router.get("/results/:id", verifyToken, requireRole("student"), prcExamController.getDetailedResult);
+router.put("/:id", verifyToken, requireRole("admin"), prcExamController.updatePRCExam);
 
 export default router;

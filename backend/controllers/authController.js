@@ -82,7 +82,7 @@ export const adminLogin = async (req, res) => {
         .json({ message: "Email and password are required" });
     }
     const user = await authService.adminLogin(username, password);
-    const token = generateTokenAndSetCookie(user, res);
+    const token = generateTokenAndSetCookie(user, res, "token", "admin");
 
     return res.status(200).json({
       message: "✅ Logged in successfully",

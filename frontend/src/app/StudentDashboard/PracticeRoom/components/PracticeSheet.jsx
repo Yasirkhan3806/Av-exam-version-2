@@ -3,8 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import usePracticeStore from "../../../../store/usePracticeStore";
 
 // OnlyOffice embed for Practice Room's spreadsheet pane — replaces the
-// previous Univer.js editor (kept intact in ExamPage/[examId]/PracticeSheet.jsx,
-// the real exam interface's own copy, which this file does not touch).
+// previous Univer.js editor (removed entirely; the real exam interface's
+// copy at ExamPage/[examId]/PracticeSheet.jsx was migrated the same way).
 //
 // Local dev only: points at the OnlyOffice Document Server container running
 // on this machine (docker run ... -p 8080:80 onlyoffice/documentserver,

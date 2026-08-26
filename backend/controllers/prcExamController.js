@@ -53,8 +53,11 @@ export const submitPRCExamResult = async (req, res) => {
 
 export const submitDetailedResult = async (req, res) => {
   try {
+    // Student comes from the verified token, never from the request body —
+    // otherwise a student could save a result under someone else's id.
+    const studentId = req.user.userId;
     const result = req.body;
-    await prcExamService.saveDetailedResult(result);
+    await prcExamService.saveDetailedResult(result, studentId);
     res.status(200).json({ message: "Detailed result saved successfully" });
   } catch (error) {
     console.error("Error submitting detailed result:", error);

@@ -1,13 +1,39 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import * as jose from "jose";
 import Link from "next/link";
+
+// Must come from env — no hardcoded fallback. Must match backend/.env's
+// JWT_SECRET exactly (this is a server component, so a non-NEXT_PUBLIC_ var
+// is fine here — it never reaches the client bundle).
+if (!process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET is not set. Add it to frontend/.env.local.");
+}
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 
 export default async function AdminDashboardLayout({ children }) {
   const cookieStore = await cookies();
-  const token = cookieStore.get("token");
+  const token = cookieStore.get("token")?.value;
 
   if (!token) {
     redirect("/Admin"); // redirect to login if missing
+  }
+
+  // Previously this only checked that *some* cookie named "token" existed —
+  // not that it was valid, or that it belonged to an admin. Student and
+  // admin sessions share this same cookie name, so a logged-in student's
+  // own valid token would pass that check too. Verify the signature and the
+  // role claim explicitly.
+  let payload;
+  try {
+    const result = await jose.jwtVerify(token, JWT_SECRET, { clockTolerance: 120 });
+    payload = result.payload;
+  } catch (e) {
+    redirect("/Admin");
+  }
+
+  if (payload.role !== "admin") {
+    redirect("/Admin");
   }
 
   return (

@@ -4,6 +4,7 @@ import React, { useEffect } from "react";
 import { useParams } from "next/navigation";
 import dynamic from 'next/dynamic';
 import Editor from "./AnswerWindow";
+import { logExamEvent } from "../../../utils/examDebugTrail";
 
 const QuestionPanel = dynamic(() => import('./QuestionWindow'), {
   ssr: false,
@@ -153,20 +154,27 @@ const ExamPage = () => {
 
   // Start exam on mount
   useEffect(() => {
+    logExamEvent("exam_started", { examId });
     startExam();
 
     return () => {
       reset();
     };
-  }, [startExam, reset]);
+  }, [startExam, reset, examId]);
 
   // --- Connectivity monitoring ---
   useEffect(() => {
     // Initialize from current browser state (handles page load while already offline)
     setOnline(navigator.onLine);
 
-    const handleOnline = () => setOnline(true);
-    const handleOffline = () => setOnline(false);
+    const handleOnline = () => {
+      logExamEvent("connectivity_restored", { examId });
+      setOnline(true);
+    };
+    const handleOffline = () => {
+      logExamEvent("connectivity_lost", { examId });
+      setOnline(false);
+    };
 
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);

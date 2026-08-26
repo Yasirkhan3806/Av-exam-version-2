@@ -31,3 +31,10 @@ export const sendEmail = async (to, subject, html) => {
     return null;
   }
 };
+
+// A plain function export (sendEmail above) can't be mocked in place by
+// node:test's t.mock.method, since ESM named imports are live bindings, not
+// writable object properties. Callers that need to be unit-testable with
+// their email side effect stubbed out should call through this object
+// instead (see backend/tests/services/authService.test.js).
+export const emailServiceWrapper = { sendEmail };

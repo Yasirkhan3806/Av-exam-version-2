@@ -16,7 +16,16 @@ export const submitCafAnswer = async (answerData, file) => {
     marksObtained: 0,
   });
 
-  await newAnswer.save();
+  try {
+    await newAnswer.save();
+  } catch (err) {
+    // Double-submit (double-click, retry) — the unique index on
+    // {questionSet, Student} rejects the duplicate insert.
+    if (err.code === 11000) {
+      throw new Error("You have already submitted an answer for this exam.");
+    }
+    throw err;
+  }
   return newAnswer;
 };
 

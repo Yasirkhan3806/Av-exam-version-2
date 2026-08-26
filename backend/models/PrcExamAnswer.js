@@ -3,12 +3,16 @@ import mongoose from "mongoose";
 const PrcExamAnswerSchema = new mongoose.Schema({
   Student: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    // Was 'User' (the admin/instructor login model) — wrong collection.
+    // Students are TestUser docs, matching Answer.js/CafExamAnswer.js.
+    ref: 'TestUser',
     required: true
   },
   questionSet: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Exam',
+    // Was 'Exam' — that model doesn't exist anywhere in this codebase, so
+    // any .populate('questionSet') call would throw MissingSchemaError.
+    ref: 'PRCExam',
     required: true
   },
   total: {
@@ -55,6 +59,11 @@ const PrcExamAnswerSchema = new mongoose.Schema({
     }
   ]
 }, { timestamps: true });
+
+// Unlike Answer/CafExamAnswer, this vertical had no submission guard at all
+// — nothing stopped a student from retaking and saving multiple results for
+// the same exam. One result per student per exam, enforced at the DB level.
+PrcExamAnswerSchema.index({ questionSet: 1, Student: 1 }, { unique: true });
 
 const PrcExamAnswer = mongoose.model('PrcExamAnswer', PrcExamAnswerSchema);
 export default PrcExamAnswer;

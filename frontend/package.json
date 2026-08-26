@@ -11,23 +11,6 @@
   "dependencies": {
     "@jitsi/react-sdk": "^1.4.4",
     "@sentry/nextjs": "^10.69.0",
-    "@univerjs/core": "0.10.14",
-    "@univerjs/design": "0.10.14",
-    "@univerjs/docs": "0.10.14",
-    "@univerjs/docs-ui": "0.10.14",
-    "@univerjs/engine-formula": "0.10.14",
-    "@univerjs/engine-render": "0.10.14",
-    "@univerjs/icons": "0.4.8",
-    "@univerjs/preset-docs-core": "0.10.14",
-    "@univerjs/presets": "0.10.14",
-    "@univerjs/sheets": "0.10.14",
-    "@univerjs/sheets-formula": "0.10.14",
-    "@univerjs/sheets-formula-ui": "0.10.14",
-    "@univerjs/sheets-numfmt": "0.10.14",
-    "@univerjs/sheets-numfmt-ui": "0.10.14",
-    "@univerjs/sheets-ui": "0.10.14",
-    "@univerjs/themes": "0.10.14",
-    "@univerjs/ui": "0.10.14",
     "html2pdf.js": "^0.14.0",
     "jose": "^6.1.0",
     "jsonwebtoken": "^9.0.2",
@@ -43,8 +26,16 @@
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "20.17.6",
+    "@types/react": "19.2.18",
     "eslint": "^9",
     "eslint-config-next": "15.5.3",
     "tailwindcss": "^4"
+  },
+  "lavamoat": {
+    "allowScripts": {
+      "@sentry/nextjs>@sentry/bundler-plugin-core>@sentry/cli#2.58.6": false,
+      "eslint-config-next>eslint-import-resolver-typescript>unrs-resolver#1.12.2": false,
+      "html2pdf.js>jspdf>core-js#3.50.0": false
+    }
   }
 }

@@ -1,6 +1,6 @@
 import express from "express";
 import * as questionController from "../controllers/questionController.js";
-import { verifyToken, verifyExamToken } from "../utils/middleware.js";
+import { verifyToken, verifyExamToken, requireRole } from "../utils/middleware.js";
 import { upload } from "../utils/upload.js";
 
 const router = express.Router();
@@ -8,11 +8,12 @@ const router = express.Router();
 /**
  * @route POST /questions/addQuestions
  * @desc Add standard questions (splits PDF per page)
- * @access Private
+ * @access Private (Admin)
  */
 router.post(
   "/addQuestions",
   verifyToken,
+  requireRole("admin"),
   upload.any(),
   questionController.addQuestions
 );
@@ -20,11 +21,12 @@ router.post(
 /**
  * @route POST /questions/addCAFQuestions
  * @desc Add CAF questions (single PDF)
- * @access Private
+ * @access Private (Admin)
  */
 router.post(
   "/addCAFQuestions",
   verifyToken,
+  requireRole("admin"),
   upload.single("pdf"),
   questionController.addCafQuestionsController
 );
@@ -65,11 +67,12 @@ router.get(
 /**
  * @route DELETE /questions/deleteQuestion/:subjectType/:id
  * @desc Delete a question
- * @access Private
+ * @access Private (Admin)
  */
 router.delete(
   "/deleteQuestion/:subjectType/:id",
   verifyToken,
+  requireRole("admin"),
   questionController.deleteQuestion
 );
 
@@ -101,11 +104,12 @@ router.post("/finishExam", verifyToken, verifyExamToken, questionController.fini
 /**
  * @route PUT /questions/updateQuestion/:id
  * @desc Update a standard question exam
- * @access Private
+ * @access Private (Admin)
  */
 router.put(
   "/updateQuestion/:id",
   verifyToken,
+  requireRole("admin"),
   upload.any(),
   questionController.updateQuestion
 );
@@ -113,11 +117,12 @@ router.put(
 /**
  * @route PUT /questions/updateCafQuestion/:id
  * @desc Update a CAF question exam
- * @access Private
+ * @access Private (Admin)
  */
 router.put(
   "/updateCafQuestion/:id",
   verifyToken,
+  requireRole("admin"),
   upload.single("pdf"),
   questionController.updateCafQuestion
 );

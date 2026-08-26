@@ -2,9 +2,14 @@ import { NextResponse } from "next/server";
 import * as jose from "jose"; // ✅ works in Next.js Edge Runtime
 import { Instructormiddleware } from "./app/Instructor/middleware";
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.NEXT_PUBLIC_JWT_SECRET || process.env.JWT_SECRET || "08d8d60667a5fceba29530f0de6529ff6ef1aa529c935a579579b63298feeb4c1463a53a4531952c2f2098674bc535f64ef40c523bcb8fa028336239f41e6fa6"
-);
+// Must come from env — no hardcoded fallback, and deliberately not
+// NEXT_PUBLIC_-prefixed (this runs in Edge middleware, server-side only; a
+// NEXT_PUBLIC_ name would risk the signing secret getting bundled to the
+// client). Must match backend/.env's JWT_SECRET exactly.
+if (!process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET is not set. Add it to frontend/.env.local.");
+}
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 
 export async function middleware(req) {
   const { pathname } = req.nextUrl;

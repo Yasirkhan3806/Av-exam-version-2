@@ -2,9 +2,14 @@
 
 import { useEffect } from 'react';
 import { reportError } from '../utils/errorReporter';
+import { recoverExamDebugTrail } from '../utils/examDebugTrail';
 
 export default function GlobalErrorListener() {
     useEffect(() => {
+        // If a previous session left behind a debug trail (hard freeze/tab
+        // kill before it could clean up), ship it to Sentry now.
+        recoverExamDebugTrail();
+
         const handleWindowError = (event) => {
             const error = event.error || new Error(event.message || 'Unknown Global Error');
             

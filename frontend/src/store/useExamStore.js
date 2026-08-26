@@ -4,6 +4,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import useSubjectStore from "./useSubjectStore";
 import { safeFetch } from "../utils/safeFetch";
+import { logExamEvent } from "../utils/examDebugTrail";
 
 const useExamStore = create(
   persist(
@@ -379,21 +380,22 @@ const useExamStore = create(
       finishExam: async () => {
         const { saveAnswers, reset, BASEURL } = get();
         set({ saving: true, error: null });
-        
+        logExamEvent("finish_exam_attempted");
+
         try {
           // 1. Try to save answers first.
           const saveSuccess = await saveAnswers();
-          
+
           if (!saveSuccess) {
             // If answers failed to save, abort the finish process so the user can retry.
             throw new Error("Failed to save final answers to the server.");
           }
-          
-          // 2. If saveAnswers succeeded, we MUST reset local state immediately 
-          // so the user isn't trapped in a dead exam on refresh, regardless of 
+
+          // 2. If saveAnswers succeeded, we MUST reset local state immediately
+          // so the user isn't trapped in a dead exam on refresh, regardless of
           // what happens to the next API call.
           reset();
-          
+
           // 3. Fire the finishExam API call
           const res = await safeFetch(`${BASEURL}/questions/finishExam`, {
             method: "POST",
@@ -402,12 +404,16 @@ const useExamStore = create(
             },
             credentials: "include",
           }, 15000);
-          
+
           if (!res.ok) {
             console.error(`Failed to finish exam. Status: ${res.status}`);
+            logExamEvent("finish_exam_server_error", { status: res.status });
+          } else {
+            logExamEvent("finish_exam_completed");
           }
         } catch (error) {
           console.error("Critical failure during exam submission:", error);
+          logExamEvent("finish_exam_failed", { message: error?.message });
           set({ error: "Failed to submit exam answers. Please check your connection and try again." });
         } finally {
           set({ saving: false });

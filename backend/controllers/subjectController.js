@@ -159,6 +159,9 @@ export const getExamsForSubject = async (req, res) => {
 export const getResults = async (req, res) => {
   try {
     const { studentId } = req.params;
+    if (req.user.userId !== studentId) {
+      return res.status(403).json({ message: "Access denied." });
+    }
     const results = await subjectService.getResults(studentId);
     res.status(200).json(results);
   } catch (error) {
@@ -173,6 +176,9 @@ export const getResults = async (req, res) => {
 export const getStudentAnswers = async (req, res) => {
   try {
     const { studentId, examId } = req.params;
+    if (req.user.userId !== studentId) {
+      return res.status(403).json({ success: false, message: "Access denied." });
+    }
     const answers = await subjectService.getStudentAnswers(studentId, examId);
 
     return res.status(200).json({

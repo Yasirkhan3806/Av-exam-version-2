@@ -1,6 +1,6 @@
 import express from "express";
 import * as instructorController from "../controllers/instructorController.js";
-import { verifyToken, verifyInstructorToken } from "../utils/middleware.js";
+import { verifyToken, verifyInstructorToken, requireRole } from "../utils/middleware.js";
 import { answerUpload } from "../utils/upload.js";
 
 const router = express.Router();
@@ -8,6 +8,7 @@ const router = express.Router();
 router.post(
   "/register-instructor",
   verifyToken,
+  requireRole("admin"),
   instructorController.registerInstructor
 );
 router.post("/instructor-login", instructorController.instructorLogin);
@@ -43,6 +44,7 @@ router.get(
 );
 router.post(
   "/uploadCheckedPdfs",
+  verifyInstructorToken,
   answerUpload.any(),
   instructorController.uploadCheckedPdfs
 );
@@ -62,16 +64,19 @@ router.delete(
 router.get(
   "/getInstructors",
   verifyToken,
+  requireRole("admin"),
   instructorController.getAllInstructors
 );
 router.put(
   "/updateInstructor/:id",
   verifyToken,
+  requireRole("admin"),
   instructorController.updateInstructor
 );
 router.delete(
   "/deleteInstructor/:id",
   verifyToken,
+  requireRole("admin"),
   instructorController.deleteInstructor
 );
 

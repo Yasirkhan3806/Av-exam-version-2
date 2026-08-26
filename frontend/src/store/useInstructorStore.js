@@ -278,6 +278,7 @@ const useInstructorStore = create(
           const res = await safeFetch(`${BASE_URL}/instructors/uploadCheckedPdfs`, {
             method: "POST",
             body: formData,
+            credentials: "include", // required now that this route is instructor-auth-gated
           }, 60000); // 60 second timeout since instructors might upload multiple marked PDFs
           
           if (!res.ok) {

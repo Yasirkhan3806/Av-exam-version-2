@@ -50,6 +50,7 @@ const PRCExamForm = ({ subjectId, isOpen, onClose }) => {
         {
           method: "POST",
           body: data,
+          credentials: "include", // send the admin's token cookie — route is requireRole("admin")-gated
         }
       );
 

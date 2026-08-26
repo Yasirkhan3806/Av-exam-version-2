@@ -1,3 +1,4 @@
+import "dotenv/config"; // questionService.js imports JWT_SECRET from utils/middleware.js, which requires it at module-load time
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "fs/promises";
@@ -148,6 +149,8 @@ test("Question Service Unit Tests", async (t) => {
       const qSetId = new mongoose.Types.ObjectId().toString();
       const stdId = new mongoose.Types.ObjectId().toString();
 
+      // No existing draft — startExam creates a new Answer doc.
+      t.mock.method(Answer, "findOne", async () => null);
       t.mock.method(Answer.prototype, "save", async function () {
         this._id = "ans123";
         return this;

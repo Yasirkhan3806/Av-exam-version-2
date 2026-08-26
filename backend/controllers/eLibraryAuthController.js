@@ -58,7 +58,7 @@ export const register = async (req, res) => {
     );
 
     // Generate token with custom cookie name for eLibrary
-    generateTokenAndSetCookie(newUser, res, "eLibraryToken");
+    generateTokenAndSetCookie(newUser, res, "eLibraryToken", "elibrary");
 
     return res.status(201).json({
       message: "User registered successfully",
@@ -102,7 +102,7 @@ export const login = async (req, res) => {
     const user = await eLibraryAuthService.loginELibraryUser(email, password);
 
     // Generate token with custom cookie name for eLibrary
-    generateTokenAndSetCookie(user, res, "eLibraryToken");
+    generateTokenAndSetCookie(user, res, "eLibraryToken", "elibrary");
 
     return res.status(200).json({
       message: "✅ Logged in successfully",

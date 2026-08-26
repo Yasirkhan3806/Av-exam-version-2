@@ -1,14 +1,29 @@
 import jwt from "jsonwebtoken";
 
-export const JWT_SECRET =
-  "08d8d60667a5fceba29530f0de6529ff6ef1aa529c935a579579b63298feeb4c1463a53a4531952c2f2098674bc535f64ef40c523bcb8fa028336239f41e6fa6";
+// Must come from env — no hardcoded fallback. A hardcoded secret here was
+// previously committed to source (and to the frontend's two middleware
+// copies), meaning anyone with repo access could forge valid tokens. Fail
+// fast at boot rather than silently signing/verifying with an empty secret.
+export const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error(
+    "JWT_SECRET is not set. Add it to backend/.env — it must match the " +
+      "frontend's JWT_SECRET exactly (see frontend/.env.local)."
+  );
+}
 
-export const generateTokenAndSetCookie = (user, res, tokenName = "token") => {
+export const generateTokenAndSetCookie = (
+  user,
+  res,
+  tokenName = "token",
+  role = "student",
+) => {
   const token = jwt.sign(
     {
       userId: user._id,
       email: user.email,
       userName: user.name,
+      role,
     },
     JWT_SECRET,
     { expiresIn: "3d" },
@@ -85,6 +100,21 @@ export const verifyToken = (req, res, next) => {
   }
 };
 
+// Role check — must run after verifyToken (relies on req.user.role, which
+// verifyToken populates from the decoded JWT). Student and admin tokens
+// share the same cookie name ("token") and the same verifyToken middleware,
+// so this is what actually distinguishes "any logged-in user" from
+// "logged in as admin" — verifyToken alone does not.
+export const requireRole = (role) => (req, res, next) => {
+  if (!req.user || req.user.role !== role) {
+    return res.status(403).json({
+      success: false,
+      message: "Access denied. Insufficient permissions.",
+    });
+  }
+  next();
+};
+
 export const verifyExamToken = (req, res, next) => {
   try {
     let token;
@@ -115,7 +145,6 @@ export const verifyInstructorToken = (req, res, next) => {
 
     if (req.cookies && req.cookies.instructorToken) {
       token = req.cookies.instructorToken;
-      console.log(token)
     }
 
     if (!token && req.headers.cookie) {

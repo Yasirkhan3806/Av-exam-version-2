@@ -308,17 +308,23 @@ export const submitAnswers = async (examId, answers) => {
 };
 
 export const submitExamSession = async (examId) => {
-  const updatedDoc = await Answer.findByIdAndUpdate(
-    examId,
-    { status: "submitted" },
-    { new: true }
-  );
+  const existingDoc = await Answer.findById(examId);
 
-  if (!updatedDoc) {
+  if (!existingDoc) {
     throw new Error("Exam not found or already submitted");
   }
 
-  return updatedDoc;
+  // Guard: status may only move forward (draft -> submitted). Never let a
+  // duplicate/retried finish call regress an already-graded doc back to
+  // "submitted" and mask its checked state.
+  if (existingDoc.status === "checked") {
+    return existingDoc;
+  }
+
+  existingDoc.status = "submitted";
+  await existingDoc.save();
+
+  return existingDoc;
 };
 
 /**
@@ -347,7 +353,23 @@ export const startExam = async (questionSet, studentId) => {
       Student: studentId,
       status: "draft",
     });
-    await answerDoc.save();
+    try {
+      await answerDoc.save();
+    } catch (err) {
+      // A concurrent request (double-click, network retry) won the race and
+      // created the draft first — the unique partial index on
+      // {questionSet, Student, status:"draft"} rejects this one. That's
+      // fine: just use the draft that now exists instead of erroring out.
+      if (err.code === 11000) {
+        answerDoc = await Answer.findOne({
+          questionSet,
+          Student: studentId,
+          status: "draft",
+        });
+      } else {
+        throw err;
+      }
+    }
   }
 
   // Generate signed exam token

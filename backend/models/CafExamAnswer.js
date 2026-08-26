@@ -36,6 +36,14 @@ const cafExamAnswerSchema = new mongoose.Schema(
   }
 );
 
+// submitCafAnswer has no existing-submission check at all before inserting
+// — a double-submit (double-click, retry) creates duplicate docs for the
+// same student+question, and downstream code that does findOne() to read
+// "the" submission then nondeterministically picks whichever duplicate
+// matches first. One submission per student per exam question, enforced at
+// the DB level.
+cafExamAnswerSchema.index({ questionSet: 1, Student: 1 }, { unique: true });
+
 export const CafExamAnswer = mongoose.model(
   "CafExamAnswer",
   cafExamAnswerSchema

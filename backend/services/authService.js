@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import { sendEmail } from "../utils/emailService.js";
+import { emailServiceWrapper } from "../utils/emailService.js";
 import {
   TestUser,
   User,
@@ -10,8 +10,15 @@ import {
 } from "../models/index.js";
 import fs from "fs";
 
-const PEPPER =
-  "c8b378ecb0f4059059036dcc4abd1e76a30bdd72b1429d9c1a2242effbfa19d5";
+// Must come from env — no hardcoded fallback (was previously committed to
+// source). NOT rotated on relocation: existing admin bcrypt hashes were
+// computed with this exact pepper value, so changing the value itself would
+// invalidate every existing admin password. Rotating it requires a
+// coordinated password-reset migration, not just an env change.
+const PEPPER = process.env.PEPPER;
+if (!PEPPER) {
+  throw new Error("PEPPER is not set. Add it to backend/.env.");
+}
 
 export const registerUser = async (name, userName, email, password) => {
   const existingUser = await TestUser.findOne({ email });
@@ -59,7 +66,7 @@ export const sendWelcomeEmail = async (email, name, password) => {
   `;
 
   // Send email asynchronously without blocking the response
-  sendEmail(email, emailSubject, emailHtml);
+  emailServiceWrapper.sendEmail(email, emailSubject, emailHtml);
 };
 
 export const loginUser = async (email, password) => {

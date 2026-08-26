@@ -137,9 +137,48 @@ export const verifyExamAnswers = async (id, userAnswers) => {
   };
 };
 
-export const saveDetailedResult = async (result) => {
-  const detailedResult = new PRCAnswer(result);
-  await detailedResult.save();
+export const saveDetailedResult = async (result, studentId) => {
+  const { questionSet, detailed } = result || {};
+
+  if (!questionSet || !Array.isArray(detailed)) {
+    throw new Error("questionSet and detailed answers are required");
+  }
+
+  // Re-derive which option the student picked per question from the client
+  // payload, but recompute correctness/total/correct/wrong ourselves against
+  // the stored answer key — never trust total/correct/wrong/isCorrect as
+  // submitted by the client, or this becomes a straightforward score-forgery
+  // endpoint (anyone could POST a fabricated 100% result).
+  const answers = {};
+  for (const entry of detailed) {
+    if (entry && entry.questionId) {
+      answers[entry.questionId] = entry.selectedOption;
+    }
+  }
+
+  const verified = await verifyExamAnswers(questionSet, answers);
+
+  const detailedResult = new PRCAnswer({
+    Student: studentId,
+    questionSet,
+    total: verified.total,
+    correct: verified.correct,
+    wrong: verified.wrong,
+    detailed: verified.detailed,
+  });
+
+  try {
+    await detailedResult.save();
+  } catch (err) {
+    // Retake / double-submit — the unique index on {questionSet, Student}
+    // rejects the duplicate insert.
+    if (err.code === 11000) {
+      throw new Error("You have already submitted a result for this exam.");
+    }
+    throw err;
+  }
+
+  return detailedResult;
 };
 
 export const getDetailedResult = async (examId, userId) => {

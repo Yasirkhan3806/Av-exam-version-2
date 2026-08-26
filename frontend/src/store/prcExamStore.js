@@ -21,7 +21,9 @@ const usePrcExamStore = create((set, get) => ({
   fetchExam: async (id) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await safeFetch(`${API_URL}/prc-exams/${id}`, {}, 15000);
+      const response = await safeFetch(`${API_URL}/prc-exams/${id}`, {
+        credentials: "include",
+      }, 15000);
       if (!response.ok) throw new Error("Failed to fetch exam");
       const data = await response.json();
 
@@ -98,6 +100,7 @@ const usePrcExamStore = create((set, get) => ({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ answers }),
+        credentials: "include",
       }, 15000);
 
       if (!response.ok) throw new Error("Failed to submit exam");
@@ -120,6 +123,7 @@ const usePrcExamStore = create((set, get) => ({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ...finalResultToSave }),
+          credentials: "include",
         },
         15000
       );
