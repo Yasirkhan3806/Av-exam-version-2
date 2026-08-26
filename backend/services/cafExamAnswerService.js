@@ -1,11 +1,12 @@
 import { CafExamAnswer } from "../models/index.js";
+import { AppError } from "../utils/AppError.js";
 import fs from "fs";
 
 export const submitCafAnswer = async (answerData, file) => {
   const { studentId, questionId } = answerData;
 
   if (!studentId || !questionId || !file) {
-    throw new Error("Missing required fields or PDF file");
+    throw new AppError("Missing required fields or PDF file", 400);
   }
 
   const newAnswer = new CafExamAnswer({
@@ -22,7 +23,7 @@ export const submitCafAnswer = async (answerData, file) => {
     // Double-submit (double-click, retry) — the unique index on
     // {questionSet, Student} rejects the duplicate insert.
     if (err.code === 11000) {
-      throw new Error("You have already submitted an answer for this exam.");
+      throw new AppError("You have already submitted an answer for this exam.", 409);
     }
     throw err;
   }
@@ -50,7 +51,7 @@ export const getSubmission = async (studentId, examId) => {
     .populate("questionSet");
 
   if (!answer) {
-    throw new Error("Submission not found");
+    throw new AppError("Submission not found", 404);
   }
   return answer;
 };
@@ -62,14 +63,14 @@ export const getMySubmission = async (studentId, examId) => {
   }).populate("questionSet");
 
   if (!answer) {
-    throw new Error("Submission not found");
+    throw new AppError("Submission not found", 404);
   }
   return answer;
 };
 
 export const markSubmission = async (studentId, examId, file, marks, suggestedSolutionFile) => {
   if (!file) {
-    throw new Error("Checked PDF is required");
+    throw new AppError("Checked PDF is required", 400);
   }
 
   const deleted = await deleteOldPdf(studentId, examId);
@@ -107,7 +108,7 @@ export const markSubmission = async (studentId, examId, file, marks, suggestedSo
     );
 
     if (!updatedAnswer) {
-      throw new Error("Submission not found");
+      throw new AppError("Submission not found", 404);
     }
     return updatedAnswer;
   }

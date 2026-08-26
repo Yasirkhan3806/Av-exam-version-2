@@ -9,6 +9,7 @@ import {
   Answer,
 } from "../models/index.js";
 import fs from "fs";
+import { AppError } from "../utils/AppError.js";
 
 // Must come from env — no hardcoded fallback (was previously committed to
 // source). NOT rotated on relocation: existing admin bcrypt hashes were
@@ -23,7 +24,7 @@ if (!PEPPER) {
 export const registerUser = async (name, userName, email, password) => {
   const existingUser = await TestUser.findOne({ email });
   if (existingUser) {
-    throw new Error("User already exists");
+    throw new AppError("User already exists", 400);
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -72,12 +73,12 @@ export const sendWelcomeEmail = async (email, name, password) => {
 export const loginUser = async (email, password) => {
   const user = await TestUser.findOne({ email });
   if (!user) {
-    throw new Error("Invalid email or password");
+    throw new AppError("Invalid email or password", 401);
   }
 
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) {
-    throw new Error("Invalid email or password");
+    throw new AppError("Invalid email or password", 401);
   }
 
   return user;
@@ -86,14 +87,14 @@ export const loginUser = async (email, password) => {
 export const adminLogin = async (username, password) => {
   const user = await User.findOne({ email: username.toLowerCase() });
   if (!user) {
-    throw new Error("Invalid email or password");
+    throw new AppError("Invalid email or password", 401);
   }
 
   const passwordWithPepper = PEPPER ? password + PEPPER : password;
   const isMatch = await bcrypt.compare(passwordWithPepper, user.password);
 
   if (!isMatch) {
-    throw new Error("Invalid email or password");
+    throw new AppError("Invalid email or password", 401);
   }
 
   return user;
@@ -115,7 +116,7 @@ export const updateStudent = async (id, updateData) => {
       _id: { $ne: id },
     });
     if (existing) {
-      throw new Error("Username already taken");
+      throw new AppError("Username already taken", 400);
     }
   }
 
@@ -129,7 +130,7 @@ export const updateStudent = async (id, updateData) => {
   ).select("-password");
 
   if (!updatedStudent) {
-    throw new Error("Student not found");
+    throw new AppError("Student not found", 404);
   }
 
   return updatedStudent;
@@ -179,7 +180,7 @@ export const deleteStudent = async (id) => {
   const result = await TestUser.findByIdAndDelete(id);
 
   if (!result) {
-    throw new Error("Student not found");
+    throw new AppError("Student not found", 404);
   }
   return result;
 };

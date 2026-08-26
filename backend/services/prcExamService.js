@@ -1,4 +1,5 @@
 import { PRCExam, PRCAnswer } from "../models/index.js";
+import { AppError } from "../utils/AppError.js";
 import xlsx from "xlsx";
 import fs from "fs";
 
@@ -83,7 +84,10 @@ export const createExam = async (data, filePath) => {
         console.error("Error deleting file:", err);
       }
     }
-    throw error;
+    // Preserve the original error's message (bad Excel file, DB failure,
+    // etc.) instead of the central handler's generic "Internal Server
+    // Error" — the admin uploading the file needs to see why it failed.
+    throw new AppError(error.message, 500);
   }
 };
 
@@ -92,7 +96,7 @@ export const getExamById = async (id) => {
     .select("-mcqs.correctAnswer")
     .populate("subject");
   if (!exam) {
-    throw new Error("Exam not found");
+    throw new AppError("Exam not found", 404);
   }
   return exam;
 };
@@ -100,7 +104,7 @@ export const getExamById = async (id) => {
 export const verifyExamAnswers = async (id, userAnswers) => {
   const exam = await PRCExam.findById(id);
   if (!exam) {
-    throw new Error("Exam not found");
+    throw new AppError("Exam not found", 404);
   }
 
   let correctCount = 0;
@@ -141,7 +145,7 @@ export const saveDetailedResult = async (result, studentId) => {
   const { questionSet, detailed } = result || {};
 
   if (!questionSet || !Array.isArray(detailed)) {
-    throw new Error("questionSet and detailed answers are required");
+    throw new AppError("questionSet and detailed answers are required", 400);
   }
 
   // Re-derive which option the student picked per question from the client
@@ -173,7 +177,7 @@ export const saveDetailedResult = async (result, studentId) => {
     // Retake / double-submit — the unique index on {questionSet, Student}
     // rejects the duplicate insert.
     if (err.code === 11000) {
-      throw new Error("You have already submitted a result for this exam.");
+      throw new AppError("You have already submitted a result for this exam.", 409);
     }
     throw err;
   }
@@ -187,7 +191,7 @@ export const getDetailedResult = async (examId, userId) => {
     Student: userId,
   });
   if (!result) {
-    throw new Error("Result not found");
+    throw new AppError("Result not found", 404);
   }
   return result;
 };
@@ -195,7 +199,7 @@ export const getDetailedResult = async (examId, userId) => {
 export const updateExam = async (id, updateData) => {
   const exam = await PRCExam.findById(id);
   if (!exam) {
-    throw new Error("Exam not found");
+    throw new AppError("Exam not found", 404);
   }
 
   const { name, description, totalTime, totalMarks } = updateData;

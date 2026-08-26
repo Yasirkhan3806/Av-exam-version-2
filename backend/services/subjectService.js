@@ -11,6 +11,8 @@ import {
   PRCExam,
   PRCAnswer,
 } from "../models/index.js";
+import { getExamAndAnswerModels } from "../utils/examTypeResolver.js";
+import { AppError } from "../utils/AppError.js";
 
 export const addSubject = async (
   name,
@@ -20,12 +22,12 @@ export const addSubject = async (
   type
 ) => {
   if (!name || !description || !instructor || !type) {
-    throw new Error("Name, description, type and instructor are required.");
+    throw new AppError("Name, description, type and instructor are required.", 400);
   }
 
   const existingSubject = await Subject.findOne({ name, instructor });
   if (existingSubject) {
-    throw new Error("Subject already exists for this instructor.");
+    throw new AppError("Subject already exists for this instructor.", 409);
   }
 
   const newSubject = new Subject({
@@ -43,7 +45,7 @@ export const addSubject = async (
     // {name, instructor} rejects this one. Same domain error as the findOne
     // check above would have given if it had run a moment later.
     if (err.code === 11000) {
-      throw new Error("Subject already exists for this instructor.");
+      throw new AppError("Subject already exists for this instructor.", 409);
     }
     throw err;
   }
@@ -61,14 +63,14 @@ export const getSubjectById = async (id) => {
     "name userName"
   );
   if (!subject) {
-    throw new Error("Subject not found.");
+    throw new AppError("Subject not found.", 404);
   }
   return subject;
 };
 
 export const getNotEnrolledStudents = async (subjectId) => {
   if (!subjectId) {
-    throw new Error("subjectId is required.");
+    throw new AppError("subjectId is required.", 400);
   }
 
   const enrolledStudents = await TestUser.find({
@@ -84,7 +86,7 @@ export const getNotEnrolledStudents = async (subjectId) => {
 
 export const enrollStudent = async (studentId, subjectId) => {
   if (!studentId) {
-    throw new Error("studentId is required.");
+    throw new AppError("studentId is required.", 400);
   }
 
   const student = await TestUser.findByIdAndUpdate(
@@ -94,7 +96,7 @@ export const enrollStudent = async (studentId, subjectId) => {
   );
 
   if (!student) {
-    throw new Error("Student not found.");
+    throw new AppError("Student not found.", 404);
   }
 
   return student;
@@ -102,7 +104,7 @@ export const enrollStudent = async (studentId, subjectId) => {
 
 export const getEnrolledStudents = async (subjectId) => {
   if (!subjectId) {
-    throw new Error("subjectId is required.");
+    throw new AppError("subjectId is required.", 400);
   }
 
   const enrolledStudents = await TestUser.find({
@@ -113,7 +115,7 @@ export const getEnrolledStudents = async (subjectId) => {
 
 export const unenrollStudent = async (studentId, subjectId) => {
   if (!studentId) {
-    throw new Error("studentId is required.");
+    throw new AppError("studentId is required.", 400);
   }
 
   const student = await TestUser.findByIdAndUpdate(
@@ -123,7 +125,7 @@ export const unenrollStudent = async (studentId, subjectId) => {
   );
 
   if (!student) {
-    throw new Error("Student not found.");
+    throw new AppError("Student not found.", 404);
   }
 
   return student;
@@ -131,7 +133,7 @@ export const unenrollStudent = async (studentId, subjectId) => {
 
 export const getEnrolledSubjects = async (studentId) => {
   if (!studentId) {
-    throw new Error("studentId is required.");
+    throw new AppError("studentId is required.", 400);
   }
 
   const student = await TestUser.findById(studentId).populate({
@@ -140,7 +142,7 @@ export const getEnrolledSubjects = async (studentId) => {
   });
 
   if (!student) {
-    throw new Error("Student not found.");
+    throw new AppError("Student not found.", 404);
   }
 
   return student.subjectsEnrolled;
@@ -148,7 +150,7 @@ export const getEnrolledSubjects = async (studentId) => {
 
 // export const getExamsForSubject = async (subjectId, userId, subjectType) => {
 //   if (!subjectId) {
-//     throw new Error("subjectId is required.");
+//     throw new AppError("subjectId is required.", 400);
 //   }
 //   console.log(subjectType);
 //   let collectionType;
@@ -208,41 +210,24 @@ export const getEnrolledSubjects = async (studentId) => {
 //   return exams;
 // };
 
+// PRC has no status field or lifecycle at all — it's auto-graded and
+// written once, atomically, on submit. Existence of a doc *is* completion
+// for PRC. (A status-based check here always evaluates false for it, since
+// the field is never set — see backend/models/PrcExamAnswer.js.) CAF and
+// regular exam answers both have a real draft -> submitted -> checked
+// lifecycle (models/CafExamAnswer.js, models/Answer.js), so "completed"
+// must check status there — an in-progress draft shouldn't count.
 const getCollectionConfig = (subjectType) => {
-  switch (subjectType) {
-    case "CAF":
-      return {
-        Model: CafExamQuestions,
-        answerCollection: "CafExamAnswers",
-        // CAF answers have a real draft -> submitted -> checked lifecycle
-        // (models/CafExamAnswer.js), so "completed" must check status —
-        // an in-progress draft shouldn't count as completed.
-        usesStatusLifecycle: true,
-      };
-    case "PRC":
-      return {
-        Model: PRCExam,
-        answerCollection: PRCAnswer.collection.name, // Changed to match your new schema name
-        // PrcExamAnswer has no status field or lifecycle at all — it's
-        // auto-graded and written once, atomically, on submit. Existence of
-        // a doc *is* completion for PRC. (A status-based check here always
-        // evaluates false, since the field is never set — see
-        // backend/models/PrcExamAnswer.js.)
-        usesStatusLifecycle: false,
-      };
-    default:
-      return {
-        Model: Questions,
-        answerCollection: "Answers",
-        // Regular exam answers also have a draft -> submitted -> checked
-        // lifecycle (models/Answer.js).
-        usesStatusLifecycle: true,
-      };
-  }
+  const { Q: Model, A: AnswerModel } = getExamAndAnswerModels(subjectType);
+  return {
+    Model,
+    answerCollection: AnswerModel.collection.name,
+    usesStatusLifecycle: subjectType !== "PRC",
+  };
 };
 
 export const getExamsForSubject = async (subjectId, userId, subjectType) => {
-  if (!subjectId) throw new Error("subjectId is required.");
+  if (!subjectId) throw new AppError("subjectId is required.", 400);
 
   // 1. Get the appropriate models/collections
   const { Model, answerCollection, usesStatusLifecycle } = getCollectionConfig(subjectType);
@@ -300,7 +285,7 @@ export const getExamsForSubject = async (subjectId, userId, subjectType) => {
 
 export const getResults = async (studentId) => {
   if (!mongoose.Types.ObjectId.isValid(studentId)) {
-    throw new Error("Invalid student ID");
+    throw new AppError("Invalid student ID", 400);
   }
 
   const cfapResults = await Answer.find({
@@ -338,7 +323,7 @@ export const getStudentAnswers = async (studentId, examId) => {
     !mongoose.Types.ObjectId.isValid(studentId) ||
     !mongoose.Types.ObjectId.isValid(examId)
   ) {
-    throw new Error("Invalid student ID or exam ID");
+    throw new AppError("Invalid student ID or exam ID", 400);
   }
 
   const answers = await Answer.findOne({
@@ -347,7 +332,7 @@ export const getStudentAnswers = async (studentId, examId) => {
   }).populate("questionSet", "_id name totalAttempt totalMarks totalQuestions");
 
   if (!answers) {
-    throw new Error("No answers found for this student and exam");
+    throw new AppError("No answers found for this student and exam", 404);
   }
 
   return answers;
@@ -356,7 +341,7 @@ export const getStudentAnswers = async (studentId, examId) => {
 export const calculateGrade = async (studentId, subjectId) => {
   const questionSets = await Questions.find({ subject: subjectId });
   if (!questionSets.length) {
-    throw new Error("No question sets found for this subject.");
+    throw new AppError("No question sets found for this subject.", 404);
   }
 
   const questionSetIds = questionSets.map((q) => q._id);
@@ -368,8 +353,9 @@ export const calculateGrade = async (studentId, subjectId) => {
   });
 
   if (!answers.length) {
-    throw new Error(
-      "No checked answers found for this student in this subject."
+    throw new AppError(
+      "No checked answers found for this student in this subject.",
+      404
     );
   }
 
@@ -412,7 +398,7 @@ export const calculateGrade = async (studentId, subjectId) => {
 
 export const updateSubject = async (id, updateData) => {
   if (!id) {
-    throw new Error("Subject ID is required.");
+    throw new AppError("Subject ID is required.", 400);
   }
 
   const updatedSubject = await Subject.findByIdAndUpdate(
@@ -422,7 +408,7 @@ export const updateSubject = async (id, updateData) => {
   ).populate("instructor", "name userName");
 
   if (!updatedSubject) {
-    throw new Error("Subject not found.");
+    throw new AppError("Subject not found.", 404);
   }
 
   return updatedSubject;
@@ -430,7 +416,7 @@ export const updateSubject = async (id, updateData) => {
 
 export const deleteSubject = async (subjectId) => {
   if (!subjectId) {
-    throw new Error("Subject ID is required.");
+    throw new AppError("Subject ID is required.", 400);
   }
 
   // 1. Find all exam IDs for this subject across all types
@@ -520,7 +506,7 @@ export const deleteSubject = async (subjectId) => {
   const result = await Subject.findByIdAndDelete(subjectId);
 
   if (!result) {
-    throw new Error("Subject not found.");
+    throw new AppError("Subject not found.", 404);
   }
 
   return result;

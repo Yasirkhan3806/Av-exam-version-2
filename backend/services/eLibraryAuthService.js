@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import { ELibraryUser } from "../models/eLibraryUser.js";
 import { sendEmail } from "../utils/emailService.js";
+import { AppError } from "../utils/AppError.js";
 
 export const registerELibraryUser = async (
   firstName,
@@ -17,10 +18,10 @@ export const registerELibraryUser = async (
 
   if (existingUser) {
     if (existingUser.email === email) {
-      throw new Error("Email already exists");
+      throw new AppError("Email already exists", 400);
     }
     if (existingUser.userName === userName) {
-      throw new Error("Username already exists");
+      throw new AppError("Username already exists", 400);
     }
   }
 
@@ -69,14 +70,14 @@ export const loginELibraryUser = async (email, password) => {
   const user = await ELibraryUser.findOne({ email });
 
   if (!user) {
-    throw new Error("Invalid email or password");
+    throw new AppError("Invalid email or password", 401);
   }
 
   // Verify password
   const isPasswordValid = await bcrypt.compare(password, user.password);
 
   if (!isPasswordValid) {
-    throw new Error("Invalid email or password");
+    throw new AppError("Invalid email or password", 401);
   }
 
   return user;
@@ -86,7 +87,7 @@ export const getELibraryUserById = async (userId) => {
   const user = await ELibraryUser.findById(userId).select("-password");
 
   if (!user) {
-    throw new Error("User not found");
+    throw new AppError("User not found", 404);
   }
 
   return user;
@@ -102,7 +103,7 @@ export const updateELibraryUser = async (userId, updateData) => {
   }).select("-password");
 
   if (!user) {
-    throw new Error("User not found");
+    throw new AppError("User not found", 404);
   }
 
   return user;
@@ -112,7 +113,7 @@ export const deleteELibraryUser = async (userId) => {
   const user = await ELibraryUser.findByIdAndDelete(userId);
 
   if (!user) {
-    throw new Error("User not found");
+    throw new AppError("User not found", 404);
   }
 
   return user;

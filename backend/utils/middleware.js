@@ -50,55 +50,77 @@ export const generateTokenAndSetCookie = (
   return token;
 };
 
-export const verifyToken = (req, res, next) => {
-  try {
-    let token;
+// Shared implementation behind verifyToken/verifyExamToken/
+// verifyInstructorToken/verifyELibraryToken below. The four were previously
+// ~90% duplicated copy-paste, differing only in cookie name, which req.*
+// property they populate, whether a Bearer-header fallback is supported,
+// and their exact response shape/wording — all preserved exactly via the
+// config object each one passes in, so this is a pure de-duplication with
+// no behavior change (tests/middleware.test.js pins the exact responses).
+function makeTokenVerifier({
+  cookieName,
+  reqProp,
+  supportsBearerFallback = false,
+  supportsHeaderCookieFallback = false,
+  onMissing,
+  onExpired,
+  onInvalid,
+  onOtherError = onInvalid,
+}) {
+  return (req, res, next) => {
+    try {
+      let token;
 
-    if (req.cookies && req.cookies.token) {
-      token = req.cookies.token;
-    }
-
-    if (!token && req.headers.cookie) {
-      const cookieHeader = req.headers.cookie
-        .split(";")
-        .map((c) => c.trim())
-        .find((c) => c.startsWith("token="));
-      if (cookieHeader) {
-        token = cookieHeader.split("=")[1];
+      if (req.cookies && req.cookies[cookieName]) {
+        token = req.cookies[cookieName];
       }
-    }
 
-    if (!token) {
-      return res.status(401).json({
-        success: false,
-        message: "Access denied. No token provided.",
-      });
-    }
+      if (!token && supportsBearerFallback && req.headers.authorization?.startsWith("Bearer ")) {
+        token = req.headers.authorization.split(" ")[1];
+      }
 
-    const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = decoded;
-    next();
-  } catch (err) {
-    if (err.name === "TokenExpiredError") {
-      return res.status(401).json({
-        success: false,
-        message: "Token has expired. Please log in again.",
-      });
-    }
+      if (!token && supportsHeaderCookieFallback && req.headers.cookie) {
+        const cookieHeader = req.headers.cookie
+          .split(";")
+          .map((c) => c.trim())
+          .find((c) => c.startsWith(`${cookieName}=`));
+        if (cookieHeader) {
+          token = cookieHeader.split("=")[1];
+        }
+      }
 
-    if (err.name === "JsonWebTokenError") {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid token. Access denied.",
-      });
-    }
+      if (!token) {
+        return onMissing(res);
+      }
 
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error during token verification.",
-    });
-  }
-};
+      const decoded = jwt.verify(token, JWT_SECRET);
+      req[reqProp] = decoded;
+      next();
+    } catch (err) {
+      if (err.name === "TokenExpiredError") {
+        return onExpired(res);
+      }
+      if (err.name === "JsonWebTokenError") {
+        return onInvalid(res);
+      }
+      return onOtherError(res);
+    }
+  };
+}
+
+export const verifyToken = makeTokenVerifier({
+  cookieName: "token",
+  reqProp: "user",
+  supportsHeaderCookieFallback: true,
+  onMissing: (res) =>
+    res.status(401).json({ success: false, message: "Access denied. No token provided." }),
+  onExpired: (res) =>
+    res.status(401).json({ success: false, message: "Token has expired. Please log in again." }),
+  onInvalid: (res) =>
+    res.status(401).json({ success: false, message: "Invalid token. Access denied." }),
+  onOtherError: (res) =>
+    res.status(500).json({ success: false, message: "Internal server error during token verification." }),
+});
 
 // Role check — must run after verifyToken (relies on req.user.role, which
 // verifyToken populates from the decoded JWT). Student and admin tokens
@@ -115,114 +137,35 @@ export const requireRole = (role) => (req, res, next) => {
   next();
 };
 
-export const verifyExamToken = (req, res, next) => {
-  try {
-    let token;
+export const verifyExamToken = makeTokenVerifier({
+  cookieName: "ExamToken",
+  reqProp: "exam",
+  supportsBearerFallback: true,
+  onMissing: (res) => res.status(401).json({ error: "No ExamToken provided" }),
+  onExpired: (res) => res.status(401).json({ error: "Invalid or expired ExamToken" }),
+  onInvalid: (res) => res.status(401).json({ error: "Invalid or expired ExamToken" }),
+});
 
-    if (req.cookies && req.cookies.ExamToken) {
-      token = req.cookies.ExamToken;
-    }
+export const verifyInstructorToken = makeTokenVerifier({
+  cookieName: "instructorToken",
+  reqProp: "instructor",
+  supportsHeaderCookieFallback: true,
+  onMissing: (res) => res.status(401).json({ error: "No instructorToken provided" }),
+  onExpired: (res) => res.status(401).json({ error: "Instructor token has expired" }),
+  onInvalid: (res) => res.status(401).json({ error: "Invalid instructor token" }),
+  onOtherError: (res) => res.status(401).json({ error: "Invalid or expired instructorToken" }),
+});
 
-    if (!token && req.headers.authorization?.startsWith("Bearer ")) {
-      token = req.headers.authorization.split(" ")[1];
-    }
-
-    if (!token) {
-      return res.status(401).json({ error: "No ExamToken provided" });
-    }
-
-    const decoded = jwt.verify(token, JWT_SECRET);
-    req.exam = decoded;
-    next();
-  } catch (err) {
-    return res.status(401).json({ error: "Invalid or expired ExamToken" });
-  }
-};
-
-export const verifyInstructorToken = (req, res, next) => {
-  try {
-    let token;
-
-    if (req.cookies && req.cookies.instructorToken) {
-      token = req.cookies.instructorToken;
-    }
-
-    if (!token && req.headers.cookie) {
-      const cookieHeader = req.headers.cookie
-        .split(";")
-        .map((c) => c.trim())
-        .find((c) => c.startsWith("instructorToken="));
-      if (cookieHeader) {
-        token = cookieHeader.split("=")[1];
-      }
-    }
-
-    if (!token) {
-      return res.status(401).json({ error: "No instructorToken provided" });
-    }
-
-    const decoded = jwt.verify(token, JWT_SECRET);
-    req.instructor = decoded;
-    next();
-  } catch (err) {
-    if (err.name === "TokenExpiredError") {
-      return res.status(401).json({ error: "Instructor token has expired" });
-    }
-    if (err.name === "JsonWebTokenError") {
-      return res.status(401).json({ error: "Invalid instructor token" });
-    }
-    return res
-      .status(401)
-      .json({ error: "Invalid or expired instructorToken" });
-  }
-};
-
-export const verifyELibraryToken = (req, res, next) => {
-  try {
-    let token;
-
-    if (req.cookies && req.cookies.eLibraryToken) {
-      token = req.cookies.eLibraryToken;
-    }
-
-    if (!token && req.headers.cookie) {
-      const cookieHeader = req.headers.cookie
-        .split(";")
-        .map((c) => c.trim())
-        .find((c) => c.startsWith("eLibraryToken="));
-      if (cookieHeader) {
-        token = cookieHeader.split("=")[1];
-      }
-    }
-
-    if (!token) {
-      return res.status(401).json({
-        success: false,
-        message: "Access denied. No eLibrary token provided.",
-      });
-    }
-
-    const decoded = jwt.verify(token, JWT_SECRET);
-    req.eLibraryUser = decoded;
-    next();
-  } catch (err) {
-    if (err.name === "TokenExpiredError") {
-      return res.status(401).json({
-        success: false,
-        message: "eLibrary token has expired. Please log in again.",
-      });
-    }
-
-    if (err.name === "JsonWebTokenError") {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid eLibrary token. Access denied.",
-      });
-    }
-
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error during token verification.",
-    });
-  }
-};
+export const verifyELibraryToken = makeTokenVerifier({
+  cookieName: "eLibraryToken",
+  reqProp: "eLibraryUser",
+  supportsHeaderCookieFallback: true,
+  onMissing: (res) =>
+    res.status(401).json({ success: false, message: "Access denied. No eLibrary token provided." }),
+  onExpired: (res) =>
+    res.status(401).json({ success: false, message: "eLibrary token has expired. Please log in again." }),
+  onInvalid: (res) =>
+    res.status(401).json({ success: false, message: "Invalid eLibrary token. Access denied." }),
+  onOtherError: (res) =>
+    res.status(500).json({ success: false, message: "Internal server error during token verification." }),
+});

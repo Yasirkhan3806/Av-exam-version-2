@@ -123,6 +123,14 @@ export function buildApp() {
         device: userAgent
     });
 
+    // AppError (utils/AppError.js) — a service deliberately threw this with
+    // a specific status code and a message that's safe to show the client
+    // (e.g. "Student not found", 404). Anything else is an unexpected
+    // error — keep hiding its message from the response, same as before.
+    if (err.isOperational) {
+      return res.status(err.statusCode || 500).json({ success: false, message: err.message });
+    }
+
     res.status(500).json({ error: 'Internal Server Error' });
   });
 

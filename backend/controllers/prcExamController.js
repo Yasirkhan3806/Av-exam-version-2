@@ -1,93 +1,50 @@
 import * as prcExamService from "../services/prcExamService.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { AppError } from "../utils/AppError.js";
 
-export const createPRCExam = async (req, res) => {
-  console.log("Creating PRC Exam...");
-  try {
-    const file = req.file;
-    if (!file) {
-      return res.status(400).json({ message: "Excel file is required" });
-    }
-
-    const examData = req.body;
-    console.log("Exam Data:", examData);
-    // Basic validation
-    if (!examData.name || !examData.totalTime || !examData.totalMarks) {
-      // Validation could be stricter or handled by Joi/Zod
-      // For now, let's proceed, usually service or model will error if required fields missing
-    }
-
-    const prcExam = await prcExamService.createExam(examData, file.path);
-    console.log("PRC Exam Created:", prcExam);
-    res.status(201).json(prcExam);
-  } catch (error) {
-    console.error("Error creating PRC Exam:", error);
-    res.status(500).json({ message: error.message });
+export const createPRCExam = asyncHandler(async (req, res) => {
+  const file = req.file;
+  if (!file) {
+    throw new AppError("Excel file is required", 400);
   }
-};
 
-export const getPRCExamById = async (req, res) => {
-  try {
-    const exam = await prcExamService.getExamById(req.params.id);
-    res.status(200).json(exam);
-  } catch (error) {
-    console.error("Error fetching PRC Exam:", error);
-    if (error.message === "Exam not found") {
-      return res.status(404).json({ message: error.message });
-    }
-    res.status(500).json({ message: error.message });
-  }
-};
+  const examData = req.body;
+  const prcExam = await prcExamService.createExam(examData, file.path);
+  res.status(201).json(prcExam);
+});
 
-export const submitPRCExamResult = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { answers } = req.body; // { questionId: optionLabel }
+export const getPRCExamById = asyncHandler(async (req, res) => {
+  const exam = await prcExamService.getExamById(req.params.id);
+  res.status(200).json(exam);
+});
 
-    const result = await prcExamService.verifyExamAnswers(id, answers);
-    res.status(200).json(result);
-  } catch (error) {
-    console.error("Error submitting PRC Exam:", error);
-    res.status(500).json({ message: error.message });
-  }
-};
+export const submitPRCExamResult = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { answers } = req.body; // { questionId: optionLabel }
 
-export const submitDetailedResult = async (req, res) => {
-  try {
-    // Student comes from the verified token, never from the request body —
-    // otherwise a student could save a result under someone else's id.
-    const studentId = req.user.userId;
-    const result = req.body;
-    await prcExamService.saveDetailedResult(result, studentId);
-    res.status(200).json({ message: "Detailed result saved successfully" });
-  } catch (error) {
-    console.error("Error submitting detailed result:", error);
-    res.status(500).json({ message: error.message });
-  }
-};
+  const result = await prcExamService.verifyExamAnswers(id, answers);
+  res.status(200).json(result);
+});
 
-export const getDetailedResult = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const userId = req.user.userId;
-    const result = await prcExamService.getDetailedResult(id, userId);
-    res.status(200).json(result);
-  } catch (error) {
-    console.error("Error fetching detailed result:", error);
-    res.status(500).json({ message: error.message });
-  }
-};
+export const submitDetailedResult = asyncHandler(async (req, res) => {
+  // Student comes from the verified token, never from the request body —
+  // otherwise a student could save a result under someone else's id.
+  const studentId = req.user.userId;
+  const result = req.body;
+  await prcExamService.saveDetailedResult(result, studentId);
+  res.status(200).json({ message: "Detailed result saved successfully" });
+});
 
-export const updatePRCExam = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const updateData = req.body;
-    const updatedExam = await prcExamService.updateExam(id, updateData);
-    res.status(200).json(updatedExam);
-  } catch (error) {
-    console.error("Error updating PRC Exam:", error);
-    if (error.message === "Exam not found") {
-      return res.status(404).json({ message: error.message });
-    }
-    res.status(500).json({ message: error.message });
-  }
-};
+export const getDetailedResult = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user.userId;
+  const result = await prcExamService.getDetailedResult(id, userId);
+  res.status(200).json(result);
+});
+
+export const updatePRCExam = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const updateData = req.body;
+  const updatedExam = await prcExamService.updateExam(id, updateData);
+  res.status(200).json(updatedExam);
+});

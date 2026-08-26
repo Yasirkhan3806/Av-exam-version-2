@@ -3,25 +3,19 @@ import mongoose from "mongoose";
 import puppeteer from "puppeteer";
 import path from "path";
 import fs from "fs";
-import {
-  Instructor,
-  Subject,
-  TestUser,
-  Questions,
-  Answer,
-  CafExamQuestions,
-  CafExamAnswer,
-} from "../models/index.js";
+import { Instructor, Subject, TestUser, Questions } from "../models/index.js";
 import { generateTokenAndSetCookie } from "../utils/middleware.js";
+import { getGradableExamModel, getAnswerModel } from "../utils/examTypeResolver.js";
+import { AppError } from "../utils/AppError.js";
 
 export const registerInstructor = async (name, userName, courses, password) => {
   if (!name || !userName || !courses || !password) {
-    throw new Error("All fields are required");
+    throw new AppError("All fields are required", 400);
   }
 
   const existingInstructor = await Instructor.findOne({ userName });
   if (existingInstructor) {
-    throw new Error("Instructor with this username already exists");
+    throw new AppError("Instructor with this username already exists", 400);
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -38,17 +32,17 @@ export const registerInstructor = async (name, userName, courses, password) => {
 
 export const loginInstructor = async (username, password) => {
   if (!username || !password) {
-    throw new Error("Username and password are required");
+    throw new AppError("Username and password are required", 400);
   }
 
   const instructor = await Instructor.findOne({ userName: username });
   if (!instructor) {
-    throw new Error("Invalid username or password");
+    throw new AppError("Invalid username or password", 401);
   }
 
   const isMatch = await bcrypt.compare(password, instructor.password);
   if (!isMatch) {
-    throw new Error("Invalid username or password");
+    throw new AppError("Invalid username or password", 401);
   }
 
   return instructor;
@@ -56,7 +50,7 @@ export const loginInstructor = async (username, password) => {
 
 export const getAllSubjectsByInstructor = async (instructorId) => {
   if (!mongoose.Types.ObjectId.isValid(instructorId)) {
-    throw new Error("Invalid instructor ID");
+    throw new AppError("Invalid instructor ID", 400);
   }
 
   const subjects = await Subject.aggregate([
@@ -86,31 +80,23 @@ export const getAllSubjectsByInstructor = async (instructorId) => {
 
 export const getExamsBySubject = async (subjectId, subjectType) => {
   if (!mongoose.Types.ObjectId.isValid(subjectId)) {
-    throw new Error("Invalid subject ID");
+    throw new AppError("Invalid subject ID", 400);
   }
 
   const subject = await Subject.findById(subjectId);
   if (!subject) {
-    throw new Error("Subject not found");
+    throw new AppError("Subject not found", 404);
   }
 
   const totalStudents = await TestUser.countDocuments({
     subjectsEnrolled: subjectId,
   });
 
-  let exams = [];
-  let AnswerModel = Answer;
-
-  if (subjectType === "CAF") {
-    exams = await CafExamQuestions.find({ subject: subjectId }).sort({
-      createdAt: -1,
-    });
-    AnswerModel = CafExamAnswer;
-  } else {
-    exams = await Questions.find({ subject: subjectId }).sort({
-      createdAt: -1,
-    });
-  }
+  const ExamModel = getGradableExamModel(subjectType);
+  const AnswerModel = getAnswerModel(subjectType);
+  const exams = await ExamModel.find({ subject: subjectId }).sort({
+    createdAt: -1,
+  });
 
   const results = await Promise.all(
     exams.map(async (exam) => {
@@ -145,21 +131,15 @@ export const getExamsBySubject = async (subjectId, subjectType) => {
 
 export const getSubmissionsByQuestion = async (questionId, subjectType) => {
   if (!mongoose.Types.ObjectId.isValid(questionId)) {
-    throw new Error("Invalid question ID");
+    throw new AppError("Invalid question ID", 400);
   }
 
-  let question;
-  let AnswerModel = Answer; // Default
-
-  if (subjectType === "CAF") {
-    question = await CafExamQuestions.findById(questionId);
-    AnswerModel = CafExamAnswer;
-  } else {
-    question = await Questions.findById(questionId);
-  }
+  const ExamModel = getGradableExamModel(subjectType);
+  const AnswerModel = getAnswerModel(subjectType);
+  const question = await ExamModel.findById(questionId);
 
   if (!question) {
-    throw new Error("Question not found");
+    throw new AppError("Question not found", 404);
   }
 
   const totalQuestions = question.totalQuestions;
@@ -217,12 +197,12 @@ export const getSubmissionsByQuestion = async (questionId, subjectType) => {
 
 export const getExamById = async (examId) => {
   if (!mongoose.Types.ObjectId.isValid(examId)) {
-    throw new Error("Invalid exam ID");
+    throw new AppError("Invalid exam ID", 400);
   }
 
   const exam = await Questions.findById(examId);
   if (!exam) {
-    throw new Error("Exam not found");
+    throw new AppError("Exam not found", 404);
   }
 
   return exam;
@@ -292,13 +272,10 @@ export const getStudentAnswers = async (studentId, examId, subjectType) => {
     !mongoose.Types.ObjectId.isValid(studentId) ||
     !mongoose.Types.ObjectId.isValid(examId)
   ) {
-    throw new Error("Invalid student ID or exam ID");
+    throw new AppError("Invalid student ID or exam ID", 400);
   }
 
-  let AnswerModel = Answer;
-  if (subjectType === "CAF") {
-    AnswerModel = CafExamAnswer;
-  }
+  const AnswerModel = getAnswerModel(subjectType);
 
   const answersDoc = await AnswerModel.findOne({
     Student: studentId,
@@ -306,7 +283,7 @@ export const getStudentAnswers = async (studentId, examId, subjectType) => {
   });
 
   if (!answersDoc) {
-    throw new Error("No answers found for this student and exam");
+    throw new AppError("No answers found for this student and exam", 404);
   }
 
   if (
@@ -402,13 +379,10 @@ export const updateStudentMarks = async (
     !mongoose.Types.ObjectId.isValid(studentId) ||
     !mongoose.Types.ObjectId.isValid(examId)
   ) {
-    throw new Error("Invalid student ID or exam ID");
+    throw new AppError("Invalid student ID or exam ID", 400);
   }
 
-  let AnswerModel = Answer;
-  if (subjectType === "CAF") {
-    AnswerModel = CafExamAnswer;
-  }
+  const AnswerModel = getAnswerModel(subjectType);
 
   const updatedAnswer = await AnswerModel.findOneAndUpdate(
     { Student: studentId, questionSet: examId },
@@ -421,7 +395,7 @@ export const updateStudentMarks = async (
   );
 
   if (!updatedAnswer) {
-    throw new Error("No answer document found for this student and exam");
+    throw new AppError("No answer document found for this student and exam", 404);
   }
 
   return updatedAnswer;
@@ -438,7 +412,7 @@ export const updateInstructor = async (id, updateData) => {
       _id: { $ne: id },
     });
     if (existing) {
-      throw new Error("Username already taken");
+      throw new AppError("Username already taken", 400);
     }
   }
 
@@ -452,7 +426,7 @@ export const updateInstructor = async (id, updateData) => {
   ).select("-password");
 
   if (!updatedInstructor) {
-    throw new Error("Instructor not found");
+    throw new AppError("Instructor not found", 404);
   }
 
   return updatedInstructor;
@@ -461,7 +435,7 @@ export const updateInstructor = async (id, updateData) => {
 export const deleteInstructor = async (id) => {
   const result = await Instructor.findByIdAndDelete(id);
   if (!result) {
-    throw new Error("Instructor not found");
+    throw new AppError("Instructor not found", 404);
   }
   return result;
 };
@@ -471,13 +445,10 @@ export const deleteSubmission = async (studentId, examId, subjectType) => {
     !mongoose.Types.ObjectId.isValid(studentId) ||
     !mongoose.Types.ObjectId.isValid(examId)
   ) {
-    throw new Error("Invalid student ID or exam ID");
+    throw new AppError("Invalid student ID or exam ID", 400);
   }
 
-  let AnswerModel = Answer;
-  if (subjectType === "CAF") {
-    AnswerModel = CafExamAnswer;
-  }
+  const AnswerModel = getAnswerModel(subjectType);
 
   const result = await AnswerModel.findOneAndDelete({
     Student: studentId,
@@ -485,7 +456,7 @@ export const deleteSubmission = async (studentId, examId, subjectType) => {
   });
 
   if (!result) {
-    throw new Error("Submission not found");
+    throw new AppError("Submission not found", 404);
   }
 
   return result;
