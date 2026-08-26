@@ -1,3 +1,6 @@
+import "./instrument.js";
+import * as Sentry from "@sentry/node";
+
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -15,6 +18,8 @@ import eLibraryAuthRoutes from "./routes/eLibraryAuthRoutes.js";
 
 import eLibraryRoomRoutes from "./routes/eLibraryRoomRoutes.js";
 import logRoutes from "./routes/logs.js";
+import onlyofficeRoutes from "./routes/onlyofficeRoutes.js";
+import onlyofficeExamRoutes from "./routes/onlyofficeExamRoutes.js";
 import { backendLogger } from "./utils/logger.js";
 
 // Top level process handlers
@@ -39,6 +44,7 @@ const PORT = 5000;
     console.log(`Backend Request: ${req.method} ${req.originalUrl}`);
     console.log("Backend Headers Origin:", req.headers.origin);
     const allowedOrigins = [
+      "http://www.localhost:3000",
       "http://localhost:3000",
       "https://academicvitality.org",
       "https://www.academicvitality.org",
@@ -104,6 +110,8 @@ const PORT = 5000;
   app.use("/api/elibrary/auth", eLibraryAuthRoutes);
   app.use("/api/elibrary/rooms", eLibraryRoomRoutes);
   app.use("/api/logs", logRoutes);
+  app.use("/api/onlyoffice/exam", onlyofficeExamRoutes);
+  app.use("/api/onlyoffice", onlyofficeRoutes);
 
   // TEMPORARY TEST ROUTE - You can delete this later
   app.get("/api/test-error", (req, res, next) => {
@@ -111,7 +119,13 @@ const PORT = 5000;
     next(new Error("🔥 BOOM! This is a test backend crash. The logger works!"));
   });
 
+  app.get("/debug-sentry", function mainHandler(req, res) {
+    throw new Error("My first Sentry error!");
+  });
+
   // Global Error Handler Middleware
+  Sentry.setupExpressErrorHandler(app);
+
   app.use((err, req, res, next) => {
     // Attempt to extract user info if attached via some auth middleware
     const userId = req.user ? req.user.id || req.user._id : 'Unauthenticated';

@@ -19,7 +19,7 @@ export const metadata = {
 export default async function RootLayout({ children }) {
   return (
     <html lang="en" className={`${montserrat.variable}`}>
-      <body>
+      <body suppressHydrationWarning>
         <GlobalErrorListener />
         <ErrorBoundary>
           <BaseUrlProvider>{children}</BaseUrlProvider>

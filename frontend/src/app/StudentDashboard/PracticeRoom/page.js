@@ -4,9 +4,20 @@ import React, { useEffect } from "react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import usePracticeStore from "../../../store/usePracticeStore";
 import PracticeNavbar from "./components/PracticeNavbar";
-import PracticeQuestionWindow from "./components/PracticeQuestionWindow";
 import PracticeAnswerWindow from "./components/PracticeAnswerWindow";
 import dynamic from 'next/dynamic';
+
+const PracticeQuestionWindow = dynamic(() => import('./components/PracticeQuestionWindow'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full p-4 flex flex-col gap-4 animate-pulse">
+      <div className="h-12 bg-gray-200 rounded-lg w-full shadow-sm opacity-70"></div>
+      <div className="flex-1 bg-gray-200 rounded-lg w-full shadow-sm opacity-50 flex items-center justify-center">
+        <span className="text-gray-500">Loading Question Viewer...</span>
+      </div>
+    </div>
+  )
+});
 
 const PracticeSheet = dynamic(() => import('./components/PracticeSheet'), {
   ssr: false,

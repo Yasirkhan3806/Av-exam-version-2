@@ -30,7 +30,16 @@ const BaseUrl = process.env.NEXT_PUBLIC_BASEURL || 'http://localhost:5000';
         </div>
       </div>
 
-      <iframe src={`${BaseUrl}/${currentQuestionPath}`} className="w-full h-full" />
+      {currentQuestionPath ? (
+        <iframe src={`${BaseUrl}/${currentQuestionPath}`} className="w-full h-full" title="PDF Viewer" />
+      ) : (
+        <div className="w-full h-full p-4 flex flex-col gap-4 animate-pulse">
+          <div className="h-12 bg-gray-200 rounded-lg w-full shadow-sm opacity-70"></div>
+          <div className="flex-1 bg-gray-200 rounded-lg w-full shadow-sm opacity-50 flex items-center justify-center">
+            <span className="text-gray-500">Fetching document...</span>
+          </div>
+        </div>
+      )}
 
     </div>
   );

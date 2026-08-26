@@ -1,0 +1,185 @@
+/**
+ * univerExcelSkin.css
+ * ---------------------
+ * Excel-flavored reskin of Univer's DOM chrome (toolbar, formula bar,
+ * sheet tabs, name box). Scoped to `.univer-excel-skin` so it only
+ * touches our spreadsheet containers.
+ *
+ * NOTE: the grid itself (cells, gridlines, headers, selection outline)
+ * is drawn on <canvas> by @univerjs/engine-render and is NOT reachable
+ * from CSS — that part is recolored via excelTheme.js (the `theme`
+ * object passed into `new Univer({ theme })`), not here.
+ *
+ * Selectors below target Univer's real internal component hooks
+ * (`data-u-comp="..."`), found in the compiled @univerjs/ui and
+ * @univerjs/sheets-ui bundles — not guessed class names, since Univer's
+ * CSS classes are unstable Tailwind utility output (`univer-flex`,
+ * `univer-h-10`, etc.) rather than semantic hooks.
+ */
+
+.univer-excel-skin {
+  --excel-font: Calibri, 'Segoe UI', Aptos, Arial, sans-serif;
+  --excel-green: #217346;
+  --excel-green-dark: #185c37;
+  --excel-border: #d2d0ce;
+  --excel-header-bg: #f3f2f1;
+  font-family: var(--excel-font);
+}
+
+/* Univer's own stock single-row toolbar is replaced by .excel-ribbon below
+   (see excelRibbon.jsx) — hidden here rather than disabled at the plugin
+   level, so it degrades to "duplicate toolbar" instead of "no toolbar" if
+   this selector ever stops matching a future Univer version. */
+.univer-excel-skin [data-u-comp='ribbon-toolbar'] {
+  display: none !important;
+}
+
+.univer-excel-skin [data-u-comp='ribbon-group-btn']:hover {
+  background-color: #e6f4ea !important;
+}
+
+/* ─── Excel-style tabbed ribbon (excelRibbon.jsx) ────────────────────────── */
+
+.univer-excel-skin .excel-ribbon {
+  font-family: var(--excel-font);
+  background-color: #f9f9f9;
+  border-bottom: 1px solid var(--excel-border);
+}
+
+.univer-excel-skin .excel-ribbon-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px 0;
+  border-bottom: 1px solid var(--excel-border);
+}
+
+.univer-excel-skin .excel-ribbon-tab {
+  font-family: var(--excel-font);
+  font-size: 13px;
+  background: transparent;
+  border: none;
+  padding: 6px 10px;
+  cursor: pointer;
+  color: #3b3a39;
+  border-bottom: 2px solid transparent;
+}
+
+.univer-excel-skin .excel-ribbon-tab:not(:disabled):hover {
+  background-color: #e6f4ea;
+}
+
+.univer-excel-skin .excel-ribbon-tab.is-active {
+  color: var(--excel-green-dark);
+  font-weight: 600;
+  border-bottom-color: var(--excel-green);
+}
+
+.univer-excel-skin .excel-ribbon-tab:disabled {
+  color: #c8c6c4;
+  cursor: not-allowed;
+}
+
+.univer-excel-skin .excel-ribbon-groups {
+  display: flex;
+  align-items: stretch;
+  padding: 6px 8px;
+  overflow-x: auto;
+}
+
+.univer-excel-skin .excel-ribbon-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 10px;
+  border-right: 1px solid var(--excel-border);
+  min-width: max-content;
+}
+
+.univer-excel-skin .excel-ribbon-group:last-child {
+  border-right: none;
+}
+
+.univer-excel-skin .excel-ribbon-group-items {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+}
+
+.univer-excel-skin .excel-ribbon-group-label {
+  font-size: 11px;
+  color: #605e5c;
+  margin-top: 4px;
+  white-space: nowrap;
+}
+
+.univer-excel-skin [data-u-comp='headerbar'] {
+  font-family: var(--excel-font);
+  background-color: var(--excel-header-bg) !important;
+  border-bottom: 1px solid var(--excel-border) !important;
+}
+
+/* Formula bar + name box */
+.univer-excel-skin [data-u-comp='formula-bar'] {
+  font-family: var(--excel-font);
+  background-color: #ffffff !important;
+  border-bottom: 1px solid var(--excel-border) !important;
+}
+
+.univer-excel-skin [data-u-comp='defined-name-container'],
+.univer-excel-skin [data-u-comp='defined-name'] {
+  font-family: var(--excel-font);
+  border-color: var(--excel-border) !important;
+}
+
+/* Sheet tab bar (bottom) — Excel-style tabs with a green active indicator */
+.univer-excel-skin [data-u-comp='slide-tab-bar'] {
+  font-family: var(--excel-font);
+  background-color: var(--excel-header-bg) !important;
+  border-top: 1px solid var(--excel-border) !important;
+}
+
+.univer-excel-skin [data-u-comp='slide-tab-item'] {
+  font-family: var(--excel-font);
+  border-radius: 0 !important;
+}
+
+.univer-excel-skin [data-u-comp='slide-tab-item'][aria-selected='true'],
+.univer-excel-skin [data-u-comp='slide-tab-item'].univer-is-active {
+  color: var(--excel-green-dark) !important;
+  font-weight: 600;
+  box-shadow: inset 0 -2px 0 var(--excel-green) !important;
+}
+
+.univer-excel-skin [data-u-comp='sheet-bar-append-button'] {
+  color: var(--excel-green-dark) !important;
+}
+
+/* Dropdown / context menus */
+.univer-excel-skin [data-u-comp='sheets-dropdown-list'],
+.univer-excel-skin [data-u-comp='rect-popup'],
+.univer-excel-skin [data-u-comp='cell-popup'] {
+  font-family: var(--excel-font);
+}
+
+/* Scrollbars — thin gray, Excel/Office style, instead of Univer's default */
+.univer-excel-skin ::-webkit-scrollbar {
+  width: 14px;
+  height: 14px;
+}
+
+.univer-excel-skin ::-webkit-scrollbar-track {
+  background: var(--excel-header-bg);
+}
+
+.univer-excel-skin ::-webkit-scrollbar-thumb {
+  background-color: #c8c6c4;
+  border: 3px solid var(--excel-header-bg);
+  border-radius: 7px;
+}
+
+.univer-excel-skin ::-webkit-scrollbar-thumb:hover {
+  background-color: #a19f9d;
+}

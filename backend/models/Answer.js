@@ -15,7 +15,7 @@ const answerSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: ["submitted", "draft", "checked"],
-      default: "submitted",
+      default: "draft",
     },
     marksObtained: {
       type: Object,

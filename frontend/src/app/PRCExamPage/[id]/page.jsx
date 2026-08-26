@@ -7,6 +7,7 @@ import usePrcExamStore from "@/store/prcExamStore";
 import ExamIntro from "./components/ExamIntro";
 import ExamInterface from "./components/ExamInterface";
 import ExamResult from "./components/ExamResult";
+import Watchdog from "../../../components/Watchdog";
 
 const PRCExamPage = () => {
   const { id } = useParams();
@@ -69,7 +70,12 @@ const PRCExamPage = () => {
   }
 
   // 2. Exam Interface
-  return <ExamInterface />;
+  return (
+    <>
+      <Watchdog thresholdMs={3000} context={{ examId: id }} />
+      <ExamInterface />
+    </>
+  );
 };
 
 export default PRCExamPage;

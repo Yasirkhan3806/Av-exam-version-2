@@ -2,9 +2,20 @@
 
 import React, { useEffect } from "react";
 import { useParams } from "next/navigation";
-import QuestionPanel from "./QuestionWindow";
-import Editor from "./AnswerWindow";
 import dynamic from 'next/dynamic';
+import Editor from "./AnswerWindow";
+
+const QuestionPanel = dynamic(() => import('./QuestionWindow'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full p-4 flex flex-col gap-4 animate-pulse">
+      <div className="h-12 bg-gray-200 rounded-lg w-full shadow-sm opacity-70"></div>
+      <div className="flex-1 bg-gray-200 rounded-lg w-full shadow-sm opacity-50 flex items-center justify-center">
+        <span className="text-gray-500">Loading Question Viewer...</span>
+      </div>
+    </div>
+  )
+});
 
 const PracticeSheet = dynamic(() => import('./PracticeSheet'), {
   ssr: false,
@@ -38,6 +49,7 @@ const PracticeSheet = dynamic(() => import('./PracticeSheet'), {
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import useExamStore from "../../../store/useExamStore";
 import Navbar from "./Navbar";
+import Watchdog from "../../../components/Watchdog";
 
 // --- Offline Overlay Component ---
 const OfflineOverlay = () => (
@@ -137,7 +149,7 @@ const ExamPage = () => {
   const params = useParams();
   const { examId } = params;
 
-  const { startExam, reset, finishExam, setOnline, isOnline } = useExamStore();
+  const { startExam, reset, finishExam, setOnline, isOnline, currentQuestion, remainingTime } = useExamStore();
 
   // Start exam on mount
   useEffect(() => {
@@ -164,6 +176,18 @@ const ExamPage = () => {
       window.removeEventListener("offline", handleOffline);
     };
   }, [setOnline]);
+
+  // Set Sentry context
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.__examContext = { 
+        examId, 
+        currentQuestion, 
+        isOnline,
+        timeRemaining: remainingTime,
+      };
+    }
+  }, [examId, currentQuestion, isOnline, remainingTime]);
 
   // Handle back button separately
   useEffect(() => {
@@ -192,6 +216,7 @@ const ExamPage = () => {
 
   return (
     <div className="min-h-screen">
+      <Watchdog thresholdMs={3000} context={{ examId }} />
       {/* Offline overlay — blocks entire exam when disconnected */}
       {!isOnline && <OfflineOverlay />}
 

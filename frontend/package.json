@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@jitsi/react-sdk": "^1.4.4",
+    "@sentry/nextjs": "^10.69.0",
     "@univerjs/core": "0.10.14",
     "@univerjs/design": "0.10.14",
     "@univerjs/docs": "0.10.14",
@@ -25,6 +26,7 @@
     "@univerjs/sheets-numfmt": "0.10.14",
     "@univerjs/sheets-numfmt-ui": "0.10.14",
     "@univerjs/sheets-ui": "0.10.14",
+    "@univerjs/themes": "0.10.14",
     "@univerjs/ui": "0.10.14",
     "html2pdf.js": "^0.14.0",
     "jose": "^6.1.0",

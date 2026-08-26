@@ -27,8 +27,15 @@ const AnswerPanel = ({ answer, showAnswer, onToggleAnswer }) => {
         </div>
       </div>
       <div className="flex-1 p-6 overflow-auto">
-        {showAnswer ? (
-          <iframe src={`${BaseUrl}/${answer}`} className="w-full h-full" />
+        {showAnswer && answer ? (
+          <iframe src={`${BaseUrl}/${answer}`} className="w-full h-full" title="Student Answer" />
+        ) : showAnswer && !answer ? (
+          <div className="w-full h-full p-4 flex flex-col gap-4 animate-pulse">
+            <div className="h-12 bg-gray-200 rounded-lg w-full shadow-sm opacity-70"></div>
+            <div className="flex-1 bg-gray-200 rounded-lg w-full shadow-sm opacity-50 flex items-center justify-center">
+              <span className="text-gray-500">Fetching document...</span>
+            </div>
+          </div>
         ) : (
           <div className="flex items-center justify-center h-full bg-gray-50 rounded-lg">
             <div className="text-center">

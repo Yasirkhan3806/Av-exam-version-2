@@ -27,7 +27,7 @@ const cafExamAnswerSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: ["submitted", "checked", "draft"],
-      default: "submitted",
+      default: "draft",
     },
   },
   {

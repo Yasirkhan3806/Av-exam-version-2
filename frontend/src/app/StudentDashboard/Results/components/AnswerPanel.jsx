@@ -84,9 +84,27 @@ const AnswerPanel = ({ question, studentAnswer, marksObtained, totalMarks, pdfUr
         {/* PDF Viewer */}
         <div className="bg-gray-50 rounded-lg p-4 border border-gray-100 h-[80vh]">
           {activeTab === 'answer' ? (
-            <iframe src={`${BaseUrl}/${pdfUrl}`} className='h-full w-full'></iframe>
+            pdfUrl ? (
+              <iframe src={`${BaseUrl}/${pdfUrl}`} className='h-full w-full' title="PDF Viewer"></iframe>
+            ) : (
+              <div className="w-full h-full p-4 flex flex-col gap-4 animate-pulse">
+                <div className="h-12 bg-gray-200 rounded-lg w-full shadow-sm opacity-70"></div>
+                <div className="flex-1 bg-gray-200 rounded-lg w-full shadow-sm opacity-50 flex items-center justify-center">
+                  <span className="text-gray-500">Fetching document...</span>
+                </div>
+              </div>
+            )
           ) : (
-            <iframe src={`${BaseUrl}/${suggestedSolutionUrl}`} className='h-full w-full'></iframe>
+            suggestedSolutionUrl ? (
+              <iframe src={`${BaseUrl}/${suggestedSolutionUrl}`} className='h-full w-full' title="Suggested Solution Viewer"></iframe>
+            ) : (
+              <div className="w-full h-full p-4 flex flex-col gap-4 animate-pulse">
+                <div className="h-12 bg-gray-200 rounded-lg w-full shadow-sm opacity-70"></div>
+                <div className="flex-1 bg-gray-200 rounded-lg w-full shadow-sm opacity-50 flex items-center justify-center">
+                  <span className="text-gray-500">Fetching document...</span>
+                </div>
+              </div>
+            )
           )}
         </div>
       </div>

@@ -288,7 +288,18 @@ const useExamStore = create(
             await new Promise(r => setTimeout(r, RETRY_DELAYS[retryCount]));
             return get().saveAnswers(retryCount + 1);
           }
-          // After all retries fail, queue for later
+          // After all retries fail, queue for later and save to local storage
+          const backupKey = `failed_save_${get().ExamId}`;
+          if (typeof window !== 'undefined') {
+            localStorage.setItem(backupKey, JSON.stringify(get().answers));
+            import('@sentry/nextjs').then(Sentry => {
+              Sentry.captureMessage('Exam answers save failed, dumped to localStorage', {
+                level: 'error',
+                tags: { boundary: 'exam-store', examId: get().ExamId }
+              });
+            }).catch(() => {});
+          }
+          
           set({ error: error.message, saving: false, hasPendingSave: true });
           return false;
         }

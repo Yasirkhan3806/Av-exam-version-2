@@ -252,7 +252,9 @@ export const getExamsForSubject = async (subjectId, userId, subjectType) => {
     },
     {
       $addFields: {
-        completed: { $gt: [{ $size: "$userAnswer" }, 0] },
+        completed: {
+          $in: [{ $arrayElemAt: ["$userAnswer.status", 0] }, ["submitted", "checked"]]
+        },
       },
     },
     {

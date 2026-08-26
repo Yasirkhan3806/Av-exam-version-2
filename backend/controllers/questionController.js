@@ -188,6 +188,11 @@ export const startExam = async (req, res) => {
 
 export const finishExam = async (req, res) => {
   try {
+    const { ExamId } = req.exam;
+
+    // Mark the Answer doc as submitted
+    await questionService.submitExamSession(ExamId);
+
     res.clearCookie("ExamToken", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

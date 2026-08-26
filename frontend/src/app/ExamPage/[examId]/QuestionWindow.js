@@ -66,17 +66,29 @@ export default function QuestionPanel({ examId }) {
     return <div>Error: {error}</div>;
   }
 
+  const questionPath = questionsObj?.[`q${currentQuestion}`];
+  const pdfUrl = questionPath ? `${BASEURL}/${questionPath}` : null;
+
   return (
     <>
       {/* PDF Viewer */}
       <div className="w-full h-full flex flex-col items-center justify-center">
-        <iframe
-          src={`${BASEURL}/${questionsObj[`q${currentQuestion}`]}`}
-          className="w-full h-full border"
-          title="PDF Viewer"
-          style={{ minHeight: "80vh", width: "100%" }}
-          onLoad={handleIframeLoad}
-        ></iframe>
+        {pdfUrl ? (
+          <iframe
+            src={pdfUrl}
+            className="w-full h-full border"
+            title="PDF Viewer"
+            style={{ minHeight: "80vh", width: "100%" }}
+            onLoad={handleIframeLoad}
+          ></iframe>
+        ) : (
+          <div className="w-full h-full p-4 flex flex-col gap-4 animate-pulse">
+            <div className="h-12 bg-gray-200 rounded-lg w-full shadow-sm opacity-70"></div>
+            <div className="flex-1 bg-gray-200 rounded-lg w-full shadow-sm opacity-50 flex items-center justify-center">
+              <span className="text-gray-500">Fetching document...</span>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

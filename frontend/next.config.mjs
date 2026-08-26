@@ -1,4 +1,5 @@
-// next.config.js
+import { withSentryConfig } from "@sentry/nextjs";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
@@ -14,4 +15,25 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSentryConfig(
+  nextConfig,
+  {
+    // For all available options, see:
+    // https://github.com/getsentry/sentry-webpack-plugin#options
+    silent: true,
+    org: process.env.SENTRY_ORG,
+    project: process.env.SENTRY_PROJECT,
+    authToken: process.env.SENTRY_AUTH_TOKEN,
+    release: {
+      name: process.env.GIT_COMMIT_SHA || process.env.NEXT_PUBLIC_APP_VERSION,
+    },
+  },
+  {
+    // For all available options, see:
+    // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
+    widenClientFileUpload: true,
+    transpileClientSDK: true,
+    hideSourceMaps: true,
+    disableLogger: true,
+  }
+);

@@ -307,6 +307,20 @@ export const submitAnswers = async (examId, answers) => {
   return updatedDoc;
 };
 
+export const submitExamSession = async (examId) => {
+  const updatedDoc = await Answer.findByIdAndUpdate(
+    examId,
+    { status: "submitted" },
+    { new: true }
+  );
+
+  if (!updatedDoc) {
+    throw new Error("Exam not found or already submitted");
+  }
+
+  return updatedDoc;
+};
+
 /**
  * Start a new exam session by creating an Answer document.
  * @param {string} questionSet - ID of the question set/exam.
@@ -318,13 +332,23 @@ export const startExam = async (questionSet, studentId) => {
     throw new Error("questionSet is required");
   }
 
-  // Create initial answer record
-  const answerDoc = new Answer({
-    answers: {},
+  // Check if there is an existing draft/in-progress exam
+  let answerDoc = await Answer.findOne({
     questionSet,
     Student: studentId,
+    status: "draft",
   });
-  await answerDoc.save();
+
+  if (!answerDoc) {
+    // Create initial answer record
+    answerDoc = new Answer({
+      answers: {},
+      questionSet,
+      Student: studentId,
+      status: "draft",
+    });
+    await answerDoc.save();
+  }
 
   // Generate signed exam token
   const examPayload = {

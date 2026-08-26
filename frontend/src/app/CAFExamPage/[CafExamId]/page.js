@@ -5,6 +5,7 @@ import QuestionPanel from "./components/QuestionPanel";
 import AnswerPanel from "./components/AnswerPanel";
 import useExamStore from "../../../store/useExamStore";
 import useSubjectStore from "../../../store/useSubjectStore";
+import Watchdog from "../../../components/Watchdog";
 
 export default function CafExamPage({ params: paramsPromise }) {
   const params = use(paramsPromise);
@@ -50,6 +51,7 @@ export default function CafExamPage({ params: paramsPromise }) {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row">
+      <Watchdog thresholdMs={3000} context={{ examId: CafExamId }} />
       <div className="flex-1 border-r border-gray-200">
         <QuestionPanel pdfUrl={pdfUrl} />
       </div>

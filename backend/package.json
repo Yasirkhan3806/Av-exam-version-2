@@ -9,6 +9,8 @@
     "test:services": "node --test tests/services/*.test.js"
   },
   "dependencies": {
+    "@sentry/node": "^10.69.0",
+    "@sentry/profiling-node": "^10.69.0",
     "axios": "^1.13.3",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
@@ -31,5 +33,10 @@
     "winston": "^3.19.0",
     "winston-daily-rotate-file": "^5.0.0",
     "xlsx": "^0.18.5"
+  },
+  "allowScripts": {
+    "@sentry/node-cpu-profiler@2.4.2": true,
+    "bcrypt@6.0.0": true,
+    "puppeteer@24.43.1": true
   }
 }

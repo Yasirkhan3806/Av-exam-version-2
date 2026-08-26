@@ -96,7 +96,7 @@ router.post("/startExam", verifyToken, questionController.startExam);
  * @desc Finish an exam session
  * @access Private
  */
-router.post("/finishExam", verifyToken, questionController.finishExam);
+router.post("/finishExam", verifyToken, verifyExamToken, questionController.finishExam);
 
 /**
  * @route PUT /questions/updateQuestion/:id
