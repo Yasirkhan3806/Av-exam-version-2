@@ -11,7 +11,7 @@ process.on('unhandledRejection', (reason, promise) => {
   backendLogger.error(`Unhandled Rejection: ${reason}`, { reason });
 });
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 (async () => {
   // Connect to database

@@ -11,8 +11,13 @@ dedicated OnlyOffice container, new Nginx server blocks).
 
 | Piece | Process | Port (localhost only) | Public URL |
 |---|---|---|---|
-| Frontend (Next.js 15, App Router) | PM2 `avexam-test-web` — `next start` | 3000 | `https://testcbe.academicvitality.org` |
-| Backend (Express 5, ESM) | PM2 `avexam-test-api` — `node server.js` | 5000 | same origin, path-routed (`/auth`, `/questions`, `/api/…`, …) |
+| Frontend (Next.js 15, App Router) | PM2 `avexam-test-web` — `next start` | 3100 | `https://testcbe.academicvitality.org` |
+| Backend (Express 5, ESM) | PM2 `avexam-test-api` — `node server.js` | 5100 | same origin, path-routed (`/auth`, `/questions`, `/api/…`, …) |
+
+> Ports 3100/5100 assume 3000/5000 are already used by your other services.
+> Check with `ss -ltnp | grep -E ':(3000|5000)\b'` and adjust the PM2 config +
+> Nginx `proxy_pass` lines together if you pick different numbers. The public
+> URLs never change — only the localhost upstreams.
 | OnlyOffice Document Server | Docker container | 8080 | `https://officecbe.academicvitality.org` |
 | Database | your existing `mongod` | 27017 | dedicated DB `avexam_test` |
 
@@ -337,7 +342,9 @@ module.exports = {
       cwd: './backend',           // REQUIRED: uploads, static dirs, logs and
       script: 'server.js',        // dotenv all resolve relative to cwd
       interpreter: 'node',
-      env: { NODE_ENV: 'production' },
+      // server.js reads process.env.PORT (falls back to 5000). Pick a port
+      // that isn't already taken by your other services.
+      env: { NODE_ENV: 'production', PORT: 5100 },
       max_memory_restart: '500M',
       time: true,
     },
@@ -345,7 +352,7 @@ module.exports = {
       name: 'avexam-test-web',
       cwd: './frontend',
       script: 'node_modules/next/dist/bin/next',
-      args: 'start -p 3000 -H 127.0.0.1',   // bind localhost; Nginx proxies
+      args: 'start -p 3100 -H 127.0.0.1',   // bind localhost; Nginx proxies
       env: { NODE_ENV: 'production' },
       max_memory_restart: '600M',
       time: true,
@@ -387,9 +394,9 @@ server {
 
     client_max_body_size 50m;      # backend accepts up to 50mb bodies/uploads
 
-    # --- Backend (Express :5000) — path prefixes from backend/app.js ---------
+    # --- Backend (Express :5100) — path prefixes from backend/app.js ---------
     location ~ ^/(auth|questions|subjects|instructors|caf-answers|prc-exams|api|TestQuestions|Answer_pdfs)(/|$) {
-        proxy_pass http://127.0.0.1:5000;
+        proxy_pass http://127.0.0.1:5100;
         proxy_http_version 1.1;
         proxy_set_header Host              $host;
         proxy_set_header X-Real-IP         $remote_addr;
@@ -398,9 +405,9 @@ server {
         proxy_read_timeout 120s;           # PDF export via Puppeteer can be slow
     }
 
-    # --- Frontend (Next.js :3000) — everything else -------------------------
+    # --- Frontend (Next.js :3100) — everything else -------------------------
     location / {
-        proxy_pass http://127.0.0.1:3000;
+        proxy_pass http://127.0.0.1:3100;
         proxy_http_version 1.1;
         proxy_set_header Upgrade           $http_upgrade;
         proxy_set_header Connection        "upgrade";
