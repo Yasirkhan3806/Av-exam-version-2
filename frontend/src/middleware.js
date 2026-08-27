@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import * as jose from "jose"; // ✅ works in Next.js Edge Runtime
 import { Instructormiddleware } from "./app/Instructor/middleware";
+import { redirectTo } from "./utils/proxyRedirect";
 
 // Must come from env — no hardcoded fallback, and deliberately not
 // NEXT_PUBLIC_-prefixed (this runs in Edge middleware, server-side only; a
@@ -28,16 +29,8 @@ export async function middleware(req) {
 
   const token = req.cookies.get("token")?.value;
 
-  // Build redirects from req.nextUrl, not req.url: behind a reverse proxy
-  // (Nginx -> next start) req.url resolves to the internal origin
-  // (localhost:<port>), so the browser would be sent there. req.nextUrl
-  // honours the forwarded host/proto.
-  const loginUrl = req.nextUrl.clone();
-  loginUrl.pathname = "/Login";
-  loginUrl.search = "";
-
   if (!token) {
-    return NextResponse.redirect(loginUrl);
+    return redirectTo(req, "/Login");
   }
 
   try {
@@ -49,7 +42,7 @@ export async function middleware(req) {
     return NextResponse.next();
   } catch (err) {
     console.error("JWT verification failed:", err.code, err.message);
-    return NextResponse.redirect(loginUrl);
+    return redirectTo(req, "/Login");
   }
 }
 
