@@ -2,7 +2,15 @@
 // switching between questions or remounting the editor doesn't re-fetch it.
 // Shared by both spreadsheet panes (ExamPage's real exam, Practice Room's
 // scratch space) via hooks/useOnlyOfficeEditor.js.
-const DOCUMENT_SERVER_URL = "http://localhost:8080";
+//
+// The browser loads api.js from — and the editor iframe then talks directly
+// to — the Document Server, so this must be a URL reachable from the
+// student's browser. In production set NEXT_PUBLIC_ONLYOFFICE_URL to the
+// Document Server's public HTTPS origin (it's inlined at build time, so
+// rebuild the frontend after changing it). Falls back to the local dev
+// container on :8080.
+const DOCUMENT_SERVER_URL =
+  process.env.NEXT_PUBLIC_ONLYOFFICE_URL || "http://localhost:8080";
 
 let docsApiLoadPromise = null;
 
