@@ -8,3 +8,5 @@ important docs
 backend/TestQuestions
 backend/package-lock.json
 frontend/package-lock.json
+.claude
+.vscode
