@@ -28,8 +28,16 @@ export async function middleware(req) {
 
   const token = req.cookies.get("token")?.value;
 
+  // Build redirects from req.nextUrl, not req.url: behind a reverse proxy
+  // (Nginx -> next start) req.url resolves to the internal origin
+  // (localhost:<port>), so the browser would be sent there. req.nextUrl
+  // honours the forwarded host/proto.
+  const loginUrl = req.nextUrl.clone();
+  loginUrl.pathname = "/Login";
+  loginUrl.search = "";
+
   if (!token) {
-    return NextResponse.redirect(new URL("/Login", req.url));
+    return NextResponse.redirect(loginUrl);
   }
 
   try {
@@ -41,7 +49,7 @@ export async function middleware(req) {
     return NextResponse.next();
   } catch (err) {
     console.error("JWT verification failed:", err.code, err.message);
-    return NextResponse.redirect(new URL("/Login", req.url));
+    return NextResponse.redirect(loginUrl);
   }
 }
 

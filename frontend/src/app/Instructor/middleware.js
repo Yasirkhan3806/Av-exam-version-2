@@ -19,9 +19,17 @@ export async function Instructormiddleware(request) {
         return NextResponse.next();
     }
 
+    // Build redirects from request.nextUrl, not request.url: behind a reverse
+    // proxy (Nginx -> next start) request.url resolves to the internal origin
+    // (localhost:<port>), so redirects would send the browser there.
+    // request.nextUrl honours the forwarded host/proto.
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = '/Instructor/login';
+    loginUrl.search = '';
+
     // Check if token exists
     if (!token) {
-        return NextResponse.redirect(new URL('/Instructor/login', request.url));
+        return NextResponse.redirect(loginUrl);
     }
 
     try {
@@ -31,7 +39,7 @@ export async function Instructormiddleware(request) {
         return NextResponse.next();
     } catch (e) {
         // Token is invalid
-        return NextResponse.redirect(new URL('/Instructor/login', request.url));
+        return NextResponse.redirect(loginUrl);
     }
 }
 
