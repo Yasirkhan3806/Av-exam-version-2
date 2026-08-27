@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import fetchInstructors from "./fetchInstructorFunc";
+import { BASEURL } from "@/utils/config";
+import { safeFetch } from "@/utils/safeFetch";
 
 /**
  * AddSubject
@@ -12,7 +14,6 @@ import fetchInstructors from "./fetchInstructorFunc";
  */
 
 export default function AddSubject() {
-  const BASEURL = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -29,11 +30,10 @@ export default function AddSubject() {
   useEffect(() => {
     const fetchInstructors = async () => {
       try {
-        const response = await fetch(`${BASEURL}/auth/get-instructors`, {
+        const response = await safeFetch(`${BASEURL}/auth/get-instructors`, {
           credentials: "include",
         });
         const data = await response.json();
-        console.log(data);
         if (!data.success) {
           throw new Error(`Error fetching instructors: ${response.statusText}`);
         }
@@ -48,7 +48,7 @@ export default function AddSubject() {
     };
 
     fetchInstructors();
-  }, [BASEURL]);
+  }, []);
 
   function validate(values) {
     const e = {};
@@ -95,7 +95,7 @@ export default function AddSubject() {
     setSubmitting(true);
     try {
       // default placeholder API call
-      const res = await fetch(`${BASEURL}/Subjects/AddSubject`, {
+      const res = await safeFetch(`${BASEURL}/Subjects/AddSubject`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),

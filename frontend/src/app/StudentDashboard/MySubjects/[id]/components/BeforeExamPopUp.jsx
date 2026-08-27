@@ -1,7 +1,6 @@
 import React from 'react';
 
 const ExamInstructionsPopup = ({ exam, onClose, onStartExam }) => {
-    console.log("Exam data in popup:", exam);
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       {/* Popup Container */}

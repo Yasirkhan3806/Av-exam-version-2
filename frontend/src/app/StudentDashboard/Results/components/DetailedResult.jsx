@@ -8,8 +8,6 @@ import AnswerPanel from '../components/AnswerPanel';
 
 const DetailedResult = ({ result }) => {
   const [expandedQuestion, setExpandedQuestion] = useState(null);
-  
-console.log('DetailedResult received result:', result);
 
   const toggleExpand = (questionId) => {
     setExpandedQuestion(expandedQuestion === questionId ? null : questionId);

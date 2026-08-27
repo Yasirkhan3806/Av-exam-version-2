@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { BookOpen, Users, Volume2, Coffee, LogOut, User } from "lucide-react";
 import useELibraryAuthStore from "@/store/useELibraryAuthStore";
 import ELibraryProtectedRoute from "@/components/ELibraryProtectedRoute";
+import { BASEURL as BASE_URL } from "@/utils/config";
+import { safeFetch } from "@/utils/safeFetch";
 
 function ELibraryContent() {
   const router = useRouter();
@@ -12,7 +14,6 @@ function ELibraryContent() {
     useELibraryAuthStore();
   const [selectedRoom, setSelectedRoom] = useState("GeneralStudyArea");
   const [roomCounts, setRoomCounts] = useState({});
-  const BASE_URL = process.env.NEXT_PUBLIC_BASEURL;
 
   useEffect(() => {
     const fetchCounts = async () => {
@@ -25,7 +26,7 @@ function ELibraryContent() {
         // I'll use the standard fetch pattern seen in this codebase.
         // However, I don't see a visible "api" helper imported here. I'll use native fetch to localhost:5000 for now.
 
-        const res = await fetch(
+        const res = await safeFetch(
           `${BASE_URL}/api/elibrary/rooms/counts`,
           {
             headers: {
@@ -50,7 +51,7 @@ function ELibraryContent() {
     const interval = setInterval(fetchCounts, 5000); // Update every 5 seconds
 
     return () => clearInterval(interval);
-  }, [BASE_URL]);
+  }, []);
 
   const rooms = [
     {

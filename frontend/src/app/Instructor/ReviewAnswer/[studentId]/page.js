@@ -67,7 +67,6 @@ export default function ReviewAnswer() {
    * in the store or `currentQuestion` changes.
    */
   useEffect(() => {
-    console.log("Checked PDF changed:", checkedPdfs[`q${currentQuestion}`]);
     setCurrentPdf(checkedPdfs[`q${currentQuestion}`] || null);
   }, [checkedPdfs, currentQuestion]);
 

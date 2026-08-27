@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { User, Search, Users, Trash2 } from "lucide-react";
+import { BASEURL as BaseUrl } from "@/utils/config";
+import { safeFetch } from "@/utils/safeFetch";
 
 export default function EnrolledStudentsList({ subjectId }) {
   const [enrolledStudents, setEnrolledStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const BaseUrl = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
 
   useEffect(() => {
     fetchEnrolledStudents();
@@ -16,7 +17,7 @@ export default function EnrolledStudentsList({ subjectId }) {
   const fetchEnrolledStudents = async () => {
     try {
       setLoading(true);
-      const response = await fetch(
+      const response = await safeFetch(
         `${BaseUrl}/subjects/getEnrolledStudents/${subjectId}`,
         {
           credentials: "include",
@@ -36,7 +37,7 @@ export default function EnrolledStudentsList({ subjectId }) {
       return;
 
     try {
-      const response = await fetch(
+      const response = await safeFetch(
         `${BaseUrl}/subjects/UnenrollStudent/${subjectId}`,
         {
           method: "DELETE",

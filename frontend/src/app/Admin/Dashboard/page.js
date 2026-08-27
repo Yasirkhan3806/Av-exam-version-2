@@ -1,10 +1,11 @@
 "use client";
 
+import { BASEURL } from "@/utils/config";
+import { safeFetch } from "@/utils/safeFetch";
 const AdminDashboardPage = ()=>{
-  const BASEURL = process.env.NEXT_PUBLIC_BASEURL || 'http://localhost:5000'; // Adjust as needed
     
     const logout = async () => {
-    await fetch(`${BASEURL}/auth/logout`, {
+    await safeFetch(`${BASEURL}/auth/logout`, {
       method: "POST",
       credentials: "include",
     });

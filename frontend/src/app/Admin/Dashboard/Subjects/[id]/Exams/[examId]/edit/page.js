@@ -4,13 +4,14 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Save, Upload, FileText, X, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { BASEURL as BaseUrl } from "@/utils/config";
+import { safeFetch } from "@/utils/safeFetch";
 
 export default function EditExamPage() {
   const { id: subjectId, examId } = useParams();
   const searchParams = useSearchParams();
   const subjectType = searchParams.get("type");
   const router = useRouter();
-  const BaseUrl = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
 
   const [formData, setFormData] = useState({
     name: "",
@@ -30,7 +31,7 @@ export default function EditExamPage() {
   useEffect(() => {
     const fetchExam = async () => {
       try {
-        const response = await fetch(
+        const response = await safeFetch(
           `${BaseUrl}/questions/getFullQuestionById/${examId}`,
           {
             credentials: "include",
@@ -56,7 +57,7 @@ export default function EditExamPage() {
     };
 
     fetchExam();
-  }, [examId, BaseUrl]);
+  }, [examId]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -106,7 +107,7 @@ export default function EditExamPage() {
           ? `${BaseUrl}/questions/updateCafQuestion/${examId}`
           : `${BaseUrl}/questions/updateQuestion/${examId}`;
 
-      const response = await fetch(endpoint, {
+      const response = await safeFetch(endpoint, {
         method: "PUT",
         body: data,
         credentials: "include",

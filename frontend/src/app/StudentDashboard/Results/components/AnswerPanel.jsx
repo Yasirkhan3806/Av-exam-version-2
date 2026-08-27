@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { CheckCircle, XCircle, HelpCircle } from 'lucide-react';
+import { BASEURL as BaseUrl } from "@/utils/config";
 /**
  * AnswerPanel Component
  * 
@@ -17,8 +18,6 @@ import { CheckCircle, XCircle, HelpCircle } from 'lucide-react';
  * @param {string} suggestedSolutionUrl - Path to the suggested solution PDF (optional)
  */
 const AnswerPanel = ({ question, studentAnswer, marksObtained, totalMarks, pdfUrl, suggestedSolutionUrl }) => {
-  const BaseUrl = process.env.NEXT_PUBLIC_BASEURL || 'http://localhost:5000';
-  console.log(BaseUrl);
   const [activeTab, setActiveTab] = useState('answer'); // 'answer' or 'solution'
 
   const getMarksColor = () => {

@@ -1,4 +1,4 @@
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
 import { ELibraryUser } from "../models/eLibraryUser.js";
 import { sendEmail } from "../utils/emailService.js";
 import { AppError } from "../utils/AppError.js";

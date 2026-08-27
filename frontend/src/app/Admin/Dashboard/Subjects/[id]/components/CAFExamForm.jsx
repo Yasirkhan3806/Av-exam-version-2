@@ -2,10 +2,10 @@
 
 import React, { useState } from "react";
 import { Upload, X, FileText, ArrowLeft } from "lucide-react";
+import { BASEURL as BASE_URL } from "@/utils/config";
+import { safeFetch } from "@/utils/safeFetch";
 
 const CAFExamForm = ({ subjectId, isOpen, onClose }) => {
-  const BASE_URL = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
-  console.log("this is baseurl", BASE_URL);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -66,8 +66,7 @@ const CAFExamForm = ({ subjectId, isOpen, onClose }) => {
       formDataToSend.append("subjectId", subjectId);
       formDataToSend.append("pdf", formData.pdfFile);
 
-      // TODO: Replace with your actual API endpoint
-      const response = await fetch(`${BASE_URL}/questions/addCAFQuestions`, {
+      const response = await safeFetch(`${BASE_URL}/questions/addCAFQuestions`, {
         method: "POST",
         body: formDataToSend,
         credentials: "include",

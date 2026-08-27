@@ -19,6 +19,15 @@ class ErrorBoundary extends React.Component {
 
     render() {
         if (this.state.hasError) {
+            // Opt-in compact fallback for wrapping a single pane/widget, so a
+            // throw there degrades in place instead of taking over the screen.
+            // When no `fallback` is passed, behaviour is the full-screen
+            // takeover below (unchanged — that's what layout.js relies on).
+            if (this.props.fallback !== undefined) {
+                return typeof this.props.fallback === 'function'
+                    ? this.props.fallback()
+                    : this.props.fallback;
+            }
             return (
                 <div style={{ 
                     padding: '3rem', 

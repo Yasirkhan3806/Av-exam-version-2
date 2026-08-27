@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { ArrowLeft, X } from "lucide-react";
+import { BASEURL } from "@/utils/config";
+import { safeFetch } from "@/utils/safeFetch";
 
 export default function AddQuestionsPopup({ subjectId, isOpen, onClose }) {
   const [fileName, setFileName] = useState("");
@@ -14,7 +16,6 @@ export default function AddQuestionsPopup({ subjectId, isOpen, onClose }) {
   const [uploadMethod, setUploadMethod] = useState("auto"); // "auto" or "manual"
   const [manualFiles, setManualFiles] = useState({}); // { q1: file, q2: file ... }
   const [log, setLog] = useState("");
-  const BASEURL = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
 
   // Reset form when popup closes
   const handleClose = () => {
@@ -34,7 +35,6 @@ export default function AddQuestionsPopup({ subjectId, isOpen, onClose }) {
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
     if (file && file.type === "application/pdf") {
-      console.log("Selected file:", file);
       setPdfFile(file);
       setLog(`✅ Selected PDF: ${file.name}`);
     } else {
@@ -43,16 +43,6 @@ export default function AddQuestionsPopup({ subjectId, isOpen, onClose }) {
   };
 
   const handleSaveToDB = async () => {
-    console.log("Saving to DB with:", {
-      fileName,
-      description,
-      totalAttempt,
-      numQuestions,
-      totalMarks,
-      pdfFile,
-      mockExam,
-      subjectId,
-    });
     if (
       !fileName ||
       !totalAttempt ||
@@ -95,7 +85,7 @@ export default function AddQuestionsPopup({ subjectId, isOpen, onClose }) {
 
       setLog("⏳ Uploading and saving to database...");
 
-      const res = await fetch(`${BASEURL}/questions/addQuestions`, {
+      const res = await safeFetch(`${BASEURL}/questions/addQuestions`, {
         method: "POST",
         body: formData,
         credentials: "include",

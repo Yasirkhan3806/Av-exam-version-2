@@ -4,6 +4,8 @@ import React from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { ArrowLeft } from "lucide-react";
+import { BASEURL as BASE_URL } from "@/utils/config";
+import { safeFetch } from "@/utils/safeFetch";
 
 // Dynamic import for Jitsi component to avoid SSR issues
 const JitsiMeetComponent = dynamic(() => import("../JitsiMeeting"), {
@@ -17,13 +19,12 @@ export default function LibraryRoom() {
 
   const room = searchParams.get("room") || "GeneralStudyArea";
   const name = searchParams.get("name") || "Student";
-  const BASE_URL = process.env.NEXT_PUBLIC_BASEURL;
 
   // Heartbeat logic
   React.useEffect(() => {
     const sendHeartbeat = async () => {
       try {
-        await fetch(`${BASE_URL}/api/elibrary/rooms/heartbeat`, {
+        await safeFetch(`${BASE_URL}/api/elibrary/rooms/heartbeat`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ roomName: room }),
@@ -42,7 +43,7 @@ export default function LibraryRoom() {
         // However, for simplicity and Auth cookies, we'll try a standard fetch first.
         // If the component unmounts, fetch might be cancelled.
         // We'll trust the TTL (60s) as a fallback if this fails.
-        await fetch(`${BASE_URL}/api/elibrary/rooms/leave`, {
+        await safeFetch(`${BASE_URL}/api/elibrary/rooms/leave`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ roomName: room }),

@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { setFrontendCookie } from '../actions/authActions';
+import { BASEURL } from "@/utils/config";
+import { safeFetch } from "@/utils/safeFetch";
 
 export default function Login() {
   const [formData, setFormData] = useState({
@@ -12,7 +14,6 @@ export default function Login() {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [loginStatus, setLoginStatus] = useState(null);
-  const BASEURL = process.env.NEXT_PUBLIC_BASEURL || 'http://localhost:5000';
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -54,7 +55,7 @@ export default function Login() {
     setLoginStatus(null);
 
     try {
-      const res = await fetch(`${BASEURL}/auth/login`, {
+      const res = await safeFetch(`${BASEURL}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -67,15 +68,12 @@ export default function Login() {
       });
 
       const data = await res.json();
-      console.log("Response data:", data);
 
      if (!res.ok || !data.message) {
         setErrors({ general: data.message || "Invalid credentials" });
         return;
       }
 
-      console.log("✅ Login successful:", data);
-      
       // ✅ Use Server Action to natively set the cookie on the frontend domain
       if (data.token) {
         await setFrontendCookie('token', data.token);

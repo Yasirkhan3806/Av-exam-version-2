@@ -1,6 +1,8 @@
 "use client"
 
 import React, { useState } from 'react';
+import { BASEURL as baseUrl } from "@/utils/config";
+import { safeFetch } from "@/utils/safeFetch";
   
 
 export default function App() {
@@ -13,7 +15,6 @@ export default function App() {
   const [courseInput, setCourseInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const baseUrl = process.env.NEXT_PUBLIC_BASEURL || 'http://localhost:5000';
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -48,7 +49,7 @@ export default function App() {
   const handleSubmit = async(e) => {
    e.preventDefault();
     setIsSubmitting(true);
-    const response = await fetch(`${baseUrl}/instructors/register-instructor`, {
+    const response = await safeFetch(`${baseUrl}/instructors/register-instructor`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -57,7 +58,6 @@ export default function App() {
       credentials: 'include', 
     });
     const data = await response.json();
-    console.log(data);
 
     if (response.status !== 201) {
       alert('Failed to add instructor: ' + data.message);

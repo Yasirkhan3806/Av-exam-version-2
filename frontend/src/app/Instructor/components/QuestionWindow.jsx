@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { FileText, FileCheck, Award, ChevronLeft, ChevronRight, Eye, EyeOff } from 'lucide-react';
+import { BASEURL as BaseUrl } from "@/utils/config";
 
 // Question Panel Component
 const QuestionPanel = ({ currentQuestionPath, currentQuestionIndex, totalQuestions, prevQuestion,nextQuestion }) => {
-const BaseUrl = process.env.NEXT_PUBLIC_BASEURL || 'http://localhost:5000';
 
   return (
     <div className="flex flex-col h-full bg-white border border-gray-200 rounded-lg overflow-hidden">

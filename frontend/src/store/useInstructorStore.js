@@ -1,8 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { safeFetch } from "../utils/safeFetch";
+import { BASEURL as BASE_URL } from "@/utils/config";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
 
 // === Centralized Fetch Helper ===
 async function fetchJSON(url, options = {}) {
@@ -285,10 +285,6 @@ const useInstructorStore = create(
              throw new Error(`Upload failed: ${res.status}`);
           }
           const { updatedMarks } = await res.json();
-          console.log(
-            "✅ Uploaded checked PDFs and obtained updated marks:",
-            updatedMarks
-          );
 
           // Now update student marks in DB
           const currentSubjectType = get().currentSubjectType;
@@ -319,7 +315,6 @@ const useInstructorStore = create(
 
       logout: async () => {
         const success = await logout();
-        console.log("Logout success:", success);
         if (success) {
           get().reset();
         }

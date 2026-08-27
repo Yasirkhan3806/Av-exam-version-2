@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { X, Save } from "lucide-react";
+import { BASEURL as BaseUrl } from "@/utils/config";
+import { safeFetch } from "@/utils/safeFetch";
 
 export default function EditStudentForm({
   student,
@@ -17,7 +19,6 @@ export default function EditStudentForm({
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const BaseUrl = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
 
   useEffect(() => {
     if (student) {
@@ -46,7 +47,7 @@ export default function EditStudentForm({
         payload.password = formData.password;
       }
 
-      const response = await fetch(
+      const response = await safeFetch(
         `${BaseUrl}/auth/update-student/${student._id}`,
         {
           method: "PUT",

@@ -1,9 +1,9 @@
 import { create } from "zustand";
 import useSubjectStore from "./useSubjectStore";
 import { safeFetch } from "../utils/safeFetch";
+import { BASEURL as API_URL } from "@/utils/config";
 
 // Adjust API_URL based on your environment
-const API_URL = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
 
 const usePrcExamStore = create((set, get) => ({
   exam: null,
@@ -80,7 +80,6 @@ const usePrcExamStore = create((set, get) => ({
       }, 10000);
       if (!response.ok) throw new Error("Failed to fetch user info");
       const data = await response.json();
-      console.log(data);
       return data.user;
     } catch (error) {
       set({ error: error.message, isLoading: false });

@@ -17,12 +17,13 @@ import Exams from "./components/Exams";
 import EnrollStudentPopup from "./components/EnrollStudentForm";
 import EnrollStudentsList from "./components/EnrolledStudents";
 import EditSubjectForm from "./components/EditSubjectForm";
+import { BASEURL as BaseUrl } from "@/utils/config";
+import { safeFetch } from "@/utils/safeFetch";
 
 const SubjectDetailsPage = () => {
   const { id } = useParams();
   const [subject, setSubject] = useState(null);
   const [loading, setLoading] = useState(true);
-  const BaseUrl = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
   const [isCAFPopupOpen, setIsCAFPopupOpen] = useState(false);
   const [isPRCPopupOpen, setIsPRCPopupOpen] = useState(false);
   const [isCFAPPopupOpen, setIsCFAPPopupOpen] = useState(false);
@@ -33,7 +34,7 @@ const SubjectDetailsPage = () => {
     const fetchSubject = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${BaseUrl}/subjects/getSubject/${id}`);
+        const response = await safeFetch(`${BaseUrl}/subjects/getSubject/${id}`);
         const data = await response.json();
         setSubject(data);
       } catch (error) {
@@ -46,7 +47,7 @@ const SubjectDetailsPage = () => {
     if (id) {
       fetchSubject();
     }
-  }, [id, BaseUrl]);
+  }, [id]);
 
   const onEnroll = () => {
     window.location.reload();

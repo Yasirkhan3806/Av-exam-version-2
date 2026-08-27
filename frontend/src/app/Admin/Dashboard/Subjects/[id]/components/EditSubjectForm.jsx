@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { X, Save } from "lucide-react";
+import { BASEURL as BaseUrl } from "@/utils/config";
+import { safeFetch } from "@/utils/safeFetch";
 
 export default function EditSubjectForm({
   subject,
@@ -19,7 +21,6 @@ export default function EditSubjectForm({
   const [instructors, setInstructors] = useState([]); // State for all instructors
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const BaseUrl = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
 
   useEffect(() => {
     if (subject) {
@@ -37,7 +38,7 @@ export default function EditSubjectForm({
   useEffect(() => {
     const fetchInstructors = async () => {
       try {
-        const response = await fetch(`${BaseUrl}/instructors/getInstructors`, {
+        const response = await safeFetch(`${BaseUrl}/instructors/getInstructors`, {
           credentials: "include",
         });
         if (response.ok) {
@@ -67,7 +68,7 @@ export default function EditSubjectForm({
             .filter((c) => c !== "")
         : [];
 
-      const response = await fetch(
+      const response = await safeFetch(
         `${BaseUrl}/subjects/updateSubject/${subject._id}`,
         {
           method: "PUT",

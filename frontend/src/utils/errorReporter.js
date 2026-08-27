@@ -1,3 +1,5 @@
+import { BASEURL as apiUrl } from "@/utils/config";
+import { safeFetch } from "@/utils/safeFetch";
 export const reportError = async (error, errorInfo = null) => {
     try {
         if (error?.message?.includes('Failed to report error')) return;
@@ -38,8 +40,7 @@ export const reportError = async (error, errorInfo = null) => {
             stack: error?.stack || (errorInfo ? errorInfo.componentStack : 'No stack'),
         };
 
-        const apiUrl = process.env.NEXT_PUBLIC_BASEURL || 'http://localhost:5000';
-        await fetch(`${apiUrl}/api/logs/frontend`, {
+        await safeFetch(`${apiUrl}/api/logs/frontend`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

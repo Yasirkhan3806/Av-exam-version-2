@@ -2,6 +2,7 @@
 import { useMemo } from "react";
 import usePracticeStore from "../../../../store/usePracticeStore";
 import { useOnlyOfficeEditor } from "../../../../hooks/useOnlyOfficeEditor";
+import { BASEURL as BROWSER_BASE_URL } from "@/utils/config";
 
 // OnlyOffice embed for Practice Room's spreadsheet pane — replaces the
 // previous Univer.js editor (removed entirely; the real exam interface's
@@ -19,7 +20,6 @@ import { useOnlyOfficeEditor } from "../../../../hooks/useOnlyOfficeEditor";
 // the signature stops matching. Backed by backend/routes/onlyofficeRoutes.js
 // — in-memory only, no real persistence (matches Practice Room's existing
 // "lost on refresh" behavior).
-const BROWSER_BASE_URL = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
 const CONTAINER_ID = "practice-onlyoffice-container";
 
 export default function PracticeSheet() {

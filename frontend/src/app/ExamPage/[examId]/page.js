@@ -32,10 +32,13 @@ const PracticeSheet = dynamic(() => import('./PracticeSheet'), {
           <h3 className="text-sm font-semibold text-gray-700">Loading Spreadsheet</h3>
           <p className="text-xs text-gray-400 mt-1">Downloading resources...</p>
           <div className="mt-4 w-full bg-gray-200 rounded-full h-1.5 overflow-hidden relative">
-            <div className="absolute top-0 h-full bg-blue-500 rounded-full" 
+            <div className="absolute top-0 h-full bg-blue-500 rounded-full"
                  style={{ width: '40%', animation: 'spreadsheet-loading 1.5s infinite ease-in-out' }}>
             </div>
           </div>
+          <p className="text-xs text-gray-400 mt-3">
+            You can keep working — your questions, answers, and the timer are unaffected.
+          </p>
         </div>
       </div>
       <style>{`
@@ -51,6 +54,21 @@ import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import useExamStore from "../../../store/useExamStore";
 import Navbar from "./Navbar";
 import Watchdog from "../../../components/Watchdog";
+import ErrorBoundary from "../../../components/ErrorBoundary";
+
+// Compact fallback for the spreadsheet pane. The OnlyOffice embed is the
+// heaviest, most failure-prone part of the page and it's scratch space only
+// (never graded), so if it throws we contain it here instead of letting it
+// bubble to the route-level error.jsx and replace the whole exam UI.
+const SpreadsheetPaneError = () => (
+  <div className="h-full w-full flex flex-col items-center justify-center gap-2 p-4 text-center bg-gray-50 rounded-lg border border-dashed border-gray-300">
+    <h3 className="text-sm font-semibold text-gray-700">Spreadsheet unavailable</h3>
+    <p className="text-xs text-gray-500 max-w-xs">
+      The rough-work spreadsheet failed to load. This is scratch space only — your
+      questions, answers, and timer are unaffected. Reload the page to retry it.
+    </p>
+  </div>
+);
 
 // --- Offline Overlay Component ---
 const OfflineOverlay = () => (
@@ -258,7 +276,9 @@ const ExamPage = () => {
             {/* Practice Sheet */}
             <Panel defaultSize={50} minSize={20}>
               <div className="h-full flex flex-col p-2">
-                <PracticeSheet />
+                <ErrorBoundary fallback={<SpreadsheetPaneError />}>
+                  <PracticeSheet />
+                </ErrorBoundary>
               </div>
             </Panel>
           </PanelGroup>

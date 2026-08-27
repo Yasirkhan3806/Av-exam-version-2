@@ -1,8 +1,8 @@
+import { safeFetch } from "@/utils/safeFetch";
 const fetchInstructors = async (BASEURL) => {
     try {
-        const response = await fetch(`${BASEURL}/instructors/get-instructors`, { credentials: 'include' });
+        const response = await safeFetch(`${BASEURL}/instructors/get-instructors`, { credentials: 'include' });
         const data = await response.json();
-        console.log(data);
         if (!data.success) {
             throw new Error(`Error fetching instructors: ${response.statusText}`);
         }

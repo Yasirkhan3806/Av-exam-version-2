@@ -4,9 +4,10 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Turnstile from "react-turnstile";
+import { BASEURL } from "@/utils/config";
+import { safeFetch } from "@/utils/safeFetch";
 
 export default function ELibrarySignup() {
-  const BASEURL = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -106,7 +107,7 @@ export default function ELibrarySignup() {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${BASEURL}/api/elibrary/auth/register`, {
+      const response = await safeFetch(`${BASEURL}/api/elibrary/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

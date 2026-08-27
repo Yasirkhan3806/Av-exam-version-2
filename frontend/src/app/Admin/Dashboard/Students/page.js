@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Trash2, User, Loader2, Pencil, Search, Mail } from "lucide-react";
 import EditStudentForm from "./components/EditStudentForm";
+import { BASEURL } from "@/utils/config";
+import { safeFetch } from "@/utils/safeFetch";
 
 export default function StudentsPage() {
   const [students, setStudents] = useState([]);
@@ -11,12 +13,11 @@ export default function StudentsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const BASEURL = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
 
   const fetchStudents = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${BASEURL}/auth/get-students`, {
+      const res = await safeFetch(`${BASEURL}/auth/get-students`, {
         cache: "no-store",
         credentials: "include",
       });
@@ -28,7 +29,7 @@ export default function StudentsPage() {
     } finally {
       setLoading(false);
     }
-  }, [BASEURL]);
+  }, []);
 
   useEffect(() => {
     fetchStudents();
@@ -41,7 +42,7 @@ export default function StudentsPage() {
 
     try {
       setDeletingId(id);
-      const res = await fetch(`${BASEURL}/auth/delete-student/${id}`, {
+      const res = await safeFetch(`${BASEURL}/auth/delete-student/${id}`, {
         method: "DELETE",
         credentials: "include",
       });

@@ -20,7 +20,6 @@ const ExamResultPage = () => {
         };
         getResults();
     }, [examId, fetchStudentAnswers]);
-    console.log('ExamResultPage fetched results:', results);
 
     return (
         <div className="container mx-auto p-4">

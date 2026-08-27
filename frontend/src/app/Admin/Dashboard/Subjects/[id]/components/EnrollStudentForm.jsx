@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { Search, UserPlus, User, CheckCircle, X } from "lucide-react";
+import { BASEURL } from "@/utils/config";
+import { safeFetch } from "@/utils/safeFetch";
 
 export default function EnrollStudentPopup({
   isOpen,
@@ -14,7 +16,6 @@ export default function EnrollStudentPopup({
   const [enrolledStudents, setEnrolledStudents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [log, setLog] = useState("");
-  const BASEURL = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
 
   // Mock student data - replace with actual API call
   const [allStudents, setAllStudents] = useState([]);
@@ -22,7 +23,7 @@ export default function EnrollStudentPopup({
   useEffect(() => {
     // Fetch not enrolled students for the subject
     const fetchStudents = async () => {
-      const response = await fetch(
+      const response = await safeFetch(
         `${BASEURL}/subjects/getNotEnrolledStudents/${subjectId}`,
         { credentials: "include" },
       );
@@ -37,7 +38,6 @@ export default function EnrollStudentPopup({
         email: student.email,
         enrollmentStatus: false,
       }));
-      console.log(formattedStudents);
       setAllStudents(formattedStudents);
     };
 
@@ -85,7 +85,7 @@ export default function EnrollStudentPopup({
       // Make API calls for each selected student
       await Promise.all(
         selectedStudents.map(async (studentId) => {
-          const response = await fetch(
+          const response = await safeFetch(
             `${BASEURL}/subjects/EnrollStudent/${subjectId}`,
             {
               method: "POST",

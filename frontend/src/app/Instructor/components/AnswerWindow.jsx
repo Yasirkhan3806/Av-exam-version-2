@@ -1,12 +1,12 @@
 import React from 'react';
 import { FileCheck, Eye, EyeOff } from 'lucide-react';
+import { BASEURL as BaseUrl } from "@/utils/config";
 // Mock data for student answer
 
 
 
 const AnswerPanel = ({ answer, showAnswer, onToggleAnswer }) => {
 
-  const BaseUrl = process.env.NEXT_PUBLIC_BASEURL || 'http://localhost:5000';
   return (
     <div className="flex flex-col h-full bg-white border border-gray-200 rounded-lg overflow-hidden">
       <div className="p-6 border-b border-gray-200">

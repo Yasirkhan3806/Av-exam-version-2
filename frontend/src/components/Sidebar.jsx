@@ -10,10 +10,11 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import useSubjectStore from "../store/useSubjectStore";
+import { BASEURL } from "@/utils/config";
+import { safeFetch } from "@/utils/safeFetch";
 
 export default function Sidebar({ isOpen, toggleSidebar }) {
   const pathname = usePathname();
-  const BASEURL = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
   const { userInfo } = useSubjectStore((state) => state);
   const sidebarItems = [
     { name: "Dashboard", icon: Home, href: "/StudentDashboard" },
@@ -27,7 +28,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
 
   const handleLogout = async () => {
     try {
-      const response = await fetch(`${BASEURL}/auth/logout`, {
+      const response = await safeFetch(`${BASEURL}/auth/logout`, {
         method: "POST",
         credentials: "include",
         headers: {

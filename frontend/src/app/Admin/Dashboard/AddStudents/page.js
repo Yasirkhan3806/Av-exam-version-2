@@ -1,5 +1,7 @@
 "use client";
 import React, { useState } from "react";
+import { BASEURL } from "@/utils/config";
+import { safeFetch } from "@/utils/safeFetch";
 
 
 export default function AddStudents() {
@@ -11,7 +13,6 @@ export default function AddStudents() {
     });
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
-    const BASEURL = process.env.NEXT_PUBLIC_BASEURL || 'http://localhost:5000';
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
@@ -22,13 +23,12 @@ export default function AddStudents() {
         setLoading(true);
         setMessage("");
         try {
-            const res = await fetch(`${BASEURL}/auth/register`, {
+            const res = await safeFetch(`${BASEURL}/auth/register`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(form),
             });
             const data = await res.json();
-            console.log(data);
             if (res.ok) {
                 setMessage(data.message || "Registration successful!");
             } else {

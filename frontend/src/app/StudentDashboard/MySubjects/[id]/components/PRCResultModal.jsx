@@ -1,9 +1,10 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { CheckCircle, XCircle, X } from "lucide-react";
+import { BASEURL as API_URL } from "@/utils/config";
+import { safeFetch } from "@/utils/safeFetch";
 
 // Assuming API_URL is available
-const API_URL = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
 
 const PRCResultModal = ({ examId, onClose }) => {
   const [result, setResult] = useState(null);
@@ -16,7 +17,7 @@ const PRCResultModal = ({ examId, onClose }) => {
       try {
         setLoading(true);
         // We need credentials for verifyToken
-        const response = await fetch(`${API_URL}/prc-exams/results/${examId}`, {
+        const response = await safeFetch(`${API_URL}/prc-exams/results/${examId}`, {
           credentials: "include",
         });
 

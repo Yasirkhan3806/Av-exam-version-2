@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { BASEURL as baseUrl } from "@/utils/config";
+import { safeFetch } from "@/utils/safeFetch";
 
 const LoginPage = () => {
   const [username, setUsername] = useState('');
@@ -9,7 +11,6 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
-  const baseUrl = process.env.NEXT_PUBLIC_BASEURL || 'http://localhost:5000';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -17,7 +18,7 @@ const LoginPage = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${baseUrl}/instructors/instructor-login`, {
+      const response = await safeFetch(`${baseUrl}/instructors/instructor-login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -27,7 +28,6 @@ const LoginPage = () => {
       });
 
       const data = await response.json();
-      console.log(data)
 
       if (data.success) {
       router.push('/Instructor');

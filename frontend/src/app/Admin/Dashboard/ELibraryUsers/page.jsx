@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { BASEURL as BASE_URL } from "@/utils/config";
+import { safeFetch } from "@/utils/safeFetch";
 import {
   Search,
   Mail,
@@ -15,7 +17,6 @@ export default function ELibraryUsersPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const BASE_URL = process.env.NEXT_PUBLIC_BASEURL;
 
   useEffect(() => {
     fetchUsers();
@@ -23,7 +24,7 @@ export default function ELibraryUsersPage() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/api/elibrary/auth/all-users`, {
+      const response = await safeFetch(`${BASE_URL}/api/elibrary/auth/all-users`, {
         method: "GET",
         credentials: "include", // Uses the admin token cookie
       });
@@ -48,7 +49,7 @@ export default function ELibraryUsersPage() {
     }
 
     try {
-      const response = await fetch(
+      const response = await safeFetch(
         `${BASE_URL}/api/elibrary/auth/delete/${userId}`,
         {
           method: "DELETE",

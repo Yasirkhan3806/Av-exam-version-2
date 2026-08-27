@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { BASEURL } from "@/utils/config";
+import { safeFetch } from "@/utils/safeFetch";
 
 export default function AdminLogin() {
-  const BASEURL = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -49,7 +50,7 @@ export default function AdminLogin() {
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
       // In a real app, you would call your API here
-      const response = await fetch(`${BASEURL}/auth/admin-login`, {
+      const response = await safeFetch(`${BASEURL}/auth/admin-login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),

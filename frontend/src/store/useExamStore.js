@@ -7,6 +7,7 @@ import { createExamDataSlice } from "./examStoreSlices/examDataSlice";
 import { createTimerSlice } from "./examStoreSlices/timerSlice";
 import { createAnswersSlice } from "./examStoreSlices/answersSlice";
 import { createCafUploadSlice } from "./examStoreSlices/cafUploadSlice";
+import { BASEURL } from "@/utils/config";
 
 // This store used to be a single 517-line file. It's now composed from
 // focused slices under examStoreSlices/ (exam data + navigation, timer,
@@ -20,7 +21,7 @@ const useExamStore = create(
     (set, get) => ({
       hydrated: false, // <— NEW
       setHydrated: () => set({ hydrated: true }),
-      BASEURL: process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000",
+      BASEURL,
 
       ...createExamDataSlice(set, get),
       ...createTimerSlice(set, get),

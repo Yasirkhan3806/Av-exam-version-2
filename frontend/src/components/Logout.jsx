@@ -1,11 +1,12 @@
 import React from "react";
 import useExamStore from "../store/useExamStore";
+import { BASEURL } from "@/utils/config";
+import { safeFetch } from "@/utils/safeFetch";
 
 export const handleLogout = async () => {
-  const BASEURL = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
   try {
     // ✅ 1. Call backend to destroy session
-    const response = await fetch(`${BASEURL}/auth/logout`, {
+    const response = await safeFetch(`${BASEURL}/auth/logout`, {
       method: "POST",
       credentials: "include", // 👈 Sends cookies (including connect.sid)
       headers: {

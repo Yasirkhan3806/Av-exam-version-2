@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import useExamStore from '../../../store/useExamStore';
+import { BASEURL } from "@/utils/config";
+import { safeFetch } from "@/utils/safeFetch";
 
 
 const Navbar = () => {
@@ -13,11 +15,10 @@ const Navbar = () => {
 
   const logout = async () => {
     
-    const BASEURL = process.env.NEXT_PUBLIC_BASEURL || 'http://localhost:5000';
     try {
           await finishExam();
           // ✅ 1. Call backend to destroy session
-          const response = await fetch(`${BASEURL}/auth/logout`, {
+          const response = await safeFetch(`${BASEURL}/auth/logout`, {
             method: "POST",
             credentials: "include", // 👈 Sends cookies (including connect.sid)
             headers: {
@@ -41,9 +42,20 @@ const Navbar = () => {
         }
   }
 
-  // Update time every second
+  // Update time every second. Read fresh state from the store *inside* the
+  // interval instead of depending on it, so the interval is created ONCE and
+  // free-runs at a steady 1s cadence. Previously `remainingTime` was a dep,
+  // so every tick tore down and recreated the interval — under heavy
+  // main-thread load (e.g. the spreadsheet bootstrapping on a throttled
+  // device) that kept resetting the interval's phase and made the timer
+  // display stutter/jump. The countdown is wall-clock anchored (tick()
+  // recomputes from endTime), so no time is lost regardless.
   React.useEffect(() => {
     const timer = setInterval(() => {
+      const {
+        isOnline, isTransitioning, endTime, remainingTime, totalTime, tick,
+      } = useExamStore.getState();
+
       // Skip ticking and auto-logout while offline or transitioning — exam is paused
       if (!isOnline || isTransitioning) return;
 
@@ -56,7 +68,8 @@ const Navbar = () => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [remainingTime, totalTime, endTime, isOnline, isTransitioning]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const toggleDropdown = () => {
     setIsOverviewDropdownOpen(!isOverviewDropdownOpen);

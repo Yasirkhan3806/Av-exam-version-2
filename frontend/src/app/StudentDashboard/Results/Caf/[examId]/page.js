@@ -2,8 +2,9 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { FileText } from "lucide-react";
+import { BASEURL as BASE_URL } from "@/utils/config";
+import { safeFetch } from "@/utils/safeFetch";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
 
 const CafResult = () => {
   const params = useParams();
@@ -19,7 +20,7 @@ const CafResult = () => {
     const fetchSubmission = async () => {
       try {
         // Fetch submission using credentials to pass the token
-        const res = await fetch(
+        const res = await safeFetch(
           `${BASE_URL}/caf-answers/my-submission/${examId}`,
           {
             credentials: "include",

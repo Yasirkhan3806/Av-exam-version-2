@@ -4,9 +4,10 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Turnstile from "react-turnstile";
+import { BASEURL } from "@/utils/config";
+import { safeFetch } from "@/utils/safeFetch";
 
 export default function ELibraryLogin() {
-  const BASEURL = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -56,7 +57,7 @@ export default function ELibraryLogin() {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${BASEURL}/api/elibrary/auth/login`, {
+      const response = await safeFetch(`${BASEURL}/api/elibrary/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

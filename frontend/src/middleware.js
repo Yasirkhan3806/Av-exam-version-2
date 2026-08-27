@@ -28,12 +28,7 @@ export async function middleware(req) {
 
   const token = req.cookies.get("token")?.value;
 
-  console.log("=== MIDDLEWARE DEBUG ===");
-  console.log("Pathname:", pathname);
-  console.log("Token exists:", !!token);
-
   if (!token) {
-    console.log("No token found, redirecting to /Login");
     return NextResponse.redirect(new URL("/Login", req.url));
   }
 
@@ -42,8 +37,6 @@ export async function middleware(req) {
     const result = await jose.jwtVerify(token, JWT_SECRET, {
       clockTolerance: 120, // 2 minutes tolerance for clock skew between systems
     });
-    console.log("Token verified successfully for user:", result.payload.userId);
-
     // Token valid → continue
     return NextResponse.next();
   } catch (err) {

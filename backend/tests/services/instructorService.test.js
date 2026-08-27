@@ -1,7 +1,7 @@
 import "dotenv/config"; // instructorService.js transitively imports utils/middleware.js, which requires JWT_SECRET at module-load time
 import test from "node:test";
 import assert from "node:assert/strict";
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
 import mongoose from "mongoose";
 import fs from "fs";
 import puppeteer from "puppeteer";

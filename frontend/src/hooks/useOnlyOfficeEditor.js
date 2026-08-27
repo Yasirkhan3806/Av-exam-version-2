@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { loadDocsApi } from "../utils/onlyOfficeLoader";
+import { safeFetch } from "@/utils/safeFetch";
 
 /**
  * Mounts an OnlyOffice DocsAPI.DocEditor into #containerId, fetching a
@@ -19,7 +20,7 @@ import { loadDocsApi } from "../utils/onlyOfficeLoader";
  *   signed config from. Pass null/undefined to hold off firing (e.g. the
  *   real exam pane waits on its exam session to actually start) — the
  *   effect below does nothing until this is a real URL string.
- * @param {RequestInit} [options.fetchOptions] - extra fetch() options,
+ * @param {RequestInit} [options.fetchOptions] - extra safeFetch() options,
  *   e.g. { credentials: "include" }. Not part of the effect's dependency
  *   array (see note below) — pass a stable value if it ever needs to vary
  *   per render in a way that should re-trigger the fetch; today neither
@@ -42,7 +43,7 @@ export function useOnlyOfficeEditor({ containerId, configUrl, fetchOptions, mapE
         await loadDocsApi();
         if (cancelled) return;
 
-        const configRes = await fetch(configUrl, fetchOptions);
+        const configRes = await safeFetch(configUrl, fetchOptions);
         if (!configRes.ok) {
           const message = mapErrorStatus
             ? mapErrorStatus(configRes.status)

@@ -2,23 +2,22 @@
 import React, { useState, useEffect } from "react";
 import { Trash2, FileText, Users, Clock, Pencil } from "lucide-react";
 import EditExamPopup from "./EditExamPopup";
+import { BASEURL as BaseUrl } from "@/utils/config";
+import { safeFetch } from "@/utils/safeFetch";
 
 const Exams = ({ subjectId, subjectType }) => {
   const [exams, setExams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedExam, setSelectedExam] = useState(null);
-  const BaseUrl = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
 
   useEffect(() => {
     fetchExams();
   }, [subjectId, subjectType]);
 
-  console.log(subjectType);
-
   const fetchExams = async () => {
     try {
-      const response = await fetch(
+      const response = await safeFetch(
         `${BaseUrl}/questions/getQuestions/${subjectType}/${subjectId}`,
         {
           method: "GET",
@@ -26,7 +25,6 @@ const Exams = ({ subjectId, subjectType }) => {
         },
       );
       const data = await response.json();
-      console.log("Fetched exams:", data);
       setExams(data);
       setLoading(false);
     } catch (error) {
@@ -42,7 +40,7 @@ const Exams = ({ subjectId, subjectType }) => {
       )
     ) {
       try {
-        const response = await fetch(
+        const response = await safeFetch(
           `${BaseUrl}/questions/deleteQuestion/${subjectType}/${examId}`,
           {
             method: "DELETE",

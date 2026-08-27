@@ -2,6 +2,8 @@
 
 import React, { useState } from "react";
 import { ArrowLeft, X } from "lucide-react";
+import { BASEURL } from "@/utils/config";
+import { safeFetch } from "@/utils/safeFetch";
 
 const PRCExamForm = ({ subjectId, isOpen, onClose }) => {
   const [formData, setFormData] = useState({
@@ -43,10 +45,8 @@ const PRCExamForm = ({ subjectId, isOpen, onClose }) => {
       data.append("subjectId", subjectId);
 
       // Sending simple post to backend, modify URL as needed
-      const response = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000"
-        }/prc-exams/create`,
+      const response = await safeFetch(
+        `${BASEURL}/prc-exams/create`,
         {
           method: "POST",
           body: data,
@@ -58,9 +58,6 @@ const PRCExamForm = ({ subjectId, isOpen, onClose }) => {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to create exam");
       }
-
-      const result = await response.json();
-      console.log("Exam created:", result);
 
       // Reset form
       setFormData({

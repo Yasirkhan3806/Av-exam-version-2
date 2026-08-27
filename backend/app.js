@@ -31,9 +31,6 @@ export function buildApp() {
 
   // Middlewares
   app.use((req, res, next) => {
-    console.log("-----");
-    console.log(`Backend Request: ${req.method} ${req.originalUrl}`);
-    console.log("Backend Headers Origin:", req.headers.origin);
     const allowedOrigins = [
       "http://www.localhost:3000",
       "http://localhost:3000",
@@ -45,10 +42,7 @@ export function buildApp() {
     const origin = req.headers.origin;
 
     if (allowedOrigins.includes(origin)) {
-      console.log("Backend CORS: Origin matched! Allowing:", origin);
       res.header("Access-Control-Allow-Origin", origin);
-    } else {
-      console.log("Backend CORS: Origin NOT matched or undefined. Origin:", origin);
     }
 
     res.header(
@@ -62,7 +56,6 @@ export function buildApp() {
     res.header("Access-Control-Allow-Credentials", "true");
 
     if (req.method === "OPTIONS") {
-      console.log("Backend CORS: Answering OPTIONS preflight");
       return res.sendStatus(200);
     }
 

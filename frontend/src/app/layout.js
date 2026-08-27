@@ -7,7 +7,6 @@ const montserrat = Montserrat({
   variable: "--font-montserrat",
 });
 
-import { BaseUrlProvider } from "../context/BASEURLContext";
 import ErrorBoundary from "../components/ErrorBoundary";
 import GlobalErrorListener from "../components/GlobalErrorListener";
 
@@ -21,9 +20,7 @@ export default async function RootLayout({ children }) {
     <html lang="en" className={`${montserrat.variable}`}>
       <body suppressHydrationWarning>
         <GlobalErrorListener />
-        <ErrorBoundary>
-          <BaseUrlProvider>{children}</BaseUrlProvider>
-        </ErrorBoundary>
+        <ErrorBoundary>{children}</ErrorBoundary>
       </body>
     </html>
   );

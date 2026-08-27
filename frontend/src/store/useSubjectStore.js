@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { safeFetch } from '../utils/safeFetch';
+import { BASEURL as BASE_URL } from "@/utils/config";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASEURL || 'http://localhost:5000';
 
 // === Centralized Fetch Helper ===
 async function fetchJSON(url, options = {}) {
@@ -19,7 +19,6 @@ async function fetchJSON(url, options = {}) {
 async function fetchUserInfo(set) {
   try {
     const data = await fetchJSON(`${BASE_URL}/auth/verifySession`);
-    console.log('Fetched user info:', data);
     set({ userId: data.user.userId, userInfo: data.user });
     return data.user;
   } catch (error) {
@@ -59,7 +58,6 @@ async function fetchExamsForSubject(set, get, subjectId, subjectType, force = fa
   // Check if cache exists and we are not forcing a refresh
   const existing = get().examsBySubject?.[subjectId];
   if (existing && !force) {
-    console.log(`Using cached exams for subject ${subjectId}`);
     return existing;
   }
 
@@ -101,7 +99,6 @@ async function fetchStudentResults(set, get) {
 }
 
 async function fetchStudentAnswers(set, get, examId) {
-  console.log(`Fetching answers for user and exam ${examId}`);
   set({ loading: true, error: null });
   try {
     const userId = await get().userId || (await fetchUserInfo(set))._id;
@@ -182,7 +179,6 @@ const useSubjectStore = create(
         // If no subjectId provided, try to get from currentSubject
         if (!subjectId) {
           const { currentSubject } = get();
-          console.log('No subjectId provided, checking currentSubject:', currentSubject);
 
           if (!currentSubject) {
             console.warn('❌ No subject ID provided and no currentSubject set');
@@ -198,14 +194,9 @@ const useSubjectStore = create(
           return;
         }
 
-        console.log('✅ Clearing cache for subject ID:', subjectId);
-
         set((state) => {
           const updatedExams = { ...state.examsBySubject };
-          const hadCache = subjectId in updatedExams;
           delete updatedExams[subjectId];
-          console.log(`Cache ${hadCache ? 'existed and was' : 'did not exist, but'} cleared`);
-          console.log('Remaining cached subjects:', Object.keys(updatedExams));
           return { examsBySubject: updatedExams };
         });
 
@@ -215,15 +206,10 @@ const useSubjectStore = create(
           if (persisted?.state?.examsBySubject) {
             delete persisted.state.examsBySubject[subjectId];
             localStorage.setItem('subject-storage', JSON.stringify(persisted));
-            console.log('✅ Successfully updated localStorage');
-          } else {
-            console.log('⚠️ No examsBySubject found in localStorage');
           }
         } catch (err) {
           console.warn('❌ Failed to update localStorage:', err);
         }
-
-        console.log(`🧹 Cleared cached data for subject ${subjectId}`);
       },
       clearAllSubjectCache: () => {
         set({ examsBySubject: {} });
@@ -232,7 +218,6 @@ const useSubjectStore = create(
           if (persisted?.state) {
             persisted.state.examsBySubject = {};
             localStorage.setItem('subject-storage', JSON.stringify(persisted));
-            console.log('✅ Cleared all exams cache in localStorage');
           }
         } catch (err) {
           console.warn('❌ Failed to clear exams cache in localStorage:', err);

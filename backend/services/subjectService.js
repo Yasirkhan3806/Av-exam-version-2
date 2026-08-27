@@ -148,68 +148,6 @@ export const getEnrolledSubjects = async (studentId) => {
   return student.subjectsEnrolled;
 };
 
-// export const getExamsForSubject = async (subjectId, userId, subjectType) => {
-//   if (!subjectId) {
-//     throw new AppError("subjectId is required.", 400);
-//   }
-//   console.log(subjectType);
-//   let collectionType;
-//   if (subjectType === "CAF") {
-//     collectionType = CafExamQuestions;
-//   } else if (subjectType === "PRC") {
-//     collectionType = PRCExam;
-//   } else {
-//     collectionType = Questions;
-//   }
-
-//   const answerCollection = subjectType === "CAF" ? "CafExamAnswers" : "Answers";
-
-//   const exams = await collectionType.aggregate([
-//     {
-//       $match: { subject: new mongoose.Types.ObjectId(subjectId) },
-//     },
-//     {
-//       $lookup: {
-//         from: answerCollection,
-//         let: { examId: "$_id" },
-//         pipeline: [
-//           {
-//             $match: {
-//               $expr: {
-//                 $and: [
-//                   { $eq: ["$questionSet", "$$examId"] },
-//                   { $eq: ["$Student", new mongoose.Types.ObjectId(userId)] },
-//                 ],
-//               },
-//             },
-//           },
-//           { $limit: 1 },
-//         ],
-//         as: "userAnswer",
-//       },
-//     },
-//     {
-//       $addFields: {
-//         completed: { $gt: [{ $size: "$userAnswer" }, 0] },
-//       },
-//     },
-//     {
-//       $project: {
-//         _id: 1,
-//         questionSetName: "$name",
-//         totalQuestions: 1,
-//         totalTime: "$totalAttempt",
-//         mockExam: 1,
-//         description: 1,
-//         totalMarks: 1,
-//         completed: 1,
-//       },
-//     },
-//   ]);
-
-//   return exams;
-// };
-
 // PRC has no status field or lifecycle at all — it's auto-graded and
 // written once, atomically, on submit. Existence of a doc *is* completion
 // for PRC. (A status-based check here always evaluates false for it, since

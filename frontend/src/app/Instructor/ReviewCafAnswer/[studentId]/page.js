@@ -2,8 +2,9 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import useInstructorStore from "../../../../store/useInstructorStore";
+import { BASEURL as BASE_URL } from "@/utils/config";
+import { safeFetch } from "@/utils/safeFetch";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
 
 const ReviewCafAnswer = () => {
   const params = useParams();
@@ -22,7 +23,7 @@ const ReviewCafAnswer = () => {
   useEffect(() => {
     const fetchSubmission = async () => {
       try {
-        const res = await fetch(
+        const res = await safeFetch(
           `${BASE_URL}/caf-answers/submission/${studentId}/${currentExamId}`,
           {
             credentials: "include",
@@ -74,7 +75,7 @@ const ReviewCafAnswer = () => {
         formData.append("suggestedSolution", suggestedSolutionPdf);
       }
 
-      const res = await fetch(`${BASE_URL}/caf-answers/mark-submission`, {
+      const res = await safeFetch(`${BASE_URL}/caf-answers/mark-submission`, {
         method: "POST",
         body: formData,
         credentials: "include",

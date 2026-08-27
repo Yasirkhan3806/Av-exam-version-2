@@ -3,17 +3,18 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Trash2, Book, Loader2 } from "lucide-react";
+import { BASEURL } from "@/utils/config";
+import { safeFetch } from "@/utils/safeFetch";
 
 export default function SubjectsPage() {
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
-  const BASEURL = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
 
   const fetchSubjects = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${BASEURL}/subjects/getAllSubjects`, {
+      const res = await safeFetch(`${BASEURL}/subjects/getAllSubjects`, {
         cache: "no-store",
       });
       if (!res.ok) throw new Error("Failed to fetch subjects");
@@ -24,7 +25,7 @@ export default function SubjectsPage() {
     } finally {
       setLoading(false);
     }
-  }, [BASEURL]);
+  }, []);
 
   useEffect(() => {
     fetchSubjects();
@@ -44,7 +45,7 @@ export default function SubjectsPage() {
 
     try {
       setDeletingId(id);
-      const res = await fetch(`${BASEURL}/subjects/deleteSubject/${id}`, {
+      const res = await safeFetch(`${BASEURL}/subjects/deleteSubject/${id}`, {
         method: "DELETE",
         credentials: "include",
       });

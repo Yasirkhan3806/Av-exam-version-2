@@ -1,5 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { BASEURL } from "@/utils/config";
+import { safeFetch } from "@/utils/safeFetch";
 
 const useELibraryAuthStore = create(
   persist(
@@ -20,9 +22,7 @@ const useELibraryAuthStore = create(
       loginELibrary: async (email, password) => {
         set({ eLibraryLoading: true });
         try {
-          const BASEURL =
-            process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
-          const response = await fetch(`${BASEURL}/api/elibrary/auth/login`, {
+          const response = await safeFetch(`${BASEURL}/api/elibrary/auth/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, password }),
@@ -52,9 +52,7 @@ const useELibraryAuthStore = create(
       verifyELibrarySession: async () => {
         set({ eLibraryLoading: true });
         try {
-          const BASEURL =
-            process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
-          const response = await fetch(`${BASEURL}/api/elibrary/auth/verify`, {
+          const response = await safeFetch(`${BASEURL}/api/elibrary/auth/verify`, {
             method: "GET",
             credentials: "include",
           });
@@ -89,9 +87,7 @@ const useELibraryAuthStore = create(
       // Logout eLibrary user
       logoutELibrary: async () => {
         try {
-          const BASEURL =
-            process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
-          await fetch(`${BASEURL}/api/elibrary/auth/logout`, {
+          await safeFetch(`${BASEURL}/api/elibrary/auth/logout`, {
             method: "POST",
             credentials: "include",
           });

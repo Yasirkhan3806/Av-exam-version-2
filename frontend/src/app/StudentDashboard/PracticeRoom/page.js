@@ -52,19 +52,6 @@ const PracticeSheet = dynamic(() => import('./components/PracticeSheet'), {
 const PracticeRoomPage = () => {
   const { initializePractice, reset } = usePracticeStore();
 
-  // useEffect(() => {
-  //   // window.location.reload();
-
-  //   if (sessionStorage.getItem("firstLoad") !== "true") {
-  //     sessionStorage.setItem("firstLoad", "true");
-  //     window.location.reload();
-  //   }
-
-  //   return () => {
-  //     sessionStorage.removeItem("firstLoad");
-  //   };
-  // }, []);
-
   useEffect(() => {
     initializePractice();
     return () => reset();

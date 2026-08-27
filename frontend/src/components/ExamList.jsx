@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ExamInstructionsPopup from "./BeforeExamPopUp";
 import useExamStore from "../store/useExamStore";
+import { safeFetch } from "@/utils/safeFetch";
 
 export default function ExamList() {
   const [examData, setExamData] = useState([]);
@@ -14,19 +15,17 @@ export default function ExamList() {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const router = useRouter();
   const BASEURL = useExamStore((state) => state.BASEURL);
-  console.log("Base URL:", BASEURL);
 
   useEffect(() => {
     async function fetchExams() {
       try {
         setLoading(true);
-        const response = await fetch(`${BASEURL}/questions/getQuestions`, {
+        const response = await safeFetch(`${BASEURL}/questions/getQuestions`, {
           method: "GET",
           credentials: "include",
         });
         if (!response.ok) throw new Error("Failed to fetch exams");
         const data = await response.json();
-        console.log("Fetched exam data:", data);
         setExamData(data);
       } catch (err) {
         setError(err.message);

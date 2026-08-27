@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { Search, FileText, X, Clock, AlertCircle } from "lucide-react";
+import { BASEURL } from "@/utils/config";
+import { safeFetch } from "@/utils/safeFetch";
 
 export default function EditExamPopup({
   isOpen,
@@ -20,11 +22,9 @@ export default function EditExamPopup({
   });
   const [loading, setLoading] = useState(false);
   const [log, setLog] = useState("");
-  const BASEURL = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
 
   useEffect(() => {
     if (exam && isOpen) {
-      console.log("Setting exam data:", exam);
       setFormData({
         name: exam.name || "",
         description: exam.description || "",
@@ -85,7 +85,7 @@ export default function EditExamPopup({
         };
       }
 
-      const response = await fetch(endpoint, {
+      const response = await safeFetch(endpoint, {
         method: method,
         headers: {
           "Content-Type": "application/json",

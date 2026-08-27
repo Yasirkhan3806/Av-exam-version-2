@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Trash2, User, Loader2, Pencil, Search } from "lucide-react";
 import EditInstructorForm from "./components/EditInstructorForm";
+import { BASEURL } from "@/utils/config";
+import { safeFetch } from "@/utils/safeFetch";
 
 export default function InstructorsPage() {
   const [instructors, setInstructors] = useState([]);
@@ -11,12 +13,11 @@ export default function InstructorsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedInstructor, setSelectedInstructor] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const BASEURL = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:5000";
 
   const fetchInstructors = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${BASEURL}/instructors/getInstructors`, {
+      const res = await safeFetch(`${BASEURL}/instructors/getInstructors`, {
         cache: "no-store",
         credentials: "include",
       });
@@ -28,7 +29,7 @@ export default function InstructorsPage() {
     } finally {
       setLoading(false);
     }
-  }, [BASEURL]);
+  }, []);
 
   useEffect(() => {
     fetchInstructors();
@@ -41,7 +42,7 @@ export default function InstructorsPage() {
 
     try {
       setDeletingId(id);
-      const res = await fetch(`${BASEURL}/instructors/deleteInstructor/${id}`, {
+      const res = await safeFetch(`${BASEURL}/instructors/deleteInstructor/${id}`, {
         method: "DELETE",
         credentials: "include",
       });
