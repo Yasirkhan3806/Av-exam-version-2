@@ -1,11 +1,10 @@
 import { PDFDocument } from "pdf-lib";
 import fs from "fs/promises";
 import path from "path";
-import jwt from "jsonwebtoken";
 import { Questions, Answer, CafExamQuestions, CafExamAnswer } from "../models/index.js";
-import { JWT_SECRET } from "../utils/middleware.js";
 import { getExamModel, getExamAndAnswerModels } from "../utils/examTypeResolver.js";
 import { AppError } from "../utils/AppError.js";
+import { signExamToken } from "../utils/examTokenConfig.js";
 
 /**
  * Splits a PDF into individual pages and saves them.
@@ -354,12 +353,7 @@ export const startExam = async (questionSet, studentId) => {
   }
 
   // Generate signed exam token
-  const examPayload = {
-    userId: studentId,
-    ExamId: answerDoc._id,
-  };
-
-  const examToken = jwt.sign(examPayload, JWT_SECRET, { expiresIn: "10h" });
+  const examToken = signExamToken({ userId: studentId, ExamId: answerDoc._id });
 
   return { answerDoc, examToken };
 };

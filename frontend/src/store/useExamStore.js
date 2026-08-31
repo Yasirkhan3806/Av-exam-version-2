@@ -31,6 +31,12 @@ const useExamStore = create(
       reset: () => {
         const subjectStore = useSubjectStore.getState();
         subjectStore.clearSubjectCache(); // Clear cached exams for current subject
+        // Clear any pending OnlyOffice-load-timeout — otherwise a stray
+        // timer from this session could fire after reset() and mutate the
+        // *next* exam session's endTime (setEditorLoading(false) reads
+        // editorLoadingStart/endTime off whatever is current at fire time).
+        const { editorLoadingTimeoutId } = get();
+        if (editorLoadingTimeoutId) clearTimeout(editorLoadingTimeoutId);
         // This will clear all workbook states (rough work) when exam is finished
         set({
           questionName: "",
@@ -52,6 +58,9 @@ const useExamStore = create(
           pauseStartTime: null,
           isTransitioning: false,
           transitionPauseStart: null,
+          editorLoading: false,
+          editorLoadingStart: null,
+          editorLoadingTimeoutId: null,
         });
 
         if (window.localStorage) {
@@ -69,6 +78,9 @@ const useExamStore = create(
               key !== "isOnline" &&
               key !== "isTransitioning" &&
               key !== "transitionPauseStart" &&
+              key !== "editorLoading" &&
+              key !== "editorLoadingStart" &&
+              key !== "editorLoadingTimeoutId" &&
               key !== "uploadProgress" &&
               key !== "uploadDetails"
           )

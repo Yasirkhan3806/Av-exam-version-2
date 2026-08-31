@@ -28,15 +28,29 @@ import { safeFetch } from "@/utils/safeFetch";
  * @param {(status: number) => string} [options.mapErrorStatus] - optional
  *   override for turning a non-ok response status into an error message
  *   (e.g. a friendlier message for 401).
+ * @param {() => void} [options.onReady] - fired once per load, either when
+ *   the document genuinely finishes loading (DocsAPI's onDocumentReady —
+ *   the real "office server is slow" signal, distinct from the config
+ *   fetch resolving) or when the load fails outright. Callers use this to
+ *   release an "is loading" pause (e.g. the exam timer) — it must fire on
+ *   failure too, or that pause would wait forever for a signal that's
+ *   never coming; the error state below already tells the student what
+ *   happened.
  * @returns {{ error: string|null }}
  */
-export function useOnlyOfficeEditor({ containerId, configUrl, fetchOptions, mapErrorStatus }) {
+export function useOnlyOfficeEditor({ containerId, configUrl, fetchOptions, mapErrorStatus, onReady }) {
   const editorInstanceRef = useRef(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     if (!configUrl) return;
     let cancelled = false;
+    let signaled = false;
+    const signalReady = () => {
+      if (cancelled || signaled) return;
+      signaled = true;
+      onReady?.();
+    };
 
     async function init() {
       try {
@@ -53,9 +67,17 @@ export function useOnlyOfficeEditor({ containerId, configUrl, fetchOptions, mapE
         const signedConfig = await configRes.json();
         if (cancelled) return;
 
-        editorInstanceRef.current = new window.DocsAPI.DocEditor(containerId, signedConfig);
+        // events is not part of the signed payload (only document/
+        // documentType/editorConfig/height/width are — see
+        // onlyofficeExamController.js) — adding it here doesn't touch
+        // anything the backend signed.
+        editorInstanceRef.current = new window.DocsAPI.DocEditor(containerId, {
+          ...signedConfig,
+          events: { onDocumentReady: signalReady },
+        });
       } catch (err) {
         if (!cancelled) setError(err.message);
+        signalReady();
       }
     }
 

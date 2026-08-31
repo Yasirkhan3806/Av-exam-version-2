@@ -1,5 +1,17 @@
 import * as questionService from "../services/questionService.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { signExamToken, EXAM_TOKEN_COOKIE_MAX_AGE_MS } from "../utils/examTokenConfig.js";
+
+// Matches the main "token" cookie's own dev/prod split (generateTokenAndSetCookie
+// in utils/middleware.js) — secure+sameSite=none only make sense together in
+// production; forcing secure:true unconditionally would make the browser
+// silently drop the cookie in local http:// dev.
+const examTokenCookieOptions = () => ({
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  domain: process.env.COOKIE_DOMAIN,
+});
 
 /**
  * Add new standard questions (splits PDF)
@@ -70,7 +82,7 @@ export const deleteQuestion = asyncHandler(async (req, res) => {
 export const submitAnswers = asyncHandler(async (req, res) => {
   const { answers, questionSet } = req.body;
   // req.exam is populated by verifyExamToken middleware
-  const { ExamId } = req.exam;
+  const { ExamId, userId } = req.exam;
 
   if (!questionSet) {
     return res.status(400).json({ error: "questionSet is required" });
@@ -79,9 +91,22 @@ export const submitAnswers = asyncHandler(async (req, res) => {
   // Update the answer document
   const updatedDoc = await questionService.submitAnswers(ExamId, answers);
 
+  // Sliding session: every successful autosave reissues the ExamToken (both
+  // the cookie and the value returned in the body for the frontend to send
+  // as a Bearer header on the next request) with a fresh EXAM_TOKEN_LIFETIME
+  // window. As long as the student is actively saving, the session never
+  // approaches expiry regardless of total exam length — only genuine
+  // inactivity past the ceiling logs them out. See utils/examTokenConfig.js.
+  const refreshedToken = signExamToken({ userId, ExamId });
+  res.cookie("ExamToken", refreshedToken, {
+    ...examTokenCookieOptions(),
+    maxAge: EXAM_TOKEN_COOKIE_MAX_AGE_MS,
+  });
+
   return res.status(200).json({
     message: "Answers updated successfully",
     id: updatedDoc._id,
+    ExamToken: refreshedToken,
   });
 });
 
@@ -102,10 +127,8 @@ export const startExam = asyncHandler(async (req, res) => {
 
   // Set secure cookie
   res.cookie("ExamToken", examToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    maxAge: 2 * 60 * 60 * 1000,
+    ...examTokenCookieOptions(),
+    maxAge: EXAM_TOKEN_COOKIE_MAX_AGE_MS,
   });
 
   return res.status(200).json({
@@ -121,11 +144,7 @@ export const finishExam = asyncHandler(async (req, res) => {
   // Mark the Answer doc as submitted
   await questionService.submitExamSession(ExamId);
 
-  res.clearCookie("ExamToken", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-  });
+  res.clearCookie("ExamToken", examTokenCookieOptions());
 
   return res.status(200).json({
     message: "Exam finished, ExamToken cleared",

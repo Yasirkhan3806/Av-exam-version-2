@@ -70,9 +70,17 @@ export const createAnswersSlice = (set, get) => ({
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 10000);
 
+      const { examToken } = get();
       const response = await fetch(`${get().BASEURL}/questions/submitAnswers`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          // Bearer fallback — survives SameSite/Domain cookie issues the
+          // ExamToken cookie alone can't. Only added once we actually have
+          // one (startExam() may not have resolved yet on the very first
+          // autosave); the cookie (credentials:"include") still covers that.
+          ...(examToken ? { Authorization: `Bearer ${examToken}` } : {}),
+        },
         credentials: "include",
         signal: controller.signal,
         body: JSON.stringify({
@@ -83,7 +91,16 @@ export const createAnswersSlice = (set, get) => ({
       clearTimeout(timeout);
 
       if (!response.ok) throw new Error("Failed to save answers");
-      set({ saving: false, lastSaveTime: Date.now() });
+
+      // Sliding session: the server reissues a fresh ExamToken (cookie +
+      // body) on every successful save — swap it in so the next save keeps
+      // extending the window instead of racing toward the original expiry.
+      const data = await response.json().catch(() => null);
+      set({
+        saving: false,
+        lastSaveTime: Date.now(),
+        ...(data?.ExamToken ? { examToken: data.ExamToken } : {}),
+      });
       return true;
     } catch (error) {
       if (retryCount < MAX_RETRIES) {
@@ -121,6 +138,10 @@ export const createAnswersSlice = (set, get) => ({
         throw new Error("Failed to save final answers to the server.");
       }
 
+      // Capture before reset() below — reset() doesn't clear examToken today,
+      // but read it now regardless so this call never depends on that.
+      const { examToken } = get();
+
       // 2. If saveAnswers succeeded, we MUST reset local state immediately
       // so the user isn't trapped in a dead exam on refresh, regardless of
       // what happens to the next API call.
@@ -131,6 +152,7 @@ export const createAnswersSlice = (set, get) => ({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(examToken ? { Authorization: `Bearer ${examToken}` } : {}),
         },
         credentials: "include",
       }, 15000);

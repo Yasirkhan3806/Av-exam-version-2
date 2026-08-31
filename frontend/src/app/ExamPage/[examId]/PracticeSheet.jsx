@@ -55,11 +55,23 @@ export default function PracticeSheet() {
     ? `${BROWSER_BASE_URL}/api/onlyoffice/exam/${currentQuestion}/config`
     : null;
 
+  // Pause the exam timer for every spreadsheet (re)load, not just the first
+  // — each question switch re-inits the editor, and a slow office server
+  // hits every one of those, not only exam start. useOnlyOfficeEditor's
+  // onReady resumes it, on genuine ready or on load failure alike; a hard
+  // timeout inside setEditorLoading resumes it regardless if the office
+  // server never responds at all (see timerSlice.js).
+  const setEditorLoading = useExamStore((state) => state.setEditorLoading);
+  useEffect(() => {
+    if (configUrl) setEditorLoading(true);
+  }, [configUrl, setEditorLoading]);
+
   const { error } = useOnlyOfficeEditor({
     containerId: CONTAINER_ID,
     configUrl,
     fetchOptions: FETCH_OPTIONS,
     mapErrorStatus,
+    onReady: () => setEditorLoading(false),
   });
 
   if (error) {
